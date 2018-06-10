@@ -1,8 +1,10 @@
 <template>
-  <div class="container" :style="{height:fontSize*6+'rem'}">
+  <div class="ani-input" :style="{height:fontSize*5.5+'rem'}">
     <div class="placeholder" :style="phStyle">{{title}}</div>
-    <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"></div>
-    <div class="ani-bb" :style="bbStyle"></div>
+
+      <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"></div>
+      <div class="ani-bb" :style="bbStyle"></div>
+
     <div class="hint" :style="hintStyle">{{hint}}</div>
   </div>
 </template>
@@ -32,6 +34,7 @@
           paddingTop:this.fontSize*0.25+'rem',
           paddingBottom:this.fontSize*0.25+'rem',
           fontSize:this.fontSize+'rem',
+          top:this.fontSize*2+'rem'
         }
         this.phStyle={
           height:this.fontSize*1.5+'rem',
@@ -43,12 +46,12 @@
         this.bbStyle={
           width:0,
           height:0,
-          bottom:this.fontSize*2+'rem',
+          top:this.fontSize*4+'rem',
         }
         this.hintStyle={
-          height:this.fontSize*1.5+'rem',
-          paddingTop:this.fontSize*0.25+'rem',
-          paddingBottom:this.fontSize*0.25+'rem',
+          height:this.fontSize*1.3+'rem',
+          paddingTop:this.fontSize*0.1+'rem',
+          paddingBottom:this.fontSize*0.1+'rem',
           fontSize:this.fontSize*0.9+'rem',
         }
       },
@@ -56,7 +59,7 @@
         Focus() {
           this.phStyle.top = 0;
           this.phStyle.fontSize=this.fontSize*0.9+'rem';
-          this.bbStyle.width='80%';
+          this.bbStyle.width='100%';
         },
         Blur(){
           this.bbStyle.width=0;
@@ -86,32 +89,30 @@
     margin: 0;
     padding: 0;
   }
-  .container{
-    display: flex;
-    flex-direction: column;
+  .ani-input{
     width: 100%;
-    align-items: center;
     position: relative;
-    justify-content: center;
+    font-smoothing: antialiased;
   }
 
   .input{
-    width: 80%;
-    font-size: medium;
-    height: fit-content;
+    width: 100%;
     outline: none;
-    border-bottom: 1px solid lightgray;
     z-index: 10;
+    position: absolute;
+    border-bottom: 1px solid lightgray;
   }
 
   .hint{
-    width: 80%;
+    width: 100%;
     position: absolute;
     bottom: 0;
+    display: flex;
+    align-items: flex-end;
   }
 
   .placeholder{
-    width: 80%;
+    width: 100%;
     display: flex;
     align-items: center;
     position: absolute;
@@ -123,8 +124,7 @@
     position: absolute;
     transition: all 0.5s ease-in-out;
     border-bottom: 3px solid dodgerblue;
-    left: 10%;
+    left: 0;
     z-index: 10;
-    margin-bottom: -1px;
   }
 </style>

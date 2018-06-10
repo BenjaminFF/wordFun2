@@ -6,7 +6,7 @@
     </div>
     <div class="list">
       <div class="item" v-for="n in 20">
-        <p :style="cursor">ldakjfdalksfjalkfasfasfasfsfasfasfsafasfsfsafsafasfassafasfasfafsaf</p>
+        <p>ldakjfdalksfjalkfasfasfasfsfasfasfsafasfsfsafsafasfassafasfasfafsaf</p>
       </div>
     </div>
   </div>
