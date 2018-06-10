@@ -6,7 +6,7 @@
         <ani-input title="username" :fontSize="1.3" :hint="nameHint"></ani-input>
         <ani-input title="email" :fontSize="1.3" :hint="emailHint"></ani-input>
         <ani-input title="password" :fontSize="1.3" :hint="pwHint"></ani-input>
-        <my-button :fontSize="1.2" class="button">submit</my-button>
+        <my-button :fontSize="1.2" class="button" v-on:click.native="login">submit</my-button>
       </div>
     </div>
   </div>
@@ -26,7 +26,14 @@
           }
       },
       methods:{
+          login:function () {
+            console.info("gg");
+            this.$http.get('api/signup').then(function (response) {
+              console.info(response);
+            },function (response) {
 
+            });
+          }
       }
     }
 </script>

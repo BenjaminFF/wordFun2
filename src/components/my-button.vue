@@ -1,5 +1,5 @@
 <template>
-    <div class="my-button" :style="bStyle">
+    <div class="my-button" :style="bStyle" @click="">
       <slot></slot>
     </div>
 </template>
@@ -18,7 +18,8 @@
           fontSize:{
             type:Number,
             required:true
-          }
+          },
+
       },
       created(){
           this.bStyle={
