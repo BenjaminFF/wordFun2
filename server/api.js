@@ -1,8 +1,8 @@
 const express=require('express');
 const router=express.Router();
 
-router.get('/api/signup',function (req,res) {
-  res.send('hello nodejs');
+router.get('/api/verifyname',function (req,res) {
+
 });
 
 module.exports = router;

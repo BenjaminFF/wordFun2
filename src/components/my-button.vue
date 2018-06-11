@@ -1,5 +1,5 @@
 <template>
-    <div class="my-button" :style="bStyle" @click="">
+    <div class="my-button" :style="bStyle">
       <slot></slot>
     </div>
 </template>

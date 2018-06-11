@@ -2,10 +2,12 @@
   <div class="ani-input" :style="{height:fontSize*5.5+'rem'}">
     <div class="placeholder" :style="phStyle">{{title}}</div>
 
-      <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"></div>
+      <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"
+           v-bind="$attrs" v-on="inputListeners"
+      ></div>
       <div class="ani-bb" :style="bbStyle"></div>
 
-    <div class="hint" :style="hintStyle">{{hint}}</div>
+    <div class="hint" v-bind:style="hintStyle">{{hint.text}}</div>
   </div>
 </template>
 
@@ -25,7 +27,7 @@
             },
             hintStyle:{
 
-            }
+            },
           }
       },
       created:function(){
@@ -48,11 +50,26 @@
           height:0,
           top:this.fontSize*4+'rem',
         }
+        var hint=this.hint;
         this.hintStyle={
           height:this.fontSize*1.3+'rem',
           paddingTop:this.fontSize*0.1+'rem',
           paddingBottom:this.fontSize*0.1+'rem',
-          fontSize:this.fontSize*0.9+'rem',
+          fontSize:this.fontSize*0.8+'rem',
+          color:hint.color
+        }
+      },
+      computed:{
+        inputListeners:function () {
+          var vm=this;
+          return Object.assign({},
+            this.$listeners,
+            {
+              input:function (event) {
+                vm.$emit('input',event.target.innerHTML)
+              }
+            }
+          )
         }
       },
       methods:{
@@ -71,6 +88,15 @@
             required:true
           },
           hint:{
+            type:Object,
+            default:function () {
+              return {
+                text:"",
+                color:"grey"
+              }
+            }
+          },
+          value:{
             type:String
           },
         fontSize:{
@@ -88,6 +114,7 @@
   div,p,input{
     margin: 0;
     padding: 0;
+    user-select: none;
   }
   .ani-input{
     width: 100%;
@@ -109,6 +136,7 @@
     bottom: 0;
     display: flex;
     align-items: flex-end;
+    display: inline;
   }
 
   .placeholder{

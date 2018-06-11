@@ -1,9 +1,9 @@
 <template>
   <div class="model">
     <div class="dialog">
-      <div class="header">Sign Up</div>
+      <div class="header">Log In</div>
       <div class="container">
-        <ani-input title="username" :fontSize="1.3" :hint="nameHint"></ani-input>
+        <ani-input title="username" :fontSize="1.3" :hint="nameHint" v-model="nameHint"></ani-input>
         <ani-input title="email" :fontSize="1.3" :hint="emailHint"></ani-input>
         <ani-input title="password" :fontSize="1.3" :hint="pwHint"></ani-input>
         <my-button :fontSize="1.2" class="button" v-on:click.native="login">submit</my-button>
@@ -28,7 +28,8 @@
       methods:{
           login:function () {
             console.info("gg");
-            this.$http.get('api/signup').then(function (response) {
+            this.$http.get('api/signup',
+            ).then(function (response) {
               console.info(response);
             },function (response) {
 

@@ -5,7 +5,7 @@
       <my-sidebar class="sidebar"></my-sidebar>
       <w-container class="container"></w-container>
     </div>
-    <log-in></log-in>
+    <sign-up></sign-up>
   </div>
 </template>
 
@@ -15,9 +15,10 @@ import MySidebar from "./components/my-sidebar";
 import WContainer from "./components/w-container";
 import Tools from "./components/tools";
 import LogIn from "./components/log-in";
+import SignUp from "./components/sign-up";
 export default {
   name: 'App',
-  components: {LogIn, Tools, WContainer, MySidebar, MyHeader}
+  components: {SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader}
 }
 </script>
 
