@@ -2,11 +2,13 @@
     <div class="model">
       <div class="dialog">
         <div class="container">
-          <ani-input :font-size="1.3" title="username" :hint="nameHint"
-                     v-on:input="nameListener"></ani-input>
-          <ani-input :font-size="1.3" title="email" :hint="emailHint"></ani-input>
-          <ani-input :font-size="1.3" title="password" :hint="pwHint"></ani-input>
-          <my-button :font-size="1.2" class="button">sign up</my-button>
+          <ani-input :font-size="1.3" title="username" :hint="nameInfo.hint"
+                     v-on:input="nameListener" :validate="nameInfo.Validated" @keydown.native="checkLength"
+                     @blur="nameBlur"
+          ></ani-input>
+          <ani-input :font-size="1.3" title="email" :hint="emailInfo.hint"></ani-input>
+          <ani-input :font-size="1.3" title="password" :hint="pwInfo.hint"></ani-input>
+          <my-button :font-size="1.2" class="button" >sign up</my-button>
         </div>
       </div>
     </div>
@@ -19,47 +21,106 @@
         name: "sign-up",
       data(){
           return{
-            nameHint: {
-              text:"length must greater than 6",
-              color:'lightgrey'
+            nameInfo:{
+              value:"",
+              Validated:false,
+              hint:{
+                text:"username123",
+                color:'lightgrey',
+              },
+              isVerifying:false
             },
-            pwHint: {
-              text:"lenght>=6,must have letter,number",
-              color:'lightgrey'
+            emailInfo:{
+              value:"",
+              Validated:false,
+              hint:{
+                text:"wordfun@123.com",
+                color:'lightgrey',
+              }
             },
-            emailHint: {
-              text:"wordfun@123.com",
-              color:'lightgrey'
+            pwInfo:{
+              value:"",
+              Validated:false,
+              hint:{
+                text:"",
+                color:'lightgrey',
+              }
             },
-            vNameIndex:0
           }
       },
       methods:{
-          /*用户名不能小于6；用户名只能包含字母，数组，下划线；用户名不能重复*/
-          nameListener(innerHTML){
-            if(innerHTML.length<6){
-              this.nameHint.text="username must greater than 6";
-              this.nameHint.color="red";
-              console.info(this.nameHint.color);
-            }else {
-              if(!/^\w+$/.test(innerHTML)){
-                this.nameHint.text="username must only contain letter,number,underscore";
-                this.nameHint.color="lightred";
-              }else {
-                this.vNameIndex++;
-                var vNameIndex=this.vNameIndex;
-                this.$http.get('api/verifyname',
-                  {
-                    name:innerHTML,
-                    vNameIndex:vNameIndex
-                  }
-                ).then(function (response) {
-                  console.info(response);
-                },function (response) {
-                });
+          checkLength(event){
+            if(event.target.innerHTML.length>=15){
+              // Backspace, del, 左右方向键
+              var code=event.keyCode;
+              if (code != 8&&code != 46&&code != 37&&code != 39){
+                this.nameInfo.hint.text="username length no more than 15";
+                this.nameInfo.hint.color="orangered";
+                event.preventDefault();
               }
             }
+          },
+          nameBlur(){
+            if(this.nameInfo.value.length==15){
+              this.nameInfo.hint.text="";
+            }
+          },
+          /*假定用户1s完成输入，双手离开键盘，然后判断用户名*,1s之内只判断一次*/
+          nameListener(event){
+            var that=this;
+            that.nameInfo.value=event.target.innerHTML;
+            if(!this.nameInfo.isVerifying){
+              setTimeout(function () {
+                that.verifyname(that.nameInfo.value);
+                that.nameInfo.isVerifying=false;
+              },1000);
+              that.nameInfo.isVerifying=true;
+            }
+          },
+        /*用户名不能小于6；用户名只能包含字母，数组，下划线；用户名不能重复*/
+        verifyname(value) {
+          var that = this;
+          if (value.length < 6) {
+            that.nameInfo.hint.text="username must greater than 6";
+            that.nameInfo.hint.color="orangered";
+            that.nameInfo.Validated=false;
+          } else {
+            if (!/^\w+$/.test(value)) {
+              that.nameInfo.hint.text = "username must only contain letter,number,underscore";
+              that.nameInfo.hint.color = "orangered";
+              that.nameInfo.Validated=false;
+            } else {
+              this.axios.get('/api/verifyname', {
+                params: {
+                  username: value
+                }
+              })
+                .then(function (response) {
+                  console.log(response.data);
+                  if(response.data=='notsign'){
+                    that.nameInfo.Validated=true;
+                    that.nameInfo.hint.text = "";
+                    that.nameInfo.hint.color = "orangered";
+                  }else {
+                    that.nameInfo.Validated=false;
+                    that.nameInfo.hint.text = "username has already signed";
+                    that.nameInfo.hint.color = "orangered";
+                  }
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+            }
           }
+          console.log(value+" verifyed");
+          this.isVerifyIng=false;
+        },
+        emailListener(innerHTML){
+
+        },
+        verifyemail(value){
+
+        }
       },
       components: {MyButton, AniInput}
     }

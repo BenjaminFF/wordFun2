@@ -5,9 +5,10 @@
       <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"
            v-bind="$attrs" v-on="inputListeners"
       ></div>
+      <img src="../assets/tick.svg" :style="imgStyle" class="tick" v-if="validate">
       <div class="ani-bb" :style="bbStyle"></div>
 
-    <div class="hint" v-bind:style="hintStyle">{{hint.text}}</div>
+    <div class="hint" v-bind:class="hintStyle" v-bind:style="{color:hint.color}">{{hint.text}}</div>
   </div>
 </template>
 
@@ -28,6 +29,9 @@
             hintStyle:{
 
             },
+            imgStyle:{
+
+            }
           }
       },
       created:function(){
@@ -50,13 +54,18 @@
           height:0,
           top:this.fontSize*4+'rem',
         }
-        var hint=this.hint;
         this.hintStyle={
           height:this.fontSize*1.3+'rem',
           paddingTop:this.fontSize*0.1+'rem',
           paddingBottom:this.fontSize*0.1+'rem',
           fontSize:this.fontSize*0.8+'rem',
-          color:hint.color
+        }
+        this.imgStyle={
+          width:this.fontSize*1.5+'rem',
+          height:this.fontSize*1.5+'rem',
+          paddingTop:this.fontSize*0.25+'rem',
+          paddingBottom:this.fontSize*0.25+'rem',
+          top:this.fontSize*2+'rem',
         }
       },
       computed:{
@@ -66,7 +75,7 @@
             this.$listeners,
             {
               input:function (event) {
-                vm.$emit('input',event.target.innerHTML)
+                vm.$emit('input',event);
               }
             }
           )
@@ -105,6 +114,12 @@
         },
         bbColor:{
             type:String
+        },
+        validate:{
+            type:Boolean,
+          default(){
+              return false;
+          }
         }
       },
     }
@@ -154,5 +169,9 @@
     border-bottom: 3px solid dodgerblue;
     left: 0;
     z-index: 10;
+  }
+  .tick{
+    position: absolute;
+    right: 0;
   }
 </style>
