@@ -2,10 +2,8 @@ const express=require('express');
 const router=express.Router();
 const mysql=require('mysql');
 
-
-
-router.get('/api/verifyname',function (req,res) {
-  if(req.query.username!=undefined){
+function queryData(value,res,column){
+  if(value!=undefined){
     var connection = mysql.createConnection({
       host     : 'localhost',
       user     : 'root',
@@ -14,7 +12,7 @@ router.get('/api/verifyname',function (req,res) {
       database: 'benjamin',
     });
     connection.connect();
-    var sql='select * from user where username=\''+req.query.username+'\'';
+    var sql='select * from user where '+column+'=\''+value+'\'';
     connection.query(sql,function (err, result) {
       if(err){
         console.log('[SELECT ERROR] - '+err.message)
@@ -32,6 +30,14 @@ router.get('/api/verifyname',function (req,res) {
   }else {
     res.send('error');
   }
+}
+
+router.get('/api/verifyname',function (req,res) {
+  queryData(req.query.username,res,'username');
+});
+
+router.get('/api/verifyemail',function (req,res) {
+  queryData(req.query.email,res,'email');
 });
 
 module.exports = router;
