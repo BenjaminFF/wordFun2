@@ -1,5 +1,5 @@
 <template>
-    <div class="model">
+    <div class="model" v-if="isShow" @click="isShow=false">
       <div class="dialog">
         <div class="container">
           <ani-input :font-size="1.3" title="username" :hint="nameInfo.hint"
@@ -12,6 +12,7 @@
           ></ani-input>
           <my-button :font-size="1.2" class="button" @click.native="signup">sign up</my-button>
         </div>
+        <img src="../assets/delete.svg" class="rtimg" @click="isShow=false">
       </div>
     </div>
 </template>
@@ -19,6 +20,7 @@
 <script>
     import AniInput from "./ani-input";
     import MyButton from "./my-button";
+    import nodersa from "node-rsa"
     export default {
         name: "sign-up",
       data(){
@@ -48,6 +50,7 @@
                 color:'lightgrey',
               }
             },
+            isShow:true,
           }
       },
       methods:{
@@ -180,8 +183,47 @@
           }
         },
         signup(){
+          var that=this;
+          var elementList=document.querySelectorAll(".input");
           if(!this.nameInfo.Validated){
-
+            if(this.nameInfo.Validated==""){
+              this.nameInfo.hint.text="username cannot be empty";
+            }
+            this.nameInfo.hint.color="orangered";
+            elementList[0].focus();
+          }else if(!this.emailInfo.Validated){
+            if(this.emailInfo.Validated==""){
+              this.emailInfo.hint.text="email cannot be empty";
+            }
+            this.emailInfo.hint.color="orangered";
+            elementList[1].focus();
+          }else if(!this.pwInfo.Validated){
+            if(this.pwInfo.Validated==""){
+              this.pwInfo.hint.text="password cannot be empty";
+            }
+            this.pwInfo.hint.color="orangered";
+            elementList[2].focus();
+          }else {
+            console.info("success");
+            var encryptpw;
+            this.axios.get('/static/wpublickey.pem').then(function (response) {
+              var key=new nodersa(response.data);
+              encryptpw=key.encrypt(that.pwInfo.value,'base64');
+              var vm=that;
+              vm.axios.get('/api/signup', {
+                params: {
+                  username:that.nameInfo.value,
+                  email:that.emailInfo.value,
+                  password:encryptpw
+                }
+              })
+                .then(function (response) {
+                  console.log(response.data);
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+            });
           }
         }
       },
@@ -213,6 +255,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
   }
   .container{
     margin-top: 4rem;
@@ -222,5 +265,17 @@
 
   .button{
     margin-top: 3rem;
+  }
+
+  .rtimg{
+    width: 2rem;
+    height: 2rem;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+  }
+
+  .rtimg:hover{
+    cursor: pointer;
   }
 </style>

@@ -7,6 +7,7 @@ import vueaixos from 'vue-axios'
 Vue.use(Router)
 Vue.use(vueaixos,axios)
 
+
 export default new Router({
   routes: [
     {

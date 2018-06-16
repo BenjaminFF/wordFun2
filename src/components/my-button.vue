@@ -49,6 +49,7 @@
     padding-bottom: 1rem;
     font-smoothing: antialiased;
     box-shadow: 1px 1px 5px lightgray;
+    user-select: none;
   }
   .my-button:hover{
     background-color: yellowgreen;
