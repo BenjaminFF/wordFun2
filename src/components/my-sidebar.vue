@@ -2,7 +2,7 @@
   <div class="sidebar">
     <div class="title">
       All Set
-      <img src="../assets/bar3.svg"/>
+      <icon name="files" class="icon"></icon>
     </div>
     <div class="list">
       <div class="item" v-for="n in 20">
@@ -13,13 +13,12 @@
 </template>
 
 <script>
-  import '../assets/feather.svg'
-  var f=require('../assets/feather.svg');
+  var svglogo =require('../assets/bar.svg');
     export default {
         name: "my-sidebar",
       data(){
           return{
-
+            svglogo
           }
       }
     }
@@ -35,7 +34,7 @@
   }
   .title{
     width: 100%;
-    height: 3em;
+    height: 3rem;
     border-bottom: 1px solid lightgray;
     display: flex;
     justify-content: center;
@@ -45,10 +44,10 @@
   }
 
   .list{
-    margin-top: 1em;
+    margin-top: 1rem;
     width: 100%;
     height: fit-content;
-    margin-bottom: 1em;
+    margin-bottom: 1rem;
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -68,16 +67,16 @@
     background: gray;
   }
 
-  .title img{
+  .title .icon{
     position: absolute;
-    width: 1.2em;
-    height: 1.2em;
-    right: 1em;
+    width: 1.2rem;
+    height: 1.2rem;
+    right: 1rem;
     cursor: pointer;
   }
   .item{
     width: 80%;
-    height: 3em;
+    height: 3rem;
     flex-shrink: 0;
     display: flex;
     justify-content: center;
@@ -85,7 +84,7 @@
   }
   .item p{
     width: fit-content;
-    max-width: 12em;
+    max-width: 12rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -1,20 +1,22 @@
 <template>
-    <div class="model" v-if="isShow" @click="isShow=false">
-      <div class="dialog">
-        <div class="container">
-          <ani-input :font-size="1.3" title="username" :hint="nameInfo.hint"
-                     v-on:input="nameListener"
-                     :validate="nameInfo.Validated" @keydown.native="checkLength($event,nameInfo,15)"></ani-input>
-          <ani-input :font-size="1.3" title="email" :hint="emailInfo.hint"
-                     :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="checkLength($event,emailInfo,35)"></ani-input>
-          <ani-input :font-size="1.3" title="password" :hint="pwInfo.hint"
-                     v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="checkLength($event,pwInfo,20)"
-          ></ani-input>
-          <my-button :font-size="1.2" class="button" @click.native="signup">sign up</my-button>
+  <transition name="fade">
+    <div class="model" v-if="isShow" @click="dismiss($event)">
+        <div class="dialog">
+          <div class="container">
+            <ani-input :font-size="1.3" title="username" :hint="nameInfo.hint"
+                       v-on:input="nameListener"
+                       :validate="nameInfo.Validated" @keydown.native="checkLength($event,nameInfo,20)"></ani-input>
+            <ani-input :font-size="1.3" title="email" :hint="emailInfo.hint"
+                       :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="checkLength($event,emailInfo,30)"></ani-input>
+            <ani-input :font-size="1.3" title="password" :hint="pwInfo.hint" :security="true"
+                       v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="checkLength($event,pwInfo,20)"
+            ></ani-input>
+            <my-button :font-size="1.2" class="button" @click.native="signup">sign up</my-button>
+          </div>
+            <icon name="delete" class="rtimg"></icon>
         </div>
-        <img src="../assets/delete.svg" class="rtimg" @click="isShow=false">
-      </div>
     </div>
+  </transition>
 </template>
 
 <script>
@@ -50,10 +52,42 @@
                 color:'lightgrey',
               }
             },
-            isShow:true,
+            isShow:this.showSU
+          }
+      },
+      watch:{
+          showSU:function () {
+            this.isShow=this.showSU;
           }
       },
       methods:{
+          init(){
+            this.nameInfo={
+              value:"",
+              Validated:false,
+              hint:{
+                text:"username123",
+                color:'lightgrey',
+              },
+              isVerifying:false
+            }
+            this.emailInfo={
+              value:"",
+                Validated:false,
+                hint:{
+                text:"wordfun@123.com",
+                  color:'lightgrey',
+              }
+            }
+            this.pwInfo={
+              value:"",
+                Validated:false,
+                hint:{
+                text:"",
+                  color:'lightgrey',
+              }
+            }
+          },
           checkLength(event,inputInfo,length){
             if(event.target.innerHTML.length>=length){
               // Backspace, del, 左右方向键
@@ -225,6 +259,22 @@
                 });
             });
           }
+        },
+        dismiss(event){
+          var isIcon=event.target.nodeName=='path'||event.target.nodeName=='svg';
+          if(event.target.className=="model"||isIcon){
+            this.isShow=false;
+            this.$emit('dismiss');
+            this.init();
+          }
+        }
+      },
+      props:{
+          showSU:{
+          type:Boolean,
+          default:function () {
+            return false;
+          }
         }
       },
       components: {MyButton, AniInput}
@@ -246,6 +296,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 10;
   }
   .dialog{
     width: 35rem;
@@ -273,9 +324,18 @@
     position: absolute;
     right: 1rem;
     top: 1rem;
+    color: gray;
   }
 
   .rtimg:hover{
     cursor: pointer;
+    color: #0FA3B1;
+  }
+
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+  .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
   }
 </style>

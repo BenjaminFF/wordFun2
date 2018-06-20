@@ -38,7 +38,7 @@
     flex-shrink: 0;
     box-sizing: border-box;
     width: 100%;
-    height: 7em;
+    height: 7rem;
     border-bottom: 1px solid lightgray;
     display: flex;
     justify-content: center;

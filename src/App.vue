@@ -1,11 +1,9 @@
 <template>
   <div id="app">
-    <my-header class="header"></my-header>
+    <my-header class="header" v-on:signup="signup"></my-header>
     <div class="main-content">
-      <my-sidebar class="sidebar"></my-sidebar>
-      <w-container class="container"></w-container>
+
     </div>
-    <sign-up></sign-up>
   </div>
 </template>
 
@@ -18,7 +16,17 @@ import LogIn from "./components/log-in";
 import SignUp from "./components/sign-up";
 export default {
   name: 'App',
-  components: {SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader}
+  data(){
+    return{
+      showSU:false
+    }
+  },
+  components: {SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader},
+  methods:{
+    signup(){
+      this.showSU=true;
+    }
+  }
 }
 </script>
 
@@ -43,10 +51,9 @@ export default {
     flex: 1 0 0;
   }
   .main-content{
-    width: 80%;
+    width: 100%;
     flex: 8 0 0;
     display: flex;
-    margin: 2em 10%;
   }
 
   .sidebar{
@@ -54,10 +61,6 @@ export default {
   }
   .container{
     flex: 8 0 0;
-    margin-left: 2em;
-  }
-  .tools{
-    flex: 1 0 0;
     margin-left: 2em;
   }
 </style>

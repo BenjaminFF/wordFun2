@@ -42,17 +42,17 @@
     align-items: center;
     transition: all 0.5s ease-in-out;
     color: white;
-    background-color: dodgerblue;
+    background-color: rgb(16, 198, 213);
     width: 100%;
     height: fit-content;
     padding-top: 1rem;
     padding-bottom: 1rem;
     font-smoothing: antialiased;
-    box-shadow: 1px 1px 5px lightgray;
+    box-shadow: 1px 1px 5px lightgrey;
     user-select: none;
   }
   .my-button:hover{
-    background-color: yellowgreen;
+    background-color: #0FA3B1;
     cursor: pointer;
   }
 </style>

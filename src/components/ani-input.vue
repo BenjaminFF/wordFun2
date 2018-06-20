@@ -3,9 +3,9 @@
     <div class="placeholder" :style="phStyle">{{title}}</div>
 
       <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"
-           v-bind="$attrs" v-on="inputListeners"
+           v-bind="$attrs" v-on="inputListeners" :class="{security:security}"
       ></div>
-      <img src="../assets/tick.svg" :style="imgStyle" class="tick" v-if="validate">
+      <icon name="tick" :style="imgStyle" class="tick" v-if="validate"></icon>
       <div class="ani-bb" :style="bbStyle"></div>
 
     <div class="hint" v-bind:class="hintStyle" v-bind:style="{color:hint.color}">{{hint.text}}</div>
@@ -66,6 +66,7 @@
           paddingTop:this.fontSize*0.25+'rem',
           paddingBottom:this.fontSize*0.25+'rem',
           top:this.fontSize*2+'rem',
+          color:''
         }
       },
       computed:{
@@ -86,6 +87,7 @@
           this.phStyle.top = 0;
           this.phStyle.fontSize=this.fontSize*0.9+'rem';
           this.bbStyle.width='100%';
+          this.phStyle.color='#0FA3B1';
         },
         Blur(){
           this.bbStyle.width=0;
@@ -120,6 +122,12 @@
           default(){
               return false;
           }
+        },
+        security:{
+            type:Boolean,
+          default(){
+              return false;
+          }
         }
       },
     }
@@ -143,6 +151,7 @@
     z-index: 10;
     position: absolute;
     border-bottom: 1px solid lightgray;
+    color: #0FA3B1;
   }
 
   .hint{
@@ -166,12 +175,16 @@
   .ani-bb{
     position: absolute;
     transition: all 0.5s ease-in-out;
-    border-bottom: 3px solid dodgerblue;
+    border-bottom: 3px solid #0FA3B1;
     left: 0;
     z-index: 10;
   }
   .tick{
     position: absolute;
     right: 0;
+    color: dodgerblue;
+  }
+  .security{
+    -webkit-text-security:disc;
   }
 </style>

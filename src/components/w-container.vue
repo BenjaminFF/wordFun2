@@ -54,7 +54,7 @@
     flex-shrink: 0;
     width: 80%;
     height: 5em;
-    margin-bottom: 2em;
+    margin-bottom: 2rem;
     border: 1px solid lightgray;
   }
 
@@ -62,11 +62,11 @@
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 2em;
-    right: 2em;
+    top: 2rem;
+    right: 2rem;
   }
   .funcs img{
-    width: 2em;
-    height: 2em;
+    width: 2rem;
+    height: 2rem;
   }
 </style>
