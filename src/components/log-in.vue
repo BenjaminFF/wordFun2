@@ -3,8 +3,8 @@
   <div class="model" v-if="isShow" @click="dismiss($event)">
     <div class="dialog">
       <div class="container">
-        <ani-input title="username/email" :fontSize="1.3"></ani-input>
-        <ani-input title="password" :fontSize="1.3"></ani-input>
+        <ani-input title="username/email" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener"></ani-input>
+        <ani-input title="password" :fontSize="1.3" :hint="pwInfo.hint" v-on:input="pwListener" :security="true"></ani-input>
         <my-button :fontSize="1.2" class="button" v-on:click.native="login">LOG IN</my-button>
         <p class="fg">forget password?</p>
       </div>
@@ -31,19 +31,79 @@
             }
           }
       },
+      created(){
+        this.init();
+      },
       methods:{
           init(){
-
+            this.euInfo={
+              value:"",
+              hint:{
+                text:"",
+                color:'lightgrey',
+              }
+            }
+            this.pwInfo={
+              value:"",
+              hint:{
+                text:"",
+                color:'lightgrey',
+              }
+            }
           },
           login:function () {
-            console.info("gg");
-            this.$http.get('api/signup',
-            ).then(function (response) {
-              console.info(response);
-            },function (response) {
-
-            });
+            var that=this;
+            console.info(this.euInfo.value);
+            var elementList=document.querySelectorAll(".input");
+            if(this.euInfo.value==""){
+              this.euInfo.hint.text="username/email cannot be empty";
+              this.euInfo.hint.color="red";
+              setTimeout(function () {
+                that.euInfo.hint.text="";
+              },2000);
+              elementList[0].focus();
+            }else if(this.pwInfo.value==""){
+              this.pwInfo.hint.text="password cannot be empty";
+              this.pwInfo.hint.color="red";
+              setTimeout(function () {
+                that.pwInfo.hint.text="";
+              },2000);
+              elementList[1].focus();
+            }else{
+              this.axios.get('/api/login', {
+                params: {
+                  eu:that.euInfo.value,
+                  pw:that.pwInfo.value
+                }
+              })
+                .then(function (response) {
+                  if(response.data=='euempty'){
+                    that.euInfo.hint.text="username/email not exist";
+                    that.euInfo.hint.color="red";
+                    setTimeout(function () {
+                      that.euInfo.hint.text="";
+                    },2000);
+                  }else if(response.data=='falsepw'){
+                    that.pwInfo.hint.text="password is not correct";
+                    that.pwInfo.hint.color="red";
+                    setTimeout(function () {
+                      that.pwInfo.hint.text="";
+                    },2000);
+                  }else {
+                    console.info('success');
+                  }
+                })
+                .catch(function (error) {
+                  console.log(error);
+                });
+            }
           },
+        euListener(event){
+            this.euInfo.value=event.target.innerHTML;
+        },
+        pwListener(event){
+          this.pwInfo.value=event.target.innerHTML;
+        },
         dismiss(event){
           var isIcon=event.target.nodeName=='path'||event.target.nodeName=='svg';
           if(event.target.className=="model"||isIcon){
