@@ -77,6 +77,11 @@
             {
               input:function (event) {
                 vm.$emit('input',event);
+              },
+              keydown:function (event) {
+                if(event.keyCode==13){
+                  event.preventDefault();
+                }
               }
             }
           )
@@ -150,6 +155,8 @@
     outline: none;
     z-index: 10;
     position: absolute;
+    outline: none;
+    border: 0px;
     border-bottom: 1px solid lightgray;
     color: #0FA3B1;
   }
@@ -183,6 +190,7 @@
     position: absolute;
     right: 0;
     color: dodgerblue;
+    user-select: none;
   }
   .security{
     -webkit-text-security:disc;

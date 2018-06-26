@@ -2,7 +2,10 @@
   <div id="app">
     <my-header class="header" v-on:signup="signup"></my-header>
     <div class="main-content">
-
+      <my-sidebar class="sidebar"></my-sidebar>
+      <div class="container">
+        <create-set></create-set>
+      </div>
     </div>
   </div>
 </template>
@@ -14,6 +17,10 @@ import WContainer from "./components/w-container";
 import Tools from "./components/tools";
 import LogIn from "./components/log-in";
 import SignUp from "./components/sign-up";
+import CardSlider from "./components/card-slider";
+import SetSlider from "./components/set-slider";
+import CreateInput from "./components/create-input";
+import CreateSet from "./components/create-set";
 export default {
   name: 'App',
   data(){
@@ -21,7 +28,7 @@ export default {
       showSU:false
     }
   },
-  components: {SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader},
+  components: {CreateSet, CreateInput, SetSlider, CardSlider, SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader},
   methods:{
     signup(){
       this.showSU=true;
@@ -31,11 +38,20 @@ export default {
 </script>
 
 <style>
+  :root{
+    --seablue: #0b8691;
+    --lightblue: rgba(11, 141, 152, 0.51);
+    --feather:url("./assets/cursor/feather.svg");
+  }
+
   body,html{
     width: 100%;
     height: 100%;
     background-color: #f3f3f3;
     overflow: hidden;
+    font-family: "Letters","HuaYI";
+    font-size: 1.3rem;
+    cursor: var(--feather);
   }
   body,div,p{
     margin: 0;
@@ -58,9 +74,21 @@ export default {
 
   .sidebar{
     flex: 2 0 0;
+    margin-left: 3rem;
+    margin-top: 3rem;
   }
   .container{
     flex: 8 0 0;
-    margin-left: 2em;
+    margin-top: 3rem;
+  }
+
+  @font-face {
+    font-family: Letters;
+    src: url("./assets/font/Letters.ttf") format("opentype");
+  }
+
+  @font-face {
+    font-family: HuaYI;
+    src: url("./assets/font/HYQuBaoF2.ttf") format("opentype");
   }
 </style>

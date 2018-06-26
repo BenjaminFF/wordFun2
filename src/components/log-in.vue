@@ -3,12 +3,12 @@
   <div class="model" v-if="isShow" @click="dismiss($event)">
     <div class="dialog">
       <div class="container">
-        <ani-input title="username/email" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener"></ani-input>
-        <ani-input title="password" :fontSize="1.3" :hint="pwInfo.hint" v-on:input="pwListener" :security="true"></ani-input>
-        <my-button :fontSize="1.2" class="button" v-on:click.native="login">LOG IN</my-button>
-        <p class="fg">forget password?</p>
+        <ani-input :title="$t('LogIn.basic[0]')" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener"></ani-input>
+        <ani-input :title="$t('LogIn.basic[1]')" :fontSize="1.3" :hint="pwInfo.hint" v-on:input="pwListener" :security="true"></ani-input>
+        <my-button :fontSize="1.2" class="button" v-on:click.native="login">{{$t('LogIn.basic[2]')}}</my-button>
+        <p class="fg">{{$t('LogIn.basic[3]')}}</p>
       </div>
-      <icon name="delete" class="rtimg"></icon>
+      <icon name="cross" class="rtimg"></icon>
     </div>
   </div>
   </transition>
@@ -17,6 +17,7 @@
 <script>
     import AniInput from "./ani-input";
     import MyButton from "./my-button";
+    import nodersa from "node-rsa"
     export default {
         name: "log-in",
       components: {MyButton, AniInput},
@@ -56,46 +57,53 @@
             console.info(this.euInfo.value);
             var elementList=document.querySelectorAll(".input");
             if(this.euInfo.value==""){
-              this.euInfo.hint.text="username/email cannot be empty";
+              this.euInfo.hint.text=this.$t('LogIn.ueHint[0]');
               this.euInfo.hint.color="red";
               setTimeout(function () {
                 that.euInfo.hint.text="";
               },2000);
               elementList[0].focus();
             }else if(this.pwInfo.value==""){
-              this.pwInfo.hint.text="password cannot be empty";
+              this.pwInfo.hint.text=this.$t('LogIn.pwHint[0]');
               this.pwInfo.hint.color="red";
               setTimeout(function () {
                 that.pwInfo.hint.text="";
               },2000);
               elementList[1].focus();
             }else{
-              this.axios.get('/api/login', {
-                params: {
-                  eu:that.euInfo.value,
-                  pw:that.pwInfo.value
-                }
-              })
-                .then(function (response) {
-                  if(response.data=='euempty'){
-                    that.euInfo.hint.text="username/email not exist";
-                    that.euInfo.hint.color="red";
-                    setTimeout(function () {
-                      that.euInfo.hint.text="";
-                    },2000);
-                  }else if(response.data=='falsepw'){
-                    that.pwInfo.hint.text="password is not correct";
-                    that.pwInfo.hint.color="red";
-                    setTimeout(function () {
-                      that.pwInfo.hint.text="";
-                    },2000);
-                  }else {
-                    console.info('success');
+              this.axios.get('/static/wpublickey.pem').then(function (response) {
+                var key=new nodersa(response.data);
+                var encryptpw=key.encrypt(that.pwInfo.value,'base64');
+                console.info(encryptpw);
+                var vm=that;
+                vm.axios.get('/api/login', {
+                  params: {
+                    eu:that.euInfo.value,
+                    pw:encryptpw
                   }
                 })
-                .catch(function (error) {
-                  console.log(error);
-                });
+                  .then(function (response) {
+                    if(response.data=='euempty'){
+                      that.euInfo.hint.text=this.$t('LogIn.ueHint[1]');
+                      that.euInfo.hint.color="red";
+                      setTimeout(function () {
+                        that.euInfo.hint.text="";
+                      },2000);
+                    }else if(response.data=='falsepw'){
+                      that.pwInfo.hint.text=this.$t('LogIn.pwHint[1]');
+                      that.pwInfo.hint.color="red";
+                      setTimeout(function () {
+                        that.pwInfo.hint.text="";
+                      },2000);
+                    }else {
+                      console.info('success');
+                    }
+                  })
+                  .catch(function (error) {
+                    console.log(error);
+                  });
+              });
+
             }
           },
         euListener(event){
@@ -144,10 +152,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 1000;
   }
   .dialog{
     width: 30rem;
-    height: 30rem;
+    height: 95%;
     background-color: white;
     box-shadow: 1px 1px 10px gray;
     display: flex;

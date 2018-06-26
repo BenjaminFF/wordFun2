@@ -1,11 +1,11 @@
 <template>
     <div class="header">
-      <icon name="menu" class="menu-icon"></icon>
       <p class="title"><a href="/">WordFun</a></p>
       <div class="user">
-      <p @click="showSU=true">SIGNUP</p>
-      <p @click="showLI=true">LOGIN</p>
+      <p @click="showSU=true">{{$t('header.user[0]')}}</p>
+      <p @click="showLI=true">{{$t('header.user[1]')}}</p>
     </div>
+      <div class="switchLang" @click="changeLocale">{{$t('language.name')}}</div>
       <sign-up :showSU="showSU" v-on:dismiss="showSU=false"></sign-up>
       <log-in :showLI="showLI" v-on:dismiss="showLI=false"></log-in>
     </div>
@@ -24,7 +24,11 @@
           }
       },
       methods:{
-
+        changeLocale() {
+          let locale = this.$i18n.locale
+          locale === 'zh' ? this.$i18n.locale = 'en' : this.$i18n.locale = 'zh'
+          // LangStorage.setLang(this.$i18n.locale) //后面会用做切换和将用户习惯存储到本地浏览器
+        }
       },
       components: {LogIn, SignUp, MyButton}
     }
@@ -43,12 +47,13 @@
     justify-content: center;
   }
   .title{
-    margin-left: 3rem;
-    font-size: 2.0rem;
-    justify-self: center;
+    position: absolute;
+    left: 3rem;
+    font-size: 1.8rem;
+    user-select: none;
   }
   .title a{
-    color: #0FA3B1;
+    color: var(--seablue);
     text-decoration: none;
   }
   .user{
@@ -62,15 +67,25 @@
   }
   .user p{
     padding: 0.2rem 0.6rem;
-    color: #0FA3B1;
+    color: var(--seablue);
     cursor: pointer;
   }
-  .menu-icon{
+  .switchLang{
     position: absolute;
-    left: 1rem;
-    width: 2.5rem;
-    height: 2.5rem;
+    right: 10rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10rem;
+    border: 1px solid var(--seablue);
+    color: var(--seablue);
+    box-sizing: border-box;
+  }
+  .switchLang:hover{
+    background-color: var(--seablue);
+    color: white;
     cursor: pointer;
-    color: #0FA3B1;
   }
 </style>

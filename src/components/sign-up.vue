@@ -3,17 +3,16 @@
     <div class="model" v-if="isShow" @click="dismiss($event)">
         <div class="dialog">
           <div class="container">
-            <ani-input :font-size="1.3" title="username" :hint="nameInfo.hint"
-                       v-on:input="nameListener"
-                       :validate="nameInfo.Validated" @keydown.native="checkLength($event,nameInfo,20)"></ani-input>
-            <ani-input :font-size="1.3" title="email" :hint="emailInfo.hint"
+            <ani-input :font-size="1.3" :title="$t('SignUp.basic[0]')" :hint="nameInfo.hint"
+                       v-on:input="nameListener" :validate="nameInfo.Validated" @keydown.native="checkLength($event,nameInfo,20)"></ani-input>
+            <ani-input :font-size="1.3" :title="$t('SignUp.basic[1]')" :hint="emailInfo.hint"
                        :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="checkLength($event,emailInfo,30)"></ani-input>
-            <ani-input :font-size="1.3" title="password" :hint="pwInfo.hint" :security="true"
+            <ani-input :font-size="1.3" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true"
                        v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="checkLength($event,pwInfo,20)"
             ></ani-input>
-            <my-button :font-size="1.2" class="button" @click.native="signup">sign up</my-button>
+            <my-button :font-size="1.2" class="button" @click.native="signup">{{$t('SignUp.basic[3]')}}</my-button>
           </div>
-            <icon name="delete" class="rtimg"></icon>
+            <icon name="cross" class="rtimg"></icon>
         </div>
     </div>
   </transition>
@@ -113,12 +112,12 @@
         verifyname(value) {
           var that = this;
           if (value.length < 6) {
-            that.nameInfo.hint.text="username must greater than 6";
+            that.nameInfo.hint.text=this.$t('SignUp.nameHint[1]');
             that.nameInfo.hint.color="orangered";
             that.nameInfo.Validated=false;
           } else {
             if (!/^\w+$/.test(value)) {
-              that.nameInfo.hint.text = "username must only contain letter,number,underscore";
+              that.nameInfo.hint.text = this.$t('SignUp.nameHint[2]');
               that.nameInfo.hint.color = "orangered";
               that.nameInfo.Validated=false;
             } else {
@@ -135,7 +134,7 @@
                     that.nameInfo.hint.color = "orangered";
                   }else {
                     that.nameInfo.Validated=false;
-                    that.nameInfo.hint.text = "username has already signed";
+                    that.nameInfo.hint.text = this.$t('SignUp.nameHint[3]');
                     that.nameInfo.hint.color = "orangered";
                   }
                 })
@@ -159,7 +158,7 @@
         verifyemail(value){
           var that=this;
           if(!/^[a-zA-Z0-9_]+@[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)+$/.test(value)){
-            that.emailInfo.hint.text="invalid email address";
+            that.emailInfo.hint.text=this.$t('SignUp.emailHint[0]');
             that.emailInfo.hint.color="orangered";
             that.emailInfo.Validated=false;
           }else {
@@ -175,7 +174,7 @@
                   that.emailInfo.hint.text = "";
                 }else {
                   that.emailInfo.Validated=false;
-                  that.emailInfo.hint.text = "email has already signed";
+                  that.emailInfo.hint.text = this.$t('SignUp.emailHint[1]');
                   that.emailInfo.hint.color = "orangered";
                 }
               })
@@ -199,15 +198,11 @@
         verifypw(value){
           var that=this;
           if(value.length<6){
-            that.pwInfo.hint.text="password must greater than 6";
+            that.pwInfo.hint.text=this.$t('SignUp.pwHint[0]');
             that.pwInfo.hint.color="orangered";
             that.pwInfo.Validated=false;
           }else if(!(/[0-9]/.test(value)&&/[a-zA-Z]/.test(value))){
-            that.pwInfo.hint.text="password must contain number and character";
-            that.pwInfo.hint.color="orangered";
-            that.pwInfo.Validated=false;
-          }else if(value.length>20){
-            that.pwInfo.hint.text="password must lesser than 20";
+            that.pwInfo.hint.text=this.$t('SignUp.pwHint[1]');
             that.pwInfo.hint.color="orangered";
             that.pwInfo.Validated=false;
           }else {
@@ -221,19 +216,19 @@
           var elementList=document.querySelectorAll(".input");
           if(!this.nameInfo.Validated){
             if(this.nameInfo.Validated==""){
-              this.nameInfo.hint.text="username cannot be empty";
+              this.nameInfo.hint.text=this.$t('SignUp.nameHint[4]');
             }
             this.nameInfo.hint.color="orangered";
             elementList[0].focus();
           }else if(!this.emailInfo.Validated){
             if(this.emailInfo.Validated==""){
-              this.emailInfo.hint.text="email cannot be empty";
+              this.emailInfo.hint.text=this.$t('SignUp.emailHint[2]');
             }
             this.emailInfo.hint.color="orangered";
             elementList[1].focus();
           }else if(!this.pwInfo.Validated){
             if(this.pwInfo.Validated==""){
-              this.pwInfo.hint.text="password cannot be empty";
+              this.pwInfo.hint.text=this.$t('SignUp.pwHint[2]');
             }
             this.pwInfo.hint.color="orangered";
             elementList[2].focus();
@@ -296,11 +291,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
+    z-index: 1000;
   }
   .dialog{
-    width: 35rem;
-    height: 40rem;
+    width: 30rem;
+    height: 95%;
     background-color: white;
     box-shadow: 1px 1px 10px gray;
     display: flex;
@@ -315,7 +310,7 @@
   }
 
   .button{
-    margin-top: 3rem;
+    margin-top: 1.8rem;
   }
 
   .rtimg{
