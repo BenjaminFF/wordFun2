@@ -72,7 +72,7 @@
   }
   .switchLang{
     position: absolute;
-    right: 10rem;
+    right: 13rem;
     width: 2rem;
     height: 2rem;
     display: flex;

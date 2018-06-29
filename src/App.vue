@@ -21,6 +21,8 @@ import CardSlider from "./components/card-slider";
 import SetSlider from "./components/set-slider";
 import CreateInput from "./components/create-input";
 import CreateSet from "./components/create-set";
+import FloatButton from "./components/float-button";
+import MenuTool from "./components/menu-tool";
 export default {
   name: 'App',
   data(){
@@ -28,7 +30,10 @@ export default {
       showSU:false
     }
   },
-  components: {CreateSet, CreateInput, SetSlider, CardSlider, SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader},
+  components: {
+    MenuTool,
+    FloatButton,
+    CreateSet, CreateInput, SetSlider, CardSlider, SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader},
   methods:{
     signup(){
       this.showSU=true;
@@ -38,6 +43,7 @@ export default {
 </script>
 
 <style>
+  @import  '../node_modules/animate.css/animate.css';
   :root{
     --seablue: #0b8691;
     --lightblue: rgba(11, 141, 152, 0.51);
@@ -49,7 +55,7 @@ export default {
     height: 100%;
     background-color: #f3f3f3;
     overflow: hidden;
-    font-family: "Letters","HuaYI";
+    font-family: "HuaYI","HandWritting1";
     font-size: 1.3rem;
     cursor: var(--feather);
   }
@@ -83,12 +89,12 @@ export default {
   }
 
   @font-face {
-    font-family: Letters;
-    src: url("./assets/font/Letters.ttf") format("opentype");
+    font-family: HuaYI;
+    src: url("./assets/font/HYQuBaoF2.ttf") format("opentype");
   }
 
   @font-face {
-    font-family: HuaYI;
-    src: url("./assets/font/HYQuBaoF2.ttf") format("opentype");
+    font-family: HandWritting1;
+    src: url("./assets/font/handwritting1.ttf") format("opentype");
   }
 </style>

@@ -50,7 +50,6 @@
 </script>
 
 <style scoped lang="scss">
-  @import  '../../node_modules/animate.css/animate.css';
   .card-slider{
     width: 40rem;
     height: 20rem;
@@ -104,4 +103,6 @@
   .slide-fade-enter{
     opacity: 0;
   }
+
+
 </style>

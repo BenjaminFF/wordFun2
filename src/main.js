@@ -5,10 +5,12 @@ import App from './App'
 import router from './router'
 import Icon from 'vue-svg-icon/Icon.vue'
 import VueI18n from 'vue-i18n'
+import vuescrollto from 'vue-scrollto'
 
 Vue.config.productionTip = false
 Vue.component('icon',Icon)
 Vue.use(VueI18n)
+Vue.use(vuescrollto)
 
 
 /* eslint-disable no-new */

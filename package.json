@@ -15,13 +15,15 @@
     "express": "^4.16.3",
     "gulp": "^3.9.1",
     "gulp-svg-symbols": "^3.1.1",
+    "jquery": "^3.3.1",
     "mysql": "^2.15.0",
     "node-rsa": "^1.0.0",
     "vue": "^2.5.2",
     "vue-axios": "^2.1.1",
     "vue-i18n": "^8.0.0",
     "vue-resource": "^1.5.1",
-    "vue-router": "^3.0.1"
+    "vue-router": "^3.0.1",
+    "vue-scrollto": "^2.11.0"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

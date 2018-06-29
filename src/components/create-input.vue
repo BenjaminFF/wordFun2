@@ -1,7 +1,8 @@
 <template>
-    <div class="create-input" :style="pStyle">
+    <div class="create-input" :style="pStyle" @mouseover="showDel=true" @mouseleave="showDel=false">
       <div class="term" contenteditable="true" v-on="inputListener"></div>
       <div class="definition" contenteditable="true" v-on="inputListener"></div>
+      <icon name="delete" class="delete animated bounceIn" v-if="showDel" @click.native="$emit('delete')"></icon>
     </div>
 </template>
 
@@ -12,7 +13,8 @@
           return{
             pStyle:[],
             termLT:"",
-            defLT:""
+            defLT:"",
+            showDel:false
           }
       },
       props:{
@@ -79,13 +81,10 @@
     height: fit-content;
     display: flex;
     align-items: center;
-    border-radius: 5px;
-    margin-bottom: 3rem;
     padding: 1.5rem 2.5rem;
     justify-content: space-between;
     position: relative;
     box-sizing: border-box;
-    box-shadow: 0px 0px 10px 1px rgba(203, 203, 203, 0.7);
   }
   .term{
     width: 48%;
@@ -100,5 +99,16 @@
     color: white;
     outline: none;
     border-bottom: 1px solid white;
+  }
+  .delete{
+    width: 1.2rem;
+    height: 1.2rem;
+    position: absolute;
+    right: 0.8rem;
+    color: white;
+  }
+  .delete:hover{
+    color: var(--seablue);
+    cursor: pointer;
   }
 </style>
