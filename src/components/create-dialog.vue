@@ -1,0 +1,200 @@
+<template>
+    <div class="model" @click="dismiss($event,false)" v-if="isShow">
+        <div class="dialog animated bounceInDown">
+          <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{$t('createDialog.header')}}</div>
+          <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
+          <div contenteditable="true" class="edit title" v-model="title"></div>
+          <div class="title-hint"></div>
+          <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
+            {{$t('createDialog.subTitle')}}</div>
+          <div contenteditable="true" class="edit subtitle" v-model="subTitle"></div>
+          <div class="subtitle-hint"></div>
+          <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
+          <div class="folder">
+            <div v-for="item in folderItems" class="folder-item"
+                 :style="{transform:item.transform}">{{item.text}}</div>
+            <icon name="left" class="left" @click.native="clickLeft"></icon>
+            <icon name="right" class="right" @click.native="clickRight"></icon>
+          </div>
+          <icon name="cross" class="delete-icon" @click.native="dismiss($event,true)"></icon>
+        </div>
+    </div>
+</template>
+
+<script>
+    import AniInput from "./ani-input";
+    export default {
+        name: "create-dialog",
+      data(){
+          return{
+            title:"",
+            subTitle:"",
+            folderItems:[],
+            isShow:false,
+          }
+      },
+      created(){
+          let folder=[-1,0,1];
+          let offset=parseInt(folder.length/2)*(-100);
+          for(let i=0;i<folder.length;i++){
+            let item={
+              offset:offset,
+              text:folder[i],
+              transform:'translateX('+offset+'%)'
+            }
+            this.folderItems.push(item);
+            offset+=100;
+          }
+      },
+      methods:{
+          init(){
+            this.title="";
+            this.subTitle="";
+          },
+          clickLeft(){
+            let offset=this.folderItems[0].offset;
+            for(let i=0;i<this.folderItems.length;i++){
+              let item=this.folderItems[i];
+              item.offset-=100;
+              item.transform='translateX('+item.offset+'%)';
+              console.log(item.offset);
+            }
+            let fItem=this.folderItems.shift();
+            fItem.offset+=(this.folderItems.length+1)*100;
+            fItem.transform='translateX('+fItem.offset+'%)';
+            this.folderItems.push(fItem);
+          },
+          clickRight(){
+            let offset=this.folderItems[0].offset;
+            for(let i=0;i<this.folderItems.length;i++){
+              let item=this.folderItems[i];
+              item.offset+=100;
+              item.transform='translateX('+item.offset+'%)';
+              console.log(item.offset);
+            }
+            let LItem=this.folderItems.pop();
+            LItem.offset-=(this.folderItems.length+1)*100;
+            LItem.transform='translateX('+LItem.offset+'%)';
+            this.folderItems.unshift(LItem);
+          },
+          dismiss(event,isIcon){
+            if(event.target.className=="model"||isIcon){
+              this.isShow=false;
+              this.$emit('dismiss');
+              this.init();
+            }
+          }
+      },
+      components: {AniInput},
+      props:{
+          showCD:{
+            type:Boolean,
+            default:function () {
+              return false;
+            }
+          }
+      },
+      watch:{
+          showCD:function () {
+            this.isShow=this.showCD;
+          }
+      }
+    }
+</script>
+
+<style scoped>
+  div,p{
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+  .model{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.21);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .dialog{
+    width: 25rem;
+    height: 80%;
+    background-color: white;
+    border-radius: 5px;
+    background-color: var(--seablue);
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    position: relative;
+  }
+  .edit{
+    border: 1px solid white;
+    width: 70%;
+    height: fit-content;
+    outline: none;
+    color: white;
+    border-radius: 10px;
+  }
+  .title{
+    text-align: center;
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+  }
+  .subtitle{
+    text-align: center;
+    padding: 0.2rem 1rem;
+  }
+  .delete-icon{
+    position: absolute;
+    right: 0.8rem;
+    top: 0.8rem;
+    color: white;
+    width: 1.8rem;
+    height: 1.8rem;
+    cursor: pointer;
+  }
+  .title-hint{
+    width: 60%;
+    height: 1.2rem;
+  }
+  .subtitle-hint{
+    width: 60%;
+    height: 1.2rem;
+  }
+  .folder{
+    width: 60%;
+    height: 1.8rem;
+    padding: 0rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .left{
+    width: 1.8rem;
+    height: 1.8rem;
+    position: absolute;
+    left: 0;
+    color: white;
+    cursor: pointer;
+  }
+  .right{
+    width: 1.8rem;
+    height: 1.8rem;
+    position: absolute;
+    right: 0;
+    color: white;
+    cursor: pointer;
+  }
+  .folder-item{
+    transition: 0.5s all ease-in-out;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    vertical-align: center;
+    text-align: center;
+    color: white;
+    left: 0;
+  }
+</style>

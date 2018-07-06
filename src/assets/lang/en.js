@@ -17,5 +17,12 @@ module.exports = {
       'username must only contain letter,number,underscore','username has already been signed','username cannot be empty'],
     emailHint:['invalid email address','email has already been signed','email cannot be empty'],
     pwHint:['password must greater than 6','password must contain number and character','password cannot be empty']
+  },
+  addText:"+Add Card",
+  createDialog:{
+    header:"A New Set",
+    title:"Title",
+    subTitle:"SubTitle",
+    folder:"Folder"
   }
 }

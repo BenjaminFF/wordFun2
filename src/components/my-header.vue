@@ -38,6 +38,7 @@
   div,p,a{
     margin: 0;
     padding: 0;
+    user-select: none;
   }
   .header{
     width: 100%;

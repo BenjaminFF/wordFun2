@@ -1,5 +1,5 @@
 <template>
-    <div class="float-button" :style="{width:mWidth+'rem',height:mHeight+'rem'}">
+    <div class="float-button" :style="{width:mWidth+'rem',height:mHeight+'rem'}" v-on="Listener">
       <icon :name="iconname" class="icon"
             :style="{width:mWidth/2+'rem',height:mHeight/2+'rem'}"></icon>
     </div>
@@ -24,6 +24,14 @@
           }
           this.mWidth=width;
           this.mHeight=height;
+      },
+      computed:{
+        Listener(){
+          var vm=this;
+          return Object.assign({},
+            this.$listeners
+          )
+        }
       },
       props:{
           iconname:{

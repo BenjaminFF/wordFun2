@@ -47,7 +47,9 @@ export default {
   :root{
     --seablue: #0b8691;
     --lightblue: rgba(11, 141, 152, 0.51);
-    --feather:url("./assets/cursor/feather.svg");
+    --tealdeer:#86E7B8;
+    --celestialblue:#3C9CD7;
+    --wintergreen:#4A9180
   }
 
   body,html{
@@ -57,7 +59,6 @@ export default {
     overflow: hidden;
     font-family: "HuaYI","HandWritting1";
     font-size: 1.3rem;
-    cursor: var(--feather);
   }
   body,div,p{
     margin: 0;

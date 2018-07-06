@@ -1,5 +1,6 @@
 <template>
     <div class="create-set">
+      <div class="container">
         <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
           <create-input class="create-input" v-on:delete="deleteItem(index)"
                         :defText.sync="item.defText" :termText.sync="item.termText">
@@ -9,8 +10,11 @@
                           iconname="add" v-if="item.showfb" @click.native="insertItem(index)"></float-button>
           </div>
         </div>
-        <div class="add-button" @click="addItem(items.length)"
-             >+add item</div>
+        <div class="add-button" @click="addItem(items.length)">{{$t('addText')}}</div>
+      </div>
+      <float-button iconname="tick" size="middle" class="fbTick" @click="fbTickClick"
+                    @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
+      <create-dialog :showCD="showCD" v-on:dismiss="showCD=false"></create-dialog>
     </div>
 </template>
 
@@ -19,11 +23,13 @@
     import MyButton from "./my-button";
     import FloatButton from "./float-button";
     import $ from 'jquery'
+    import CreateDialog from "./create-dialog";
     export default {
         name: "create-set",
         data(){
           return{
             items:[],
+            showCD:false
           }
         },
         created(){
@@ -71,7 +77,7 @@
               ]
               let player=vm.addTransition(addButton,moveTransition);
               player.onfinish=function(){
-                $('.create-set').animate({scrollTop:addButton.offsetTop},600);
+                $('.container').animate({scrollTop:addButton.offsetTop},600);
               };
               console.info(addButton.offsetTop);
             });
@@ -150,19 +156,41 @@
               }
             );
         },
+        fbTickHover(){
+            $('.fbTick').addClass('animated tada');
+        },
+        fbTickFlur(){
+          $('.fbTick').removeClass('animated tada');
+        },
+        fbTickClick(){
+            if(this.showCD){
+              console.log("submit");
+            }else {
+              this.showCD=true;
+            }
+        }
       },
-      components: {FloatButton, MyButton, CreateInput}
+      components: {CreateDialog, FloatButton, MyButton, CreateInput}
     }
 </script>
 
 <style scoped>
+  div,p{
+    margin: 0;
+    padding: 0;
+  }
   .create-set{
-     width: 35rem;
+     width: 40rem;
      height: 25rem;
-    overflow-x: hidden;
-    overflow-y: scroll;
+
     position: relative;
    }
+  .container{
+    width: 80%;
+    height: 25rem;
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
   .item-container{
     width: 95%;
     height: fit-content;
@@ -188,6 +216,7 @@
   }
 
   .add-button{
+    user-select: none;
     width: 95%;
     height: 4.5rem;
     box-sizing: border-box;
@@ -200,19 +229,23 @@
     text-decoration: underline;
     color: white;
     transition: all 0.6s ease-in-out;
-    position: absolute;
   }
 
-  .create-set::-webkit-scrollbar {/*滚动条整体样式*/
+  .container::-webkit-scrollbar {/*滚动条整体样式*/
     width: 1px;     /*高宽分别对应横竖滚动条的尺寸*/
   }
 
-  .create-set::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+  .container::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
     border-radius: 1px;
     background: var(--seablue);
   }
 
-  .list-complete-leave-active {
+  .fbTick{
     position: absolute;
+    right: 0;
+    bottom: 2rem;
+    cursor:pointer;
+    box-shadow: 0px 0px 10px 1px #c4c4c4;
+    z-index: 1000;
   }
 </style>
