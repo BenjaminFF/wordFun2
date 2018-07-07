@@ -1,7 +1,7 @@
 <template>
     <div class="create-input" :style="pStyle" @mouseover="showDel=true" @mouseleave="showDel=false">
-      <div class="term" contenteditable="true" v-on="inputListener"></div>
-      <div class="definition" contenteditable="true" v-on="inputListener"></div>
+      <div class="term" contenteditable="true" v-on="inputListener" :style="{borderBottom:termBB}"></div>
+      <div class="definition" contenteditable="true" v-on="inputListener" :style="{borderBottom:defBB}"></div>
       <icon name="delete" class="delete animated bounceIn" v-if="showDel" @click.native="$emit('delete')"></icon>
     </div>
 </template>
@@ -14,7 +14,9 @@
             pStyle:[],
             termLT:"",
             defLT:"",
-            showDel:false
+            showDel:false,
+            termBB:"1px solid white",
+            defBB:"1px solid white"
           }
       },
       props:{
@@ -23,6 +25,14 @@
           },
           defText:{
             required:true
+          },
+          termBorder:{
+            type:String,
+            default:'white 1px solid'
+          },
+          defBorder:{
+            type:String,
+            default:'white 1px solid'
           }
       },
       watch:{
@@ -34,6 +44,12 @@
             console.info(newval);
             this.$emit('update:defText', newval);
           },
+        termBorder:function () {
+          this.termBB=this.termBorder;
+        },
+        defBorder:function () {
+          this.defBB=this.defBorder;
+        },
       },
       created(){
           this.pStyle={
@@ -91,14 +107,12 @@
     height: fit-content;
     color: white;
     outline: none;
-    border-bottom: 1px solid white;
   }
   .definition{
     width: 48%;
     height: fit-content;
     color: white;
     outline: none;
-    border-bottom: 1px solid white;
   }
   .delete{
     width: 1.2rem;

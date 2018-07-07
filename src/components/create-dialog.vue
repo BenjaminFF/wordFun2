@@ -34,7 +34,7 @@
           }
       },
       created(){
-          let folder=[-1,0,1];
+          let folder=[-2];
           let offset=parseInt(folder.length/2)*(-100);
           for(let i=0;i<folder.length;i++){
             let item={
@@ -51,31 +51,100 @@
             this.title="";
             this.subTitle="";
           },
-          clickLeft(){
-            let offset=this.folderItems[0].offset;
-            for(let i=0;i<this.folderItems.length;i++){
-              let item=this.folderItems[i];
-              item.offset-=100;
-              item.transform='translateX('+item.offset+'%)';
-              console.log(item.offset);
+        addTransition(el,transition,delay){
+          return el.animate(
+            transition,
+            {
+              duration:600,
+              easing: 'cubic-bezier(0,0,0.32,1)',
             }
-            let fItem=this.folderItems.shift();
-            fItem.offset+=(this.folderItems.length+1)*100;
-            fItem.transform='translateX('+fItem.offset+'%)';
-            this.folderItems.push(fItem);
+          );
+        },
+          clickLeft(){
+            if(this.folderItems.length==1){
+              console.log("only you");
+              return;
+            }
+             let fItem=this.folderItems.shift();
+             fItem.offset+=(this.folderItems.length+1)*100;
+             fItem.transform='translateX('+fItem.offset+'%)';
+             this.folderItems.push(fItem);
+             let offset=this.folderItems[0].offset;
+             for(let i=0;i<this.folderItems.length;i++){
+               let item=this.folderItems[i];
+               item.offset-=100;
+               item.transform='translateX('+item.offset+'%)';
+             }
+
+            let that=this;
+            this.$nextTick(function () {
+              let el=document.querySelectorAll('.folder-item');
+              console.log(el.length);
+              let o=el[0].getBoundingClientRect();
+              let invert=o.left-o.right;
+              let m=parseInt(el.length/2);
+              let start=0;
+              let end=invert;
+              for(let i=m-1;i<=m;i++){
+                var moveTransition=[
+                  { transform: 'translateX(' + start + 'px)' },        //以0为相对位置！！！
+                  { transform: 'translateX(' + end + 'px)' }
+                ]
+                that.addTransition(el[i],moveTransition);
+                start=-invert;
+                end=0;
+              }
+            });
           },
           clickRight(){
-            let offset=this.folderItems[0].offset;
-            for(let i=0;i<this.folderItems.length;i++){
-              let item=this.folderItems[i];
-              item.offset+=100;
-              item.transform='translateX('+item.offset+'%)';
-              console.log(item.offset);
+            if(this.folderItems.length==1){
+              console.log("only you");
+              return;
             }
             let LItem=this.folderItems.pop();
             LItem.offset-=(this.folderItems.length+1)*100;
             LItem.transform='translateX('+LItem.offset+'%)';
             this.folderItems.unshift(LItem);
+            let offset=this.folderItems[0].offset;
+            for(let i=0;i<this.folderItems.length;i++){
+              let item=this.folderItems[i];
+              item.offset+=100;
+              item.transform='translateX('+item.offset+'%)';
+            }
+
+            let that=this;
+            this.$nextTick(function () {
+              let el=document.querySelectorAll('.folder-item');
+              console.log(el.length);
+              let o=el[0].getBoundingClientRect();
+              let invert=o.left-o.right;
+              let m=parseInt(el.length/2);
+              if(el.length==2){
+                let start=0;
+                let end=-invert;
+                for(let i=0;i<=1;i++){
+                  var moveTransition=[
+                    { transform: 'translateX(' + start + 'px)' },        //以0为相对位置！！！
+                    { transform: 'translateX(' + end + 'px)' }
+                  ]
+                  that.addTransition(el[i],moveTransition);
+                  start=invert;
+                  end=0;
+                }
+              }else {
+                let start=invert;
+                let end=0;
+                for(let i=m;i<=m+1;i++){
+                  var moveTransition=[
+                    { transform: 'translateX(' + start + 'px)' },        //以0为相对位置！！！
+                    { transform: 'translateX(' + end + 'px)' }
+                  ]
+                  that.addTransition(el[i],moveTransition);
+                  start=0;
+                  end=-invert;
+                }
+              }
+            });
           },
           dismiss(event,isIcon){
             if(event.target.className=="model"||isIcon){
@@ -188,7 +257,6 @@
     cursor: pointer;
   }
   .folder-item{
-    transition: 0.5s all ease-in-out;
     width: 100%;
     height: 100%;
     position: absolute;

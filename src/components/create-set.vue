@@ -3,6 +3,7 @@
       <div class="container">
         <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
           <create-input class="create-input" v-on:delete="deleteItem(index)"
+                        :defBorder="item.defBorder" :termBorder="item.termBorder"
                         :defText.sync="item.defText" :termText.sync="item.termText">
           </create-input>
           <div class="fb-container" @mouseover="showFB(index)" @mouseleave="hideFB(index)">
@@ -15,6 +16,7 @@
       <float-button iconname="tick" size="middle" class="fbTick" @click="fbTickClick"
                     @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
       <create-dialog :showCD="showCD" v-on:dismiss="showCD=false"></create-dialog>
+      <my-toast v-for="toast in toastlist" :text="toast.text"></my-toast>
     </div>
 </template>
 
@@ -24,12 +26,14 @@
     import FloatButton from "./float-button";
     import $ from 'jquery'
     import CreateDialog from "./create-dialog";
+    import MyToast from "./my-toast";
     export default {
         name: "create-set",
         data(){
           return{
             items:[],
-            showCD:false
+            showCD:false,
+            toastlist:[]
           }
         },
         created(){
@@ -40,6 +44,8 @@
               termText:"",
               defText:"",
               showfb:false,
+              defBorder:"",
+              termBorder:""
             }
             timestamp++;
             this.items.push(item);
@@ -53,6 +59,8 @@
               termText:"",
               defText:"",
               showfb:false,
+              defBorder:"",
+              termBorder:""
             }
             this.items.push(item);
             let insertTransition=[
@@ -97,6 +105,8 @@
             termText:"",
             defText:"",
             showfb:false,
+            defBorder:"",
+            termBorder:""
           }
           this.items.splice(index+1,0,item);
           let vm=this;
@@ -163,14 +173,34 @@
           $('.fbTick').removeClass('animated tada');
         },
         fbTickClick(){
-            if(this.showCD){
-              console.log("submit");
+          for(let i=0;i<this.items.length;i++){
+            let item=this.items[i];
+            if(item.termText==""){
+              item.termBorder="1px solid red";
+              $('.term')[i].focus();
+              setTimeout(function () {
+                item.termBorder="1px solid white";
+              },1500);
+              return;
+            }else if(item.defText==""){
+              item.defBorder="1px solid red";
+              $('.definition')[i].focus();
+              setTimeout(function () {
+                item.defBorder="1px solid white";
+              },1500);
+              return;
+            }
+          }
+            if(this.items.length<2){
+              let toast={
+                text:"A Set at least contains 2 card!"
+              }
+              this.toastlist.push(toast);
             }else {
-              this.showCD=true;
             }
         }
       },
-      components: {CreateDialog, FloatButton, MyButton, CreateInput}
+      components: {MyToast, CreateDialog, FloatButton, MyButton, CreateInput}
     }
 </script>
 
