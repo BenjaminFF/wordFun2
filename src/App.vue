@@ -1,43 +1,68 @@
 <template>
   <div id="app">
-    <my-header class="header" v-on:signup="signup"></my-header>
+    <my-header class="header" :defaultPage="isDefaultPage"></my-header>
     <div class="main-content">
-      <my-sidebar class="sidebar"></my-sidebar>
-      <div class="container">
-        <create-set></create-set>
-      </div>
+      <component :is="curComponent"></component>
     </div>
+    <transition leave-active-class="animated fadeOut" :duration="3000">
+    <div class="shadow" v-if="Loading">
+      <div class="loading"></div>
+      <div class="load_text">W</div>
+    </div>
+  </transition>
   </div>
 </template>
 
 <script>
 import MyHeader from "./components/my-header";
-import MySidebar from "./components/my-sidebar";
-import WContainer from "./components/w-container";
-import Tools from "./components/tools";
-import LogIn from "./components/log-in";
-import SignUp from "./components/sign-up";
-import CardSlider from "./components/card-slider";
-import SetSlider from "./components/set-slider";
-import CreateInput from "./components/create-input";
-import CreateSet from "./components/create-set";
-import FloatButton from "./components/float-button";
-import MenuTool from "./components/menu-tool";
+import DefaultPage from "./components/default-page";
+import UserPage from "./components/user-page";
 export default {
   name: 'App',
   data(){
     return{
-      showSU:false
+      curComponent:DefaultPage,
+      isDefaultPage:true,
+      Loading:true
     }
   },
-  components: {
-    MenuTool,
-    FloatButton,
-    CreateSet, CreateInput, SetSlider, CardSlider, SignUp, LogIn, Tools, WContainer, MySidebar, MyHeader},
-  methods:{
-    signup(){
-      this.showSU=true;
+  created(){
+    let euname=this.getCookie("euname");        //存入cookie中的还是经过escape后的，避免中文乱码
+    let password=this.getCookie("password");
+    let that=this;
+    if(euname!=""&&password!=""){
+      this.axios.post('/api/login', {
+        params: {
+          eu:euname,
+          pw:password
+        }
+      }).then(function (response) {
+        if(response.data=="truepw"){
+          that.curComponent=UserPage;
+          that.isDefaultPage=false;
+        }
+        setTimeout(function () {
+          that.Loading=false;
+        },3000);
+      });
     }
+  },
+  components: {UserPage, DefaultPage, MyHeader},
+  methods:{
+    getCookie(c_name){                   //如果找到了我们要的 cookie，就返回值，否则返回空字符串。
+      if (document.cookie.length>0)
+      {
+        let c_start=document.cookie.indexOf(c_name + "=")
+        if (c_start!=-1)
+        {
+          c_start=c_start + c_name.length+1
+          let c_end=document.cookie.indexOf(";",c_start)
+          if (c_end==-1) c_end=document.cookie.length;
+          return unescape(document.cookie.substring(c_start,c_end))
+        }
+      }
+      return ""
+    },
   }
 }
 </script>
@@ -49,7 +74,8 @@ export default {
     --lightblue: rgba(11, 141, 152, 0.51);
     --tealdeer:#86E7B8;
     --celestialblue:#3C9CD7;
-    --wintergreen:#4A9180
+    --wintergreen:#4A9180;
+    --transblue: rgba(11, 134, 145, 0.21);
   }
 
   body,html{
@@ -78,17 +104,40 @@ export default {
     flex: 8 0 0;
     display: flex;
   }
-
-  .sidebar{
-    flex: 2 0 0;
-    margin-left: 3rem;
-    margin-top: 3rem;
+  .shadow{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    background-color: #f3f3f3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  .container{
-    flex: 8 0 0;
-    margin-top: 3rem;
+  .loading{
+    position: absolute;
+    width: 6rem;
+    height: 6rem;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 2px solid var(--seablue);
+    clip: rect(0,6rem,3rem,0rem);
+    transform-origin: center;
+    animation: rotate 1.5s infinite linear;
   }
-
+  .load_text{
+    position: absolute;
+    width: 6rem;
+    height: 6rem;
+    box-sizing: border-box;
+    border: 2px solid var(--transblue);
+    display: flex;
+    border-radius: 50%;
+    justify-content: center;
+    align-items: center;
+    color: var(--seablue);
+    font-size: 2rem;
+  }
   @font-face {
     font-family: HuaYI;
     src: url("./assets/font/HYQuBaoF2.ttf") format("opentype");
@@ -97,5 +146,10 @@ export default {
   @font-face {
     font-family: HandWritting1;
     src: url("./assets/font/handwritting1.ttf") format("opentype");
+  }
+  @keyframes rotate
+  {
+    from {transform: rotate(0deg)}
+    to {transform: rotate(360deg)}
   }
 </style>

@@ -25,18 +25,19 @@ function queryData(value,res,column){
   }
 }
 
-function insertdata(username,email,password){
+function insertdata(username,email,password,res){
   var sql='insert into user(username,email,password) Values(\''+username+'\',\''+email+'\',\''
          +password+'\')';
   pool.query(sql,function (err, result) {
     if(err){
       console.log('[SELECT ERROR] - '+err.message)
+      res.send('err');
       return;
     }else {
       console.log("success");
+      res.send('success');
     }
   });
-  pool.query('')
 }
 
 function queryeup(eu,pw,res){
@@ -53,8 +54,8 @@ function queryeup(eu,pw,res){
       }else {
         var data = fs.readFileSync('wprivatekey.pem');
         var key=new nodersa(data);
-        var password=key.decrypt(result[0].password,'utf8');
-        var decryptpw=key.decrypt(pw,'utf8');
+        var password=key.decrypt(unescape(result[0].password),'utf8');
+        var decryptpw=key.decrypt(unescape(pw),'utf8');
         if(password==decryptpw){
           res.send('truepw');
         }else {
@@ -67,27 +68,27 @@ function queryeup(eu,pw,res){
 }
 
 router.get('/api/verifyname',function (req,res) {
+  escape(req.query.username);
   queryData(req.query.username,res,'username');
 });
 
 router.get('/api/verifyemail',function (req,res) {
+  escape(req.query.email);
   queryData(req.query.email,res,'email');
 });
 
-router.get('/api/signup',function (req,res) {
-  if(req.query.password!=undefined){
-    console.log(req.query.password);
-    var data = fs.readFileSync('wprivatekey.pem');
-    var key=new nodersa(data);
-    insertdata(req.query.username,req.query.email,req.query.password);
-    res.send('insert success');
-  }else {
-    res.send('unknown error');
-  }
+router.post('/api/signup',function (req,res) {
+    unescape(req.body.params.username);  //username可以为中文，客户端已转义一次，为了不出现乱码
+    let username=escape(req.body.params.username);
+    let email=escape(req.body.params.email);
+    let password=escape(req.body.params.password);
+    insertdata(username,email,password,res);
 });
 
-router.get('/api/login',function (req,res) {
-  queryeup(req.query.eu,req.query.pw,res);
+router.post('/api/login',function (req,res) {
+  let username=unescape(req.body.params.eu);
+  let password=unescape(req.body.params.pw);
+  queryeup(escape(username),escape(password),res);
 });
 
 module.exports = router;

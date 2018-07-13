@@ -1,10 +1,11 @@
 <template>
     <div class="header">
       <p class="title"><a href="/">WordFun</a></p>
-      <div class="user">
+      <div class="default" v-if="defaultPage">
       <p @click="showSU=true">{{$t('header.user[0]')}}</p>
       <p @click="showLI=true">{{$t('header.user[1]')}}</p>
     </div>
+      <div class="user" v-if="!defaultPage"></div>
       <div class="switchLang" @click="changeLocale">{{$t('language.name')}}</div>
       <sign-up :showSU="showSU" v-on:dismiss="showSU=false"></sign-up>
       <log-in :showLI="showLI" v-on:dismiss="showLI=false"></log-in>
@@ -29,6 +30,12 @@
           locale === 'zh' ? this.$i18n.locale = 'en' : this.$i18n.locale = 'zh'
           // LangStorage.setLang(this.$i18n.locale) //后面会用做切换和将用户习惯存储到本地浏览器
         }
+      },
+      props:{
+          defaultPage:{
+            type:Boolean,
+            default:false
+          }
       },
       components: {LogIn, SignUp, MyButton}
     }
@@ -57,7 +64,7 @@
     color: var(--seablue);
     text-decoration: none;
   }
-  .user{
+  .default{
     display: flex;
     font-size: 1rem;
     width: fit-content;
@@ -66,10 +73,17 @@
     position: absolute;
     right: 2rem;
   }
-  .user p{
+  .default p{
     padding: 0.2rem 0.6rem;
     color: var(--seablue);
     cursor: pointer;
+  }
+  .user{
+    position: absolute;
+    right: 2rem;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--seablue);
   }
   .switchLang{
     position: absolute;

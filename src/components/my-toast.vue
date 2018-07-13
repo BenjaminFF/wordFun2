@@ -1,5 +1,5 @@
 <template>
-  <transition>
+  <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
     <div v-if="isShow" class="toast">{{text}}</div>
   </transition>
 </template>
@@ -40,7 +40,8 @@
     background-color: var(--lightblue);
     border-radius: 2rem;
     bottom: 5rem;
-    transform: translateX(50%);
+    left: 50%;
     color: white;
+    transform: translateX(-50%);
   }
 </style>

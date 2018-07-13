@@ -15,7 +15,8 @@
       </div>
       <float-button iconname="tick" size="middle" class="fbTick" @click="fbTickClick"
                     @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
-      <create-dialog :showCD="showCD" v-on:dismiss="showCD=false"></create-dialog>
+      <create-dialog :showCD="showCD" v-bind:title.sync="title" v-bind:subtitle.sync="subtitle"
+                     v-on:dismiss="showCD=false"></create-dialog>
       <my-toast v-for="toast in toastlist" :text="toast.text"></my-toast>
     </div>
 </template>
@@ -24,7 +25,7 @@
     import CreateInput from "./create-input";
     import MyButton from "./my-button";
     import FloatButton from "./float-button";
-    import $ from 'jquery'
+    import $ from 'jquery';
     import CreateDialog from "./create-dialog";
     import MyToast from "./my-toast";
     export default {
@@ -33,7 +34,9 @@
           return{
             items:[],
             showCD:false,
-            toastlist:[]
+            toastlist:[],
+            title:"",
+            subtitle:""
           }
         },
         created(){
@@ -173,6 +176,7 @@
           $('.fbTick').removeClass('animated tada');
         },
         fbTickClick(){
+          var vm=this;
           for(let i=0;i<this.items.length;i++){
             let item=this.items[i];
             if(item.termText==""){
@@ -181,6 +185,10 @@
               setTimeout(function () {
                 item.termBorder="1px solid white";
               },1500);
+              let toast={
+                text:i+1+vm.$t('createSet.termEmpty')
+              }
+              this.toastlist.push(toast);
               return;
             }else if(item.defText==""){
               item.defBorder="1px solid red";
@@ -188,15 +196,22 @@
               setTimeout(function () {
                 item.defBorder="1px solid white";
               },1500);
+              let toast={
+                text:i+1+vm.$t('createSet.defEmpty')
+              }
+              this.toastlist.push(toast);
               return;
             }
           }
             if(this.items.length<2){
               let toast={
-                text:"A Set at least contains 2 card!"
+                text:vm.$t('createSet.setLength')
               }
               this.toastlist.push(toast);
             }else {
+              if(!this.showCD){
+                this.showCD=true;
+              }
             }
         }
       },

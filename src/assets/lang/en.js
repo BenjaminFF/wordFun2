@@ -13,7 +13,7 @@ module.exports = {
   },
   SignUp:{
     basic:['username','email','password',"SING UP"],
-    nameHint:['username123','username must greater than 6',
+    nameHint:['username123','username must greater than 4',
       'username must only contain letter,number,underscore','username has already been signed','username cannot be empty'],
     emailHint:['invalid email address','email has already been signed','email cannot be empty'],
     pwHint:['password must greater than 6','password must contain number and character','password cannot be empty']
@@ -23,6 +23,12 @@ module.exports = {
     header:"A New Set",
     title:"Title",
     subTitle:"SubTitle",
-    folder:"Folder"
+    folder:"Folder",
+    folderHint:"only one folder!"
+  },
+  createSet:{
+    termEmpty:' term is empty,please fill it up!',
+    defEmpty:' definition is empty,please fill it up!',
+    setLength:'A Set at least contains 2 cards!'
   }
 }

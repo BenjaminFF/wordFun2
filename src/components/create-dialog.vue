@@ -3,11 +3,11 @@
         <div class="dialog animated bounceInDown">
           <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{$t('createDialog.header')}}</div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
-          <div contenteditable="true" class="edit title" v-model="title"></div>
+          <div contenteditable="true" class="edit title" v-on:input="titleUpdate($event)"></div>
           <div class="title-hint"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
             {{$t('createDialog.subTitle')}}</div>
-          <div contenteditable="true" class="edit subtitle" v-model="subTitle"></div>
+          <div contenteditable="true" class="edit subtitle" v-on:input="subtitleUpdate($event)"></div>
           <div class="subtitle-hint"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
           <div class="folder">
@@ -16,6 +16,7 @@
             <icon name="left" class="left" @click.native="clickLeft"></icon>
             <icon name="right" class="right" @click.native="clickRight"></icon>
           </div>
+          <div class="folder-hint" style="color: rgba(175,0,0,0.41);margin-top: 0.2rem">{{folderHint}}</div>
           <icon name="cross" class="delete-icon" @click.native="dismiss($event,true)"></icon>
         </div>
     </div>
@@ -31,12 +32,18 @@
             subTitle:"",
             folderItems:[],
             isShow:false,
+            titleHint:"",
+            folderHint:""
           }
       },
       created(){
-          let folder=[-2];
+          let folder=["dskajfkadsfkjaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","水水水水水水水水水"];
           let offset=parseInt(folder.length/2)*(-100);
           for(let i=0;i<folder.length;i++){
+            if(this.checkLength(folder[i])>=26){
+              let end=26-parseInt(this.getChineseCount(folder[i],26)/2);
+              folder[i]=folder[i].substring(0,end)+"...";
+            }
             let item={
               offset:offset,
               text:folder[i],
@@ -47,6 +54,35 @@
           }
       },
       methods:{
+          titleUpdate(event){
+            this.title=event.target.innerHTML;
+            this.$emit('update:title',this.title);
+          },
+          subtitleUpdate(event){
+          this.subTitle=event.target.innerHTML;
+          this.$emit('update:subtitle',this.subTitle);
+          },
+          checkLength(str){
+            let len=0;
+            let newStr;
+            for(let i=0;i<str.length;i++){
+              if(str.charCodeAt(i)>=127||str.charCodeAt(i)==94){            //中文字符算2个Length
+                len+=2;
+              }else {
+                len++;
+              }
+            }
+            return len;
+          },
+          getChineseCount(str,end){
+            let count=0;
+            for(let i=0;i<end;i++){
+              if(str.charCodeAt(i)>=127||str.charCodeAt(i)==94){
+                count++;
+              }
+            }
+            return count;
+          },
           init(){
             this.title="";
             this.subTitle="";
@@ -61,8 +97,12 @@
           );
         },
           clickLeft(){
+            var vm=this;
             if(this.folderItems.length==1){
-              console.log("only you");
+              this.folderHint=this.$t('createDialog.folderHint');
+              setTimeout(function () {
+                vm.folderHint="";
+              },1500);
               return;
             }
              let fItem=this.folderItems.shift();
@@ -97,8 +137,13 @@
             });
           },
           clickRight(){
+            var vm=this;
             if(this.folderItems.length==1){
               console.log("only you");
+              this.folderHint=this.$t('createDialog.folderHint');
+              setTimeout(function () {
+                vm.folderHint="";
+              },1500);
               return;
             }
             let LItem=this.folderItems.pop();
@@ -234,7 +279,7 @@
     height: 1.2rem;
   }
   .folder{
-    width: 60%;
+    width: 80%;
     height: 1.8rem;
     padding: 0rem 1rem;
     position: relative;

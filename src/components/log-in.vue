@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-  <div class="model" v-if="isShow" @click="dismiss($event)">
+  <div class="model" v-if="isShow">
     <div class="dialog">
       <div class="container">
         <ani-input :title="$t('LogIn.basic[0]')" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener"></ani-input>
@@ -8,7 +8,7 @@
         <my-button :fontSize="1.2" class="button" v-on:click.native="login">{{$t('LogIn.basic[2]')}}</my-button>
         <p class="fg">{{$t('LogIn.basic[3]')}}</p>
       </div>
-      <icon name="cross" class="rtimg"></icon>
+      <icon name="cross" class="rtimg"  @click.native="dismiss($event)"></icon>
     </div>
   </div>
   </transition>
@@ -41,21 +41,40 @@
               value:"",
               hint:{
                 text:"",
-                color:'lightgrey',
+                color:'red',
               }
             }
             this.pwInfo={
               value:"",
               hint:{
                 text:"",
-                color:'lightgrey',
+                color:'red',
               }
             }
           },
+          setCookie(c_name,value,expiredays){
+            var exdate=new Date()
+            exdate.setDate(exdate.getDate()+expiredays)
+            document.cookie=c_name+ "=" +escape(value)+
+              ((expiredays==null) ? "" : ";expires="+exdate.toGMTString());
+          },
+          getCookie(c_name){                   //如果找到了我们要的 cookie，就返回值，否则返回空字符串。
+            if (document.cookie.length>0)
+            {
+              c_start=document.cookie.indexOf(c_name + "=")
+              if (c_start!=-1)
+              {
+                c_start=c_start + c_name.length+1
+                c_end=document.cookie.indexOf(";",c_start)
+                if (c_end==-1) c_end=document.cookie.length
+                return unescape(document.cookie.substring(c_start,c_end))
+              }
+            }
+            return ""
+          },
           login:function () {
-            var that=this;
-            console.info(this.euInfo.value);
-            var elementList=document.querySelectorAll(".input");
+            let that=this;
+            let elementList=document.querySelectorAll(".input");
             if(this.euInfo.value==""){
               this.euInfo.hint.text=this.$t('LogIn.ueHint[0]');
               this.euInfo.hint.color="red";
@@ -71,32 +90,37 @@
               },2000);
               elementList[1].focus();
             }else{
+              escape(that.euInfo.value);
               this.axios.get('/static/wpublickey.pem').then(function (response) {
                 var key=new nodersa(response.data);
-                var encryptpw=key.encrypt(that.pwInfo.value,'base64');
-                console.info(encryptpw);
-                var vm=that;
-                vm.axios.get('/api/login', {
+                let encryptpw=key.encrypt(that.pwInfo.value,'base64');
+                let vm=that;
+                vm.axios.post('/api/login', {
                   params: {
                     eu:that.euInfo.value,
-                    pw:encryptpw
+                    pw:escape(encryptpw)
                   }
                 })
                   .then(function (response) {
                     if(response.data=='euempty'){
-                      that.euInfo.hint.text=this.$t('LogIn.ueHint[1]');
+                      that.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
                       that.euInfo.hint.color="red";
+                      console.log("euempty");
                       setTimeout(function () {
                         that.euInfo.hint.text="";
                       },2000);
                     }else if(response.data=='falsepw'){
-                      that.pwInfo.hint.text=this.$t('LogIn.pwHint[1]');
+                      that.pwInfo.hint.text=that.$t('LogIn.pwHint[1]');
                       that.pwInfo.hint.color="red";
+                      console.log("falsepw");
                       setTimeout(function () {
                         that.pwInfo.hint.text="";
                       },2000);
                     }else {
                       console.info('success');
+                      that.setCookie('euname',that.euInfo.value,30);
+                      that.setCookie('password',encryptpw,30);
+                      window.location.reload(true);
                     }
                   })
                   .catch(function (error) {

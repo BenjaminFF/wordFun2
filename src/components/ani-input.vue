@@ -8,7 +8,7 @@
       <icon name="tick" :style="imgStyle" class="tick" v-if="validate"></icon>
       <div class="ani-bb" :style="bbStyle"></div>
 
-    <div class="hint" v-bind:class="hintStyle" v-bind:style="{color:hint.color}">{{hint.text}}</div>
+    <div class="hint" v-bind:style="hintStyle">{{hint.text}}</div>
   </div>
 </template>
 
@@ -35,39 +35,45 @@
           }
       },
       created:function(){
+        let vm=this;
         this.inputStyle={
-          height:this.fontSize*1.5+'rem',
-          paddingTop:this.fontSize*0.25+'rem',
-          paddingBottom:this.fontSize*0.25+'rem',
-          fontSize:this.fontSize+'rem',
-          top:this.fontSize*2+'rem'
+          height:vm.fontSize*1.5+'rem',
+          paddingTop:vm.fontSize*0.25+'rem',
+          paddingBottom:vm.fontSize*0.25+'rem',
+          fontSize:vm.fontSize+'rem',
+          top:vm.fontSize*2+'rem'
         }
         this.phStyle={
-          height:this.fontSize*1.5+'rem',
-          paddingTop:this.fontSize*0.25+'rem',
-          paddingBottom:this.fontSize*0.25+'rem',
-          fontSize:this.fontSize+'rem',
-          top:this.fontSize*2+'rem'
+          height:vm.fontSize*1.5+'rem',
+          paddingTop:vm.fontSize*0.25+'rem',
+          paddingBottom:vm.fontSize*0.25+'rem',
+          fontSize:vm.fontSize+'rem',
+          top:vm.fontSize*2+'rem'
         }
         this.bbStyle={
           width:0,
           height:0,
-          top:this.fontSize*4+'rem',
+          top:vm.fontSize*4+'rem',
         }
         this.hintStyle={
-          height:this.fontSize*1.3+'rem',
-          paddingTop:this.fontSize*0.1+'rem',
-          paddingBottom:this.fontSize*0.1+'rem',
-          fontSize:this.fontSize*0.8+'rem',
+          height:vm.fontSize*1.5+'rem',
+          paddingTop:vm.fontSize*0.5+'rem',
+          paddingBottom:vm.fontSize*0.1+'rem',
+          fontSize:vm.fontSize*0.8+'rem',
+          color:vm.hint.color
         }
         this.imgStyle={
-          width:this.fontSize*1.5+'rem',
-          height:this.fontSize*1.5+'rem',
-          paddingTop:this.fontSize*0.25+'rem',
-          paddingBottom:this.fontSize*0.25+'rem',
-          top:this.fontSize*2+'rem',
-          color:''
+          width:vm.fontSize*1.5+'rem',
+          height:vm.fontSize*1.5+'rem',
+          paddingTop:vm.fontSize*0.25+'rem',
+          paddingBottom:vm.fontSize*0.25+'rem',
+          top:vm.fontSize*2+'rem',
         }
+      },
+      watch:{
+          hint:function () {
+            this.hintStyle.color=this.hint.color;
+          }
       },
       computed:{
         inputListeners:function () {
@@ -108,7 +114,7 @@
             default:function () {
               return {
                 text:"",
-                color:"grey"
+                color:"red"
               }
             }
           },
@@ -167,7 +173,6 @@
     bottom: 0;
     display: flex;
     align-items: flex-end;
-    display: inline;
   }
 
   .placeholder{

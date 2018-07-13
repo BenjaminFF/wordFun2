@@ -12,6 +12,7 @@
   "dependencies": {
     "animate.css": "^3.6.1",
     "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "gulp": "^3.9.1",
     "gulp-svg-symbols": "^3.1.1",
