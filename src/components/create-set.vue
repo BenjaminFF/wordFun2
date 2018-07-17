@@ -28,6 +28,7 @@
     import $ from 'jquery';
     import CreateDialog from "./create-dialog";
     import MyToast from "./my-toast";
+    import { mapState,mapMutations,mapGetters } from 'vuex'
     export default {
         name: "create-set",
         data(){
@@ -36,7 +37,7 @@
             showCD:false,
             toastlist:[],
             title:"",
-            subtitle:""
+            subtitle:"",
           }
         },
         created(){
@@ -209,11 +210,19 @@
               }
               this.toastlist.push(toast);
             }else {
-              if(!this.showCD){
-                this.showCD=true;
-              }
+              this.showCD=true;
             }
-        }
+        },
+        ...mapMutations({
+          add:'test/increment'
+        }),
+      },
+      computed:{
+        ...mapState({
+          getCount:state=>state.test.count,
+          getText:state=>state.test.text,
+          folders:state=>state.wordset.folders
+        }),
       },
       components: {MyToast, CreateDialog, FloatButton, MyButton, CreateInput}
     }

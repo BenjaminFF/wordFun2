@@ -52,26 +52,6 @@
               }
             }
           },
-          setCookie(c_name,value,expiredays){
-            var exdate=new Date()
-            exdate.setDate(exdate.getDate()+expiredays)
-            document.cookie=c_name+ "=" +escape(value)+
-              ((expiredays==null) ? "" : ";expires="+exdate.toGMTString());
-          },
-          getCookie(c_name){                   //如果找到了我们要的 cookie，就返回值，否则返回空字符串。
-            if (document.cookie.length>0)
-            {
-              c_start=document.cookie.indexOf(c_name + "=")
-              if (c_start!=-1)
-              {
-                c_start=c_start + c_name.length+1
-                c_end=document.cookie.indexOf(";",c_start)
-                if (c_end==-1) c_end=document.cookie.length
-                return unescape(document.cookie.substring(c_start,c_end))
-              }
-            }
-            return ""
-          },
           login:function () {
             let that=this;
             let elementList=document.querySelectorAll(".input");
@@ -102,23 +82,26 @@
                   }
                 })
                   .then(function (response) {
-                    if(response.data=='euempty'){
+                    let data=response.data;
+                    if(data.result=='empty'){
                       that.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
                       that.euInfo.hint.color="red";
                       console.log("euempty");
                       setTimeout(function () {
                         that.euInfo.hint.text="";
                       },2000);
-                    }else if(response.data=='falsepw'){
+                    }else if(!data.result){
                       that.pwInfo.hint.text=that.$t('LogIn.pwHint[1]');
                       that.pwInfo.hint.color="red";
                       console.log("falsepw");
                       setTimeout(function () {
                         that.pwInfo.hint.text="";
                       },2000);
-                    }else {
+                    }else if(data.result){
                       console.info('success');
-                      that.setCookie('euname',that.euInfo.value,30);
+                      let username=unescape(data.username);
+                      console.log(username);
+                      that.setCookie('euname',username,30);
                       that.setCookie('password',encryptpw,30);
                       window.location.reload(true);
                     }

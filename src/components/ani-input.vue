@@ -2,7 +2,7 @@
   <div class="ani-input" :style="{height:fontSize*5.5+'rem'}">
     <div class="placeholder" :style="phStyle">{{title}}</div>
 
-      <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur"
+      <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur" @paste="onPaste($event)"
            v-bind="$attrs" v-on="inputListeners" :class="{security:security}"
       ></div>
       <icon name="tick" :style="imgStyle" class="tick" v-if="validate"></icon>
@@ -94,6 +94,45 @@
         }
       },
       methods:{
+        onPaste(e){
+          e.preventDefault();
+          var text = null;
+
+          if(window.clipboardData && clipboardData.setData) {
+            // IE
+            text = window.clipboardData.getData('text');
+          } else {
+            text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('在这里输入文本');
+          }
+          console.log(text.length);
+
+          if(text.length>=20){
+            text=text.substring(0,20);
+          }
+          if (document.body.createTextRange) {
+            if (document.selection) {
+              textRange = document.selection.createRange();
+            } else if (window.getSelection) {
+              sel = window.getSelection();
+              var range = sel.getRangeAt(0);
+
+              // 创建临时元素，使得TextRange可以移动到正确的位置
+              var tempEl = document.createElement("span");
+              tempEl.innerHTML = "&#FEFF;";
+              range.deleteContents();
+              range.insertNode(tempEl);
+              textRange = document.body.createTextRange();
+              textRange.moveToElementText(tempEl);
+              tempEl.parentNode.removeChild(tempEl);
+            }
+            textRange.text = text;
+            textRange.collapse(false);
+            textRange.select();
+          } else {
+            // Chrome之类浏览器
+            document.execCommand("insertText", false, text);
+          }
+          },
         Focus() {
           this.phStyle.top = 0;
           this.phStyle.fontSize=this.fontSize*0.9+'rem';
@@ -165,6 +204,7 @@
     border: 0px;
     border-bottom: 1px solid lightgray;
     color: #0FA3B1;
+    z-index: 5;
   }
 
   .hint{

@@ -11,7 +11,7 @@
           <div class="subtitle-hint"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
           <div class="folder">
-            <div v-for="item in folderItems" class="folder-item"
+            <div v-for="item in slideFolders" class="folder-item"
                  :style="{transform:item.transform}">{{item.text}}</div>
             <icon name="left" class="left" @click.native="clickLeft"></icon>
             <icon name="right" class="right" @click.native="clickRight"></icon>
@@ -24,64 +24,29 @@
 
 <script>
     import AniInput from "./ani-input";
+    import { mapState,mapMutations } from 'vuex'
     export default {
         name: "create-dialog",
       data(){
           return{
             title:"",
             subTitle:"",
-            folderItems:[],
             isShow:false,
             titleHint:"",
-            folderHint:""
-          }
-      },
-      created(){
-          let folder=["dskajfkadsfkjaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","水水水水水水水水水"];
-          let offset=parseInt(folder.length/2)*(-100);
-          for(let i=0;i<folder.length;i++){
-            if(this.checkLength(folder[i])>=26){
-              let end=26-parseInt(this.getChineseCount(folder[i],26)/2);
-              folder[i]=folder[i].substring(0,end)+"...";
-            }
-            let item={
-              offset:offset,
-              text:folder[i],
-              transform:'translateX('+offset+'%)'
-            }
-            this.folderItems.push(item);
-            offset+=100;
+            folderHint:"",
           }
       },
       methods:{
           titleUpdate(event){
             this.title=event.target.innerHTML;
+            if(this.checkLength(this.title)>=10){
+              event.preventDefault();
+            }
             this.$emit('update:title',this.title);
           },
           subtitleUpdate(event){
           this.subTitle=event.target.innerHTML;
           this.$emit('update:subtitle',this.subTitle);
-          },
-          checkLength(str){
-            let len=0;
-            let newStr;
-            for(let i=0;i<str.length;i++){
-              if(str.charCodeAt(i)>=127||str.charCodeAt(i)==94){            //中文字符算2个Length
-                len+=2;
-              }else {
-                len++;
-              }
-            }
-            return len;
-          },
-          getChineseCount(str,end){
-            let count=0;
-            for(let i=0;i<end;i++){
-              if(str.charCodeAt(i)>=127||str.charCodeAt(i)==94){
-                count++;
-              }
-            }
-            return count;
           },
           init(){
             this.title="";
@@ -98,28 +63,17 @@
         },
           clickLeft(){
             var vm=this;
-            if(this.folderItems.length==1){
+            if(this.slideFolders.length==1){
               this.folderHint=this.$t('createDialog.folderHint');
               setTimeout(function () {
                 vm.folderHint="";
               },1500);
               return;
             }
-             let fItem=this.folderItems.shift();
-             fItem.offset+=(this.folderItems.length+1)*100;
-             fItem.transform='translateX('+fItem.offset+'%)';
-             this.folderItems.push(fItem);
-             let offset=this.folderItems[0].offset;
-             for(let i=0;i<this.folderItems.length;i++){
-               let item=this.folderItems[i];
-               item.offset-=100;
-               item.transform='translateX('+item.offset+'%)';
-             }
-
+            this.slideLeft();
             let that=this;
             this.$nextTick(function () {
               let el=document.querySelectorAll('.folder-item');
-              console.log(el.length);
               let o=el[0].getBoundingClientRect();
               let invert=o.left-o.right;
               let m=parseInt(el.length/2);
@@ -138,7 +92,7 @@
           },
           clickRight(){
             var vm=this;
-            if(this.folderItems.length==1){
+            if(this.slideFolders.length==1){
               console.log("only you");
               this.folderHint=this.$t('createDialog.folderHint');
               setTimeout(function () {
@@ -146,17 +100,7 @@
               },1500);
               return;
             }
-            let LItem=this.folderItems.pop();
-            LItem.offset-=(this.folderItems.length+1)*100;
-            LItem.transform='translateX('+LItem.offset+'%)';
-            this.folderItems.unshift(LItem);
-            let offset=this.folderItems[0].offset;
-            for(let i=0;i<this.folderItems.length;i++){
-              let item=this.folderItems[i];
-              item.offset+=100;
-              item.transform='translateX('+item.offset+'%)';
-            }
-
+            this.slideRight();
             let that=this;
             this.$nextTick(function () {
               let el=document.querySelectorAll('.folder-item');
@@ -190,6 +134,7 @@
                 }
               }
             });
+            console.log(this.slideFolders);
           },
           dismiss(event,isIcon){
             if(event.target.className=="model"||isIcon){
@@ -197,7 +142,11 @@
               this.$emit('dismiss');
               this.init();
             }
-          }
+        },
+        ...mapMutations({
+          slideLeft:'wordset/slideLeft',
+          slideRight:'wordset/slideRight'
+        }),
       },
       components: {AniInput},
       props:{
@@ -206,12 +155,20 @@
             default:function () {
               return false;
             }
-          }
+          },
       },
       watch:{
           showCD:function () {
             this.isShow=this.showCD;
-          }
+          },
+        folder(){
+            console.log("aa");
+        }
+      },
+      computed:{
+        ...mapState({
+          slideFolders:state=>state.wordset.slideFolders,
+        }),
       }
     }
 </script>

@@ -1,12 +1,14 @@
 <template>
     <div class="latest-learn">
-      latest-learn
+      <create-set></create-set>
     </div>
 </template>
 
 <script>
+    import CreateSet from "./create-set";
     export default {
-        name: "latest-learn"
+        name: "latest-learn",
+      components: {CreateSet}
     }
 </script>
 
@@ -14,6 +16,5 @@
   .latest-learn{
     width: 100%;
     height: 100%;
-    background-color: lightgrey;
   }
 </style>

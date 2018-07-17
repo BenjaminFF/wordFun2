@@ -4,11 +4,11 @@
         <div class="dialog">
           <div class="container">
             <ani-input :font-size="1.3" :title="$t('SignUp.basic[0]')" :hint="nameInfo.hint"
-                       v-on:input="nameListener" :validate="nameInfo.Validated" @keydown.native="checkLength($event,nameInfo,20)"></ani-input>
+                       v-on:input="nameListener" :validate="nameInfo.Validated" @keydown.native="banInput($event,nameInfo,25)"></ani-input>
             <ani-input :font-size="1.3" :title="$t('SignUp.basic[1]')" :hint="emailInfo.hint"
-                       :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="checkLength($event,emailInfo,30)"></ani-input>
+                       :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="banInput($event,emailInfo,30)"></ani-input>
             <ani-input :font-size="1.3" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true"
-                       v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="checkLength($event,pwInfo,20)"
+                       v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="banInput($event,pwInfo,30)"
             ></ani-input>
             <my-button :font-size="1.2" class="button" @click.native="signup">{{$t('SignUp.basic[3]')}}</my-button>
           </div>
@@ -41,17 +41,17 @@
           }
       },
       methods:{
-          init(){
-            this.nameInfo={
-              value:"",
-              Validated:false,
-              hint:{
-                text:"",
-                color:'red',
-              },
-              isVerifying:false
-            }
-            this.emailInfo={
+        init(){
+                  this.nameInfo={
+                    value:"",
+                    Validated:false,
+                    hint:{
+                      text:"",
+                      color:'red',
+                    },
+                    isVerifying:false
+                  }
+                  this.emailInfo={
                 value:"",
                 Validated:false,
                 hint:{
@@ -70,8 +70,8 @@
               isVerifying:false
             }
           },
-          checkLength(event,inputInfo,length){
-            if(event.target.innerHTML.length>=length){
+        banInput(event,inputInfo,length){
+            if(this.checkLength(event.target.innerHTML)>length){
               // Backspace, del, 左右方向键
               var code=event.keyCode;
               if (code != 8&&code != 46&&code != 37&&code != 39){
@@ -79,10 +79,15 @@
               }
             }
           },
-          /*假定用户1s完成输入，双手离开键盘，然后判断用户名*,1s之内只判断一次*/
-          nameListener(event){
+        /*假定用户1s完成输入，双手离开键盘，然后判断用户名*,1s之内只判断一次*/
+        nameListener(event){
             var that=this;
-            that.nameInfo.value=event.target.innerHTML;
+            if(event.target.textContent!=undefined){
+              that.nameInfo.value=event.target.textContent;       //兼容火狐
+            }else {
+              that.nameInfo.value=event.target.innerText;
+            }
+            console.log(that.nameInfo.value);
             if(!this.nameInfo.isVerifying){
               setTimeout(function () {
                 that.verifyname(that.nameInfo.value);
@@ -93,7 +98,6 @@
           },
         checkLength(str){
           let len=0;
-          let newStr;
           for(let i=0;i<str.length;i++){
             if(str.charCodeAt(i)>=127||str.charCodeAt(i)==94){            //中文字符算2个Length
               len+=2;
@@ -103,31 +107,45 @@
           }
           return len;
         },
+        checkChinese(str){
+            let len=0;
+          for(let i=0;i<str.length;i++){
+            if(str.charCodeAt(i)>=127||str.charCodeAt(i)==94){            //中文字符算2个Length
+              len++;
+            }
+          }
+          return len;
+        },
         /*用户名不能小于4；用户名只能包含字母，汉字，数组，下划线；用户名不能重复*/
         verifyname(value) {
           var that = this;
-          let username=escape(value);           //数据库中的email,username,password都是escape后存入的
           if (this.checkLength(value) < 4) {
             that.nameInfo.hint.text=this.$t('SignUp.nameHint[1]');
             that.nameInfo.hint.color="red";
             that.nameInfo.Validated=false;
-          } else {
+          } else if(this.checkLength(value)>20){
+            that.nameInfo.hint.text=this.$t('SignUp.nameHint[5]');
+            that.nameInfo.hint.color="red";
+            that.nameInfo.Validated=false;
+            }
+            else {
             if (!/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/.test(value)) {
               that.nameInfo.hint.text = this.$t('SignUp.nameHint[2]');
               that.nameInfo.hint.color = "red";
               that.nameInfo.Validated=false;
             } else {
+              console.log(escape(value));
               this.axios.get('/api/verifyname', {
                 params: {
-                  username: username
+                  username: escape(value)
                 }
               })
                 .then(function (response) {
                   console.log(response.data);
-                  if(response.data=='notsign'){
+                  if(!response.data.signed){
                     that.nameInfo.Validated=true;
                     that.nameInfo.hint.text = "";
-                  }else {
+                  }else if(response.data.signed){
                     that.nameInfo.Validated=false;
                     that.nameInfo.hint.text = that.$t('SignUp.nameHint[3]');
                     that.nameInfo.hint.color = "red";
@@ -141,7 +159,11 @@
         },
         emailListener(event){
           var that=this;
-          that.emailInfo.value=event.target.innerHTML;
+          if(event.target.textContent!=undefined){
+            that.emailInfo.value=event.target.textContent;       //兼容火狐
+          }else {
+            that.emailInfo.value=event.target.innerText;
+          }
           if(!this.emailInfo.isVerifying){
             setTimeout(function () {
               that.verifyemail(that.emailInfo.value);
@@ -152,7 +174,6 @@
         },
         verifyemail(value){
           var that=this;
-          let email=escape(value);
           if(!/^[a-zA-Z0-9_]+@[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)+$/.test(value)){
             that.emailInfo.hint.text=this.$t('SignUp.emailHint[0]');
             that.emailInfo.hint.color="orangered";
@@ -160,15 +181,15 @@
           }else {
             this.axios.get('/api/verifyemail', {
               params: {
-                email: email
+                email: escape(value)
               }
             })
               .then(function (response) {
                 console.log(response.data);
-                if(response.data=='notsign'){
+                if(!response.data.signed){
                   that.emailInfo.Validated=true;
                   that.emailInfo.hint.text = "";
-                }else {
+                }else if(response.data.signed){
                   that.emailInfo.Validated=false;
                   that.emailInfo.hint.text = that.$t('SignUp.emailHint[1]');
                   that.emailInfo.hint.color = "orangered";
@@ -181,7 +202,12 @@
         },
         pwListener(event){
           var that=this;
-          that.pwInfo.value=event.target.innerHTML;
+          if(event.target.textContent!=undefined){
+            that.pwInfo.value=event.target.textContent;       //兼容火狐
+          }else {
+            that.pwInfo.value=event.target.innerHTML;
+          }
+          console.log(that.pwInfo.value);
           if(!this.pwInfo.isVerifying){
             setTimeout(function () {
               that.verifypw(that.pwInfo.value);
@@ -190,7 +216,7 @@
             that.pwInfo.isVerifying=true;
           }
         },
-        /*密码不少于6位，不多于20位,密码必须包含字母数字*/
+        /*密码不少于6位，不多于30位,密码必须包含字母数字*/
         verifypw(value){
           var that=this;
           if(value.length<6){
@@ -201,7 +227,11 @@
             that.pwInfo.hint.text=this.$t('SignUp.pwHint[1]');
             that.pwInfo.hint.color="orangered";
             that.pwInfo.Validated=false;
-          }else {
+          }else if(this.checkChinese(value)>0) {
+          that.pwInfo.hint.text=this.$t('SignUp.pwHint[3]');
+          that.pwInfo.hint.color="orangered";
+          that.pwInfo.Validated=false;
+           }else {
             that.pwInfo.hint.text="";
             that.pwInfo.hint.color="orangered";
             that.pwInfo.Validated=true;
@@ -229,17 +259,15 @@
             this.pwInfo.hint.color="orangered";
             elementList[2].focus();
           }else {
-            console.info("success");
             this.axios.get('/static/wpublickey.pem').then(function (response) {
               var key=new nodersa(response.data);
               let encryptpw=key.encrypt(that.pwInfo.value,'base64');
               var vm=that;
-              escape(that.nameInfo.value);
               vm.axios.post('/api/signup', {
                 params: {
-                  username:that.nameInfo.value,
-                  email:that.emailInfo.value,
-                  password:encryptpw
+                  username:escape(that.nameInfo.value),
+                  email:escape(that.emailInfo.value),
+                  password:escape(encryptpw)
                 }
               })
                 .then(function (response) {
@@ -258,7 +286,7 @@
             this.$emit('dismiss');
             this.init();
           }
-        }
+        },
       },
       props:{
           showSU:{

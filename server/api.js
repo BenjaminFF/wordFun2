@@ -5,24 +5,43 @@ const nodersa=require('node-rsa');
 const fs=require('fs');
 
 function queryData(value,res,column){
-  if(value!=undefined){
     var sql='select * from user where '+column+'=\''+value+'\'';
     pool.query(sql,function (err, result) {
       if(err){
         console.log('[SELECT ERROR] - '+err.message)
-        res.send('error');
         return;
       }else {
         if(result[0]!=undefined){
-          res.send('signed');
+          let json={
+            signed:true
+          }
+          let data=JSON.stringify(json);
+          res.send(data);
         }else {
-          res.send('notsign');
+          let json={
+            signed:false
+          }
+          let data=JSON.stringify(json);
+          res.send(data);
         }
       }
     });
-  }else {
-    res.send('error');
-  }
+}
+
+function queryFolder(username,res) {
+  var sql='select * from folder where author=\''+username+"\'";
+  pool.query(sql,function (err,result) {
+    if(err){
+      console.log('[SELECT ERROR] - '+err.message)
+      res.send('err');
+      return;
+    }else {
+      if(result.length!=0){
+        res.send(result);
+        return;
+      }
+    }
+  });
 }
 
 function insertdata(username,email,password,res){
@@ -31,17 +50,15 @@ function insertdata(username,email,password,res){
   pool.query(sql,function (err, result) {
     if(err){
       console.log('[SELECT ERROR] - '+err.message)
-      res.send('err');
       return;
     }else {
-      console.log("success");
       res.send('success');
     }
   });
 }
 
 function queryeup(eu,pw,res){
-  var eusql='select password from user where username =\''+eu+'\' or email=\''+eu+'\'';
+  var eusql='select * from user where username =\''+eu+'\' or email=\''+eu+'\'';
   pool.query(eusql,function (err, result) {
     if(err){
       console.log('[SELECT ERROR] - '+err.message)
@@ -49,17 +66,31 @@ function queryeup(eu,pw,res){
       return;
     }else {
       if(result[0]==undefined){
-        res.send('euempty');
+        let json={
+          result:'empty'
+        }
+        let data=JSON.stringify(json);
+        res.send(data);
         return;
       }else {
+        console.log(result[0].username);
         var data = fs.readFileSync('wprivatekey.pem');
         var key=new nodersa(data);
         var password=key.decrypt(unescape(result[0].password),'utf8');
         var decryptpw=key.decrypt(unescape(pw),'utf8');
         if(password==decryptpw){
-          res.send('truepw');
+          let json={
+            result:true,
+            username:result[0].username
+          }
+          let data=JSON.stringify(json);
+          res.send(data);
         }else {
-          res.send('falsepw');
+          let json={
+            result:false,
+          }
+          let data=JSON.stringify(json);
+          res.send(data);
         }
         return;
       }
@@ -69,6 +100,7 @@ function queryeup(eu,pw,res){
 
 router.get('/api/verifyname',function (req,res) {
   escape(req.query.username);
+  console.log(req.query.username);
   queryData(req.query.username,res,'username');
 });
 
@@ -78,11 +110,11 @@ router.get('/api/verifyemail',function (req,res) {
 });
 
 router.post('/api/signup',function (req,res) {
-    unescape(req.body.params.username);  //username可以为中文，客户端已转义一次，为了不出现乱码
-    let username=escape(req.body.params.username);
-    let email=escape(req.body.params.email);
-    let password=escape(req.body.params.password);
-    insertdata(username,email,password,res);
+    let username=unescape(req.body.params.username);             //传过来的数据已经被escape一道了
+    let email=unescape(req.body.params.email);
+    let password=unescape(req.body.params.password);
+    console.log(req.body.params.username);
+    insertdata(escape(username),escape(email),escape(password),res);
 });
 
 router.post('/api/login',function (req,res) {
@@ -91,4 +123,9 @@ router.post('/api/login',function (req,res) {
   queryeup(escape(username),escape(password),res);
 });
 
+router.get('/api/getfolder',function (req,res) {
+  if(req.query.username!=undefined){
+    queryFolder(req.query.username,res);
+  }
+});
 module.exports = router;

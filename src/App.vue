@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <my-header class="header" :defaultPage="isDefaultPage"></my-header>
+    <my-header class="header" :defaultPage="isDefaultPage" :username="username"></my-header>
     <div class="main-content">
       <component :is="curComponent"></component>
     </div>
-    <transition leave-active-class="animated fadeOut" :duration="3000">
+    <transition leave-active-class="animated fadeOut">
     <div class="shadow" v-if="Loading">
       <div class="loading"></div>
       <div class="load_text">W</div>
@@ -17,18 +17,21 @@
 import MyHeader from "./components/my-header";
 import DefaultPage from "./components/default-page";
 import UserPage from "./components/user-page";
+import { mapState,mapMutations } from 'vuex'
 export default {
   name: 'App',
   data(){
     return{
       curComponent:DefaultPage,
       isDefaultPage:true,
-      Loading:true
+      Loading:true,
+      username:""
     }
   },
   created(){
     let euname=this.getCookie("euname");        //存入cookie中的还是经过escape后的，避免中文乱码
     let password=this.getCookie("password");
+    console.log(euname);
     let that=this;
     if(euname!=""&&password!=""){
       this.axios.post('/api/login', {
@@ -37,32 +40,49 @@ export default {
           pw:password
         }
       }).then(function (response) {
-        if(response.data=="truepw"){
+        if(response.data.result){
           that.curComponent=UserPage;
           that.isDefaultPage=false;
+          that.username=euname;
         }
         setTimeout(function () {
           that.Loading=false;
-        },3000);
+        },1000);
       });
+      this.initFolderFromDB(euname);
+    }else {
+      setTimeout(function () {
+        that.Loading=false;
+      },2000);
     }
   },
   components: {UserPage, DefaultPage, MyHeader},
   methods:{
-    getCookie(c_name){                   //如果找到了我们要的 cookie，就返回值，否则返回空字符串。
-      if (document.cookie.length>0)
-      {
-        let c_start=document.cookie.indexOf(c_name + "=")
-        if (c_start!=-1)
-        {
-          c_start=c_start + c_name.length+1
-          let c_end=document.cookie.indexOf(";",c_start)
-          if (c_end==-1) c_end=document.cookie.length;
-          return unescape(document.cookie.substring(c_start,c_end))
+    initFolderFromDB(euname){
+      let that=this;
+      this.axios.get('/api/getfolder', {
+        params: {
+          username:escape(euname)
         }
-      }
-      return ""
+      })
+        .then(function (response) {
+          let i;
+          let folders=[];
+          for(i=0;i<response.data.length;i++){
+            folders[i]=response.data[i].title;
+          }
+          that.setFolders(folders);
+          that.setSlideFolders();
+          console.log(folders);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     },
+    ...mapMutations({
+      setFolders:'wordset/setFolders',
+      setSlideFolders:'wordset/setSlideFolders'
+    }),
   }
 }
 </script>
