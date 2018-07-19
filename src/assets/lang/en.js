@@ -26,7 +26,8 @@ module.exports = {
     title:"Title",
     subTitle:"SubTitle",
     folder:"Folder",
-    folderHint:"only one folder!"
+    folderHint:"only one folder!",
+    titleEmpty:'There is no Title!'
   },
   createSet:{
     termEmpty:' term is empty,please fill it up!',

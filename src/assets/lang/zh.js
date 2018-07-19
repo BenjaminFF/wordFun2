@@ -25,7 +25,8 @@ module.exports = {
     title:"标题",
     subTitle:"副标题",
     folder:"文件夹",
-    folderHint:"你只有一个文件夹哦！"
+    folderHint:"你只有一个文件夹哦！",
+    titleEmpty:'标题不能为空哦'
   },
   createSet:{
     termEmpty:'行单词为空，请给它填上!',

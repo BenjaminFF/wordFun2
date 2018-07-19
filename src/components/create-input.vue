@@ -1,5 +1,6 @@
 <template>
     <div class="create-input" :style="pStyle" @mouseover="showDel=true" @mouseleave="showDel=false">
+      <div class="cardId">{{cardId}}</div>
       <div class="term" contenteditable="true" v-on="inputListener" :style="{borderBottom:termBB}" @paste="onPaste($event)"></div>
       <div class="definition" contenteditable="true" v-on="inputListener" :style="{borderBottom:defBB}" @paste="onPaste($event)"></div>
       <icon name="delete" class="delete animated bounceIn" v-if="showDel" @click.native="$emit('delete')"></icon>
@@ -33,6 +34,9 @@
           defBorder:{
             type:String,
             default:'white 1px solid'
+          },
+          cardId:{
+            type:Number
           }
       },
       watch:{
@@ -141,18 +145,28 @@
     justify-content: space-between;
     position: relative;
     box-sizing: border-box;
+    color: white;
+  }
+  .cardId{
+    position: absolute;
+    left: 1rem;
+    user-select: none;
   }
   .term{
     width: 48%;
     height: fit-content;
     color: white;
     outline: none;
+    min-height: 1.6rem;                  /*兼容firefox*/
+    word-break: break-all;              /*兼容firefox*/
   }
   .definition{
     width: 48%;
     height: fit-content;
     color: white;
     outline: none;
+    min-height: 1.6rem;
+    word-break: break-all;
   }
   .delete{
     width: 1.2rem;

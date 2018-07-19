@@ -1,7 +1,8 @@
 import funcs from '../funcs'
 const state={
+  showCD:false,                      //show create dialog
   folders:[],
-  slideFolders:[]
+  slideFolders:[],
 }
 
 const mutations={
@@ -46,6 +47,12 @@ const mutations={
       state.slideFolders[i].offset-=100;
       state.slideFolders[i].transform='translateX('+state.slideFolders[i].offset+'%)';
     }
+  },
+  openCD(state){
+    state.showCD=true;
+  },
+  closeCD(state){
+    state.showCD=false;
   }
 }
 

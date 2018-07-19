@@ -128,4 +128,21 @@ router.get('/api/getfolder',function (req,res) {
     queryFolder(req.query.username,res);
   }
 });
+router.post('/api/pushwordset',function (req,res) {
+  let cards=JSON.parse(req.body.params.jsoncards);
+  let valuesarr=[];
+  for(let i=0;i<cards.length;i++){
+    valuesarr.push(Object.values(cards[i]));
+  }
+  let insertcardsSql='insert into vocabulary values ?';
+  pool.query(insertcardsSql,[valuesarr],function (err) {
+    if(err){
+      console.log('[SELECT ERROR] - '+err.message)
+      res.send('error');
+      return;
+    }else {
+      res.send('success');
+    }
+  });
+})
 module.exports = router;

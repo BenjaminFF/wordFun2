@@ -3,6 +3,7 @@
       <div class="container">
         <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
           <create-input class="create-input" v-on:delete="deleteItem(index)"
+                        :cardId="index+1"
                         :defBorder="item.defBorder" :termBorder="item.termBorder"
                         :defText.sync="item.defText" :termText.sync="item.termText">
           </create-input>
@@ -15,8 +16,8 @@
       </div>
       <float-button iconname="tick" size="middle" class="fbTick" @click="fbTickClick"
                     @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
-      <create-dialog :showCD="showCD" v-bind:title.sync="title" v-bind:subtitle.sync="subtitle"
-                     v-on:dismiss="showCD=false"></create-dialog>
+      <create-dialog v-if="showCD" v-bind:title.sync="title"
+                     v-bind:subtitle.sync="subtitle"></create-dialog>
       <my-toast v-for="toast in toastlist" :text="toast.text"></my-toast>
     </div>
 </template>
@@ -34,13 +35,12 @@
         data(){
           return{
             items:[],
-            showCD:false,
             toastlist:[],
             title:"",
             subtitle:"",
           }
         },
-        created(){
+      created(){
           let timestamp=new Date().getTime();
           for(let i=0;i<2;i++){
             var item={
@@ -142,23 +142,22 @@
               transform: 'translateX(100px)',
             },
           ];
-          var player=this.addTransition(el[index],deleteTransition);
+          this.addTransition(el[index],deleteTransition);
             let vm=this;
-            player.onfinish=function () {
-              var o=el[index].getBoundingClientRect();
-              let invert=o.bottom-o.top;
-              let moveTransition=[
-                { transform: 'translateY(' + invert + 'px)' },
-                { transform: 'translateY(0)' }
-              ]
-              for(let i=index;i<vm.items.length;i++){
-                vm.addTransition(el[i],moveTransition);
-              }
-              var addButton=document.querySelector('.add-button');
-              vm.addTransition(addButton,moveTransition);
-              vm.items.splice(index,1);
-            };
-
+              vm.$nextTick(function () {
+                var o = el[index].getBoundingClientRect();
+                let invert = o.bottom - o.top;
+                let moveTransition = [
+                  {transform: 'translateY(' + invert + 'px)'},
+                  {transform: 'translateY(0)'}
+                ]
+                for (let i = index; i < vm.items.length; i++) {
+                  vm.addTransition(el[i], moveTransition);
+                }
+                var addButton = document.querySelector('.add-button');
+                vm.addTransition(addButton, moveTransition);
+                vm.items.splice(index, 1);
+              });
             console.info(this.items[index].timestamp);
         },
         addTransition(el,transition){
@@ -210,18 +209,70 @@
               }
               this.toastlist.push(toast);
             }else {
-              this.showCD=true;
+              if(!this.showCD){
+                this.openCD();
+              }else {
+                if(this.title.length<2){         //为了兼容火狐，title前面有个空格
+                  let toast={
+                    text:vm.$t('createDialog.titleEmpty')
+                  }
+                  this.toastlist.push(toast);
+                }else {
+                  this.pushWordset();
+                }
+              }
             }
         },
+        pushWordset(){
+          let cards=[];
+          let title=escape(this.title.substring(1,this.title.length));  //为了兼容火狐，前面加了个空格
+          let subtitle=escape(this.subtitle.substring(1,this.subtitle.length));
+          let author=escape(this.getCookie('euname'));
+          let createtime=new Date().getTime();       //时间轴作为标识
+          let folder="";
+          for(let i=0;i<this.items.length;i++){
+            let card={
+              term:escape(this.items[i].termText),
+              definition:escape(this.items[i].defText),
+              author:author,
+              createtime:createtime
+            }
+            cards.push(card);
+          }
+          for(let i=0;i<this.slideFolders.length;i++){
+            if(this.slideFolders[i].offset==0){
+              folder=escape(this.slideFolders[i].text);
+              break;
+            }
+          }
+          let wordset={
+            title:title,
+            subtitle:subtitle,
+            author:author,
+            createtime:createtime,
+            folder:folder
+          }
+          let jsoncards=JSON.stringify(cards);
+          let jsonwordset=JSON.stringify(wordset);
+          this.axios.post('/api/pushwordset', {
+            params: {
+              jsoncards:jsoncards,
+              jsonwordset:jsonwordset
+            }
+          })
+            .then(function (response) {
+              console.log(response.data);
+            });
+        },
         ...mapMutations({
-          add:'test/increment'
+          add:'test/increment',
+          openCD:'wordset/openCD',
         }),
       },
       computed:{
         ...mapState({
-          getCount:state=>state.test.count,
-          getText:state=>state.test.text,
-          folders:state=>state.wordset.folders
+          showCD:state=>state.wordset.showCD,
+          slideFolders:state=>state.wordset.slideFolders
         }),
       },
       components: {MyToast, CreateDialog, FloatButton, MyButton, CreateInput}

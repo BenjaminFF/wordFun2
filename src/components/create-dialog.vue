@@ -1,13 +1,16 @@
 <template>
-    <div class="model" @click="dismiss($event,false)" v-if="isShow">
+    <div class="model" @click="dismiss($event,false)">
         <div class="dialog animated bounceInDown">
           <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{$t('createDialog.header')}}</div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
-          <div contenteditable="true" class="edit title" v-on:input="titleUpdate($event)"></div>
+          <div contenteditable="true" class="edit title" v-on:input="titleUpdate($event)" @keydown="banInput($event,40)"
+          @paste="onPaste($event)" @keyup="checkTitle($event)">&nbsp;</div>
           <div class="title-hint"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
             {{$t('createDialog.subTitle')}}</div>
-          <div contenteditable="true" class="edit subtitle" v-on:input="subtitleUpdate($event)"></div>
+          <div contenteditable="true" @keydown="banInput($event,50)"  @paste="onPaste($event)"
+               @keyup="checkTitle($event)"
+               class="edit subtitle" v-on:input="subtitleUpdate($event)">&nbsp;</div>
           <div class="subtitle-hint"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
           <div class="folder">
@@ -37,22 +40,96 @@
           }
       },
       methods:{
-          titleUpdate(event){
-            this.title=event.target.innerHTML;
-            if(this.checkLength(this.title)>=10){
+        onPaste(e){
+          e.preventDefault();
+          var text = null;
+
+          if(window.clipboardData && clipboardData.setData) {
+            // IE
+            text = window.clipboardData.getData('text');
+          } else {
+            text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('在这里输入文本');
+          }
+
+          if(text.length>=20){
+            text=text.substring(0,20);
+          }
+          if (document.body.createTextRange) {
+            if (document.selection) {
+              textRange = document.selection.createRange();
+            } else if (window.getSelection) {
+              sel = window.getSelection();
+              var range = sel.getRangeAt(0);
+
+              // 创建临时元素，使得TextRange可以移动到正确的位置
+              var tempEl = document.createElement("span");
+              tempEl.innerHTML = "&#FEFF;";
+              range.deleteContents();
+              range.insertNode(tempEl);
+              textRange = document.body.createTextRange();
+                textRange.moveToElementText(tempEl);
+              tempEl.parentNode.removeChild(tempEl);
+            }
+            textRange.text = text;
+            textRange.collapse(false);
+            textRange.select();
+          } else {
+            // Chrome之类浏览器
+            document.execCommand("insertText", false, text);
+          }
+        },
+        banInput(event,length){
+          if(this.checkLength(event.target.innerText)>length){
+            // Backspace, del, 左右方向键
+            var code=event.keyCode;
+            if (code != 8&&code != 46&&code != 37&&code != 39){
               event.preventDefault();
             }
+          }
+        },
+          titleUpdate(event){
+            let text;
+            if(event.target.textContent!=undefined){
+              text=event.target.textContent;       //兼容火狐
+            }else {
+              text=event.target.innerText;
+            }
+            this.title=text;
             this.$emit('update:title',this.title);
           },
+          checkTitle(event){
+            let text;
+            if(event.target.textContent!=undefined){
+              text=event.target.textContent;       //兼容火狐
+            }else {
+              text=event.target.innerText;
+            }
+            if(this.checkLength(text)>40){
+              let text=event.target.innerText.substring(0,40);
+              console.log(text);
+              event.target.innerHTML="";
+              document.execCommand("insertText", false, text);
+              this.titleUpdate(event);
+            }
+          },
           subtitleUpdate(event){
-          this.subTitle=event.target.innerHTML;
+          this.subTitle=event.target.innerText;
           this.$emit('update:subtitle',this.subTitle);
           },
+        checksubTitle(event){
+          if(this.checkLength(event.target.innerText)>60){
+            let text=event.target.innerText.substring(0,60);
+            console.log(text);
+            event.target.innerText="";
+            document.execCommand("insertText", false, text);
+            this.subtitleUpdate(event);
+          }
+        },
           init(){
             this.title="";
             this.subTitle="";
           },
-        addTransition(el,transition,delay){
+          addTransition(el,transition,delay){
           return el.animate(
             transition,
             {
@@ -138,36 +215,21 @@
           },
           dismiss(event,isIcon){
             if(event.target.className=="model"||isIcon){
-              this.isShow=false;
-              this.$emit('dismiss');
+              this.closeCD();
               this.init();
             }
         },
         ...mapMutations({
           slideLeft:'wordset/slideLeft',
-          slideRight:'wordset/slideRight'
+          slideRight:'wordset/slideRight',
+          closeCD:'wordset/closeCD'
         }),
       },
       components: {AniInput},
-      props:{
-          showCD:{
-            type:Boolean,
-            default:function () {
-              return false;
-            }
-          },
-      },
-      watch:{
-          showCD:function () {
-            this.isShow=this.showCD;
-          },
-        folder(){
-            console.log("aa");
-        }
-      },
       computed:{
         ...mapState({
           slideFolders:state=>state.wordset.slideFolders,
+          showCD:state=>state.wordset.showCD
         }),
       }
     }
@@ -204,10 +266,12 @@
   .edit{
     border: 1px solid white;
     width: 70%;
-    height: fit-content;
     outline: none;
     color: white;
     border-radius: 10px;
+    background-color: transparent;
+    min-height: 1.5rem;
+    word-break: break-all;
   }
   .title{
     text-align: center;
@@ -215,8 +279,9 @@
     padding: 0.5rem 1rem;
   }
   .subtitle{
+    font-size: 1.2rem;
     text-align: center;
-    padding: 0.2rem 1rem;
+    padding: 0.5rem 1rem;
   }
   .delete-icon{
     position: absolute;
