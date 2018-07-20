@@ -225,8 +225,8 @@
         },
         pushWordset(){
           let cards=[];
-          let title=escape(this.title.substring(1,this.title.length));  //为了兼容火狐，前面加了个空格
-          let subtitle=escape(this.subtitle.substring(1,this.subtitle.length));
+          let title=escape(this.title.substring(0,this.title.length));
+          let subtitle=escape(this.subtitle.substring(0,this.subtitle.length));
           let author=escape(this.getCookie('euname'));
           let createtime=new Date().getTime();       //时间轴作为标识
           let folder="";
@@ -235,7 +235,7 @@
               term:escape(this.items[i].termText),
               definition:escape(this.items[i].defText),
               author:author,
-              createtime:createtime
+              createtime:createtime                  //这是它所属的单词集合的相同的createtime
             }
             cards.push(card);
           }

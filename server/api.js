@@ -129,13 +129,15 @@ router.get('/api/getfolder',function (req,res) {
   }
 });
 router.post('/api/pushwordset',function (req,res) {
-  let cards=JSON.parse(req.body.params.jsoncards);
-  let valuesarr=[];
-  for(let i=0;i<cards.length;i++){
+  let cards = JSON.parse(req.body.params.jsoncards);
+  let wordset = JSON.parse(req.body.params.jsonwordset);
+  let valuesarr = [];
+  for (let i = 0; i < cards.length; i++) {
     valuesarr.push(Object.values(cards[i]));
   }
-  let insertcardsSql='insert into vocabulary values ?';
-  pool.query(insertcardsSql,[valuesarr],function (err) {
+  let insertcardsSql = 'insert into vocabulary values ?';
+  let insertworsetSql='insert into wordset set ?';
+  /*pool.query(insertcardsSql,[valuesarr],function (err) {
     if(err){
       console.log('[SELECT ERROR] - '+err.message)
       res.send('error');
@@ -143,6 +145,51 @@ router.post('/api/pushwordset',function (req,res) {
     }else {
       res.send('success');
     }
+  });
+  pool.query(insertworsetSql,wordset,function (err) {
+    if(err){
+      console.log('[SELECT ERROR] - '+err.message)
+      res.send('error');
+      return;
+    }else {
+      res.send('success');
+    }
+  });*/
+  pool.getConnection(function (err, connection) {
+    if (err) throw err;
+    connection.beginTransaction(function (err) {
+      if(err) throw err;
+      connection.query(insertcardsSql, [valuesarr], function (err) {
+        if (err) {
+          return connection.rollback(function (error, results, fields) {
+            throw error;
+          });
+        }
+        connection.query(insertworsetSql, wordset, function (error, results, fields) {
+          if (error) {
+            return connection.rollback(function () {
+              throw error;
+            });
+          }
+          connection.commit(function (err) {
+            if (err) {
+              return connection.rollback(function () {
+                throw err;
+              });
+            }
+            console.log('success!');
+            res.send('success');
+            connection.release();
+          });
+        })
+      })
+    })
+  })
+});
+router.get('/api/getwordset',function (req,res) {
+  pool.query('select * from wordset where createtime=?',1532052163035,function (err, result) {
+    if (err) throw err;
+    console.log(unescape(result[0].title));
   });
 })
 module.exports = router;
