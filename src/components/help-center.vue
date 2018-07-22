@@ -5,8 +5,19 @@
 </template>
 
 <script>
+    import {mapMutations} from 'vuex'
     export default {
-        name: "help-center"
+        name: "help-center",
+      created(){
+          this.setCreateState(false);
+          this.selectCurLinkItem('/helpcenter');
+      },
+      methods:{
+        ...mapMutations({
+          setCreateState:'wordset/setCreateState',
+          selectCurLinkItem:'routerdata/selectCurLinkItem'
+        }),
+      }
     }
 </script>
 

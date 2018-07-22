@@ -3,7 +3,7 @@
     <div class="placeholder" :style="phStyle">{{title}}</div>
 
       <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur" @paste="onPaste($event)"
-           v-bind="$attrs" v-on="inputListeners" :class="{security:security}"
+           v-on="inputListeners" :class="{security:security}"
       ></div>
       <icon name="tick" :style="imgStyle" class="tick" v-if="validate"></icon>
       <div class="ani-bb" :style="bbStyle"></div>
@@ -138,6 +138,7 @@
           this.phStyle.fontSize=this.fontSize*0.9+'rem';
           this.bbStyle.width='100%';
           this.phStyle.color='#0FA3B1';
+          return true;
         },
         Blur(){
           this.bbStyle.width=0;
@@ -187,7 +188,6 @@
   div,p,input{
     margin: 0;
     padding: 0;
-    user-select: none;
   }
   .ani-input{
     width: 100%;
@@ -198,13 +198,11 @@
   .input{
     width: 100%;
     outline: none;
-    z-index: 10;
     position: absolute;
     outline: none;
     border: 0px;
     border-bottom: 1px solid lightgray;
     color: #0FA3B1;
-    z-index: 5;
   }
 
   .hint{

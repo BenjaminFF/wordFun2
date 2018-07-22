@@ -1,47 +1,38 @@
 <template>
+  <transition enter-active-class="animated slideInLeft"
+              leave-active-class="animated slideOutLeft">
   <div class="sidebar">
-      <div class="item" v-for="item in items">
-        <router-link v-bind:to="item.link" :class="{active:item.selected}" class="itemtitle" @click.native="selected(item)">{{$t("sidebar["+item.index+"]")}}</router-link>
+      <div class="item" v-for="item in linkItems">
+        <router-link v-bind:to="item.link" :class="{active:item.selected}" class="itemtitle">{{$t("sidebar["+item.index+"]")}}</router-link>
       </div>
   </div>
+  </transition>
 </template>
 
 <script>
-  import $ from 'jquery';
+  import { mapState,mapMutations} from 'vuex';
     export default {
         name: "my-sidebar",
       data(){
           return{
-            items:[],
           }
       },
       created(){
-          let link=['/latestlearn','/wordset','/wordgame','/helpcenter'];
-          for(let i=0;i<4;i++){
-            let item={
-              index:i,
-              selected:false,
-              link:link[i]
-            }
-            this.items.push(item);
-          }
-          this.items[0].selected=true;
+        this.initLinkitems();
+        let currentPath=this.$router.currentRoute.fullPath;
+        this.selectCurLinkItem(currentPath);
       },
       methods:{
-          selected(item){
-            if(item.selected){
-              return;
-            }else {
-              for(let i=0;i<4;i++){
-                if(this.items[i].selected){
-                  this.items[i].selected=false;
-                  break;
-                }
-              }
-              item.selected=true;
-            }
-          }
-      }
+        ...mapMutations({
+          initLinkitems:'routerdata/initLinkitems',
+          selectCurLinkItem:'routerdata/selectCurLinkItem'
+        }),
+      },
+      computed:{
+        ...mapState({
+          linkItems:state=>state.routerdata.linkItems,
+        }),
+      },
     }
 </script>
 

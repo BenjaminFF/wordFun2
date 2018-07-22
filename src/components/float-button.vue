@@ -55,7 +55,7 @@
     width:3rem;
     height: 3rem;
     border-radius: 3rem;
-    background-color: var(--seablue);
+    background-color: var(--maximumblue);
     display: flex;
     justify-content: center;
     align-items: center;

@@ -4,6 +4,7 @@ module.exports = {
   },
   sidebar: ['Latest Learning','Your WordSet','Word Fun','Help Center'],
   header:{
+    create:'CREATE',
     user:['SIGNUP','LOGIN'],
     userfunc:['your wordset',"upgrade","logout"]
   },

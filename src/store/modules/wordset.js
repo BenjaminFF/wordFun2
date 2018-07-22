@@ -3,9 +3,17 @@ const state={
   showCD:false,                      //show create dialog
   folders:[],
   slideFolders:[],
+  isSetCreating:false,                 //正在创建单词集
+  isPushing:false
 }
 
 const mutations={
+  setPushState(state,pushState){
+    state.isPushing=pushState;
+  },
+  setCreateState(state,isCreating){
+    state.isSetCreating=isCreating;
+  },
   setFolders(state,folders){
     state.folders=folders;
   },

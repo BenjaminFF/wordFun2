@@ -1,18 +1,20 @@
 <template>
     <div class="create-set">
-      <div class="container">
-        <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
-          <create-input class="create-input" v-on:delete="deleteItem(index)"
-                        :cardId="index+1"
-                        :defBorder="item.defBorder" :termBorder="item.termBorder"
-                        :defText.sync="item.defText" :termText.sync="item.termText">
-          </create-input>
-          <div class="fb-container" @mouseover="showFB(index)" @mouseleave="hideFB(index)">
-            <float-button size="small" class="fb-button animated bounceIn"
-                          iconname="add" v-if="item.showfb" @click.native="insertItem(index)"></float-button>
+      <div class="out-container">
+        <div class="container">
+          <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
+            <create-input class="create-input" v-on:delete="deleteItem(index)"
+                          :cardId="index+1"
+                          :defBorder="item.defBorder" :termBorder="item.termBorder"
+                          :defText.sync="item.defText" :termText.sync="item.termText">
+            </create-input>
+            <div class="fb-container" @mouseover="showFB(index)" @mouseleave="hideFB(index)">
+              <float-button size="small" class="fb-button animated bounceIn"
+                            iconname="add" v-if="item.showfb" @click.native="insertItem(index)"></float-button>
+            </div>
           </div>
+          <div class="add-button" @click="addItem(items.length)">{{$t('addText')}}</div>
         </div>
-        <div class="add-button" @click="addItem(items.length)">{{$t('addText')}}</div>
       </div>
       <float-button iconname="tick" size="middle" class="fbTick" @click="fbTickClick"
                     @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
@@ -26,10 +28,10 @@
     import CreateInput from "./create-input";
     import MyButton from "./my-button";
     import FloatButton from "./float-button";
-    import $ from 'jquery';
     import CreateDialog from "./create-dialog";
     import MyToast from "./my-toast";
-    import { mapState,mapMutations,mapGetters } from 'vuex'
+    import $ from 'jquery'
+    import { mapState,mapMutations,mapGetters } from 'vuex';
     export default {
         name: "create-set",
         data(){
@@ -53,6 +55,7 @@
             }
             timestamp++;
             this.items.push(item);
+            this.setPushState(false);
           }
         },
       methods: {
@@ -91,7 +94,6 @@
               player.onfinish=function(){
                 $('.container').animate({scrollTop:addButton.offsetTop},600);
               };
-              console.info(addButton.offsetTop);
             });
           },
           showFB(index){
@@ -212,12 +214,13 @@
               if(!this.showCD){
                 this.openCD();
               }else {
-                if(this.title.length<2){         //为了兼容火狐，title前面有个空格
+                if(this.title.length==0){
                   let toast={
                     text:vm.$t('createDialog.titleEmpty')
                   }
                   this.toastlist.push(toast);
                 }else {
+                  this.setPushState(true);
                   this.pushWordset();
                 }
               }
@@ -260,13 +263,17 @@
               jsonwordset:jsonwordset
             }
           })
-            .then(function (response) {
+            .then((response)=> {
               console.log(response.data);
+              this.$router.push('/wordset');
+              this.setCreateState(false);
             });
         },
         ...mapMutations({
           add:'test/increment',
           openCD:'wordset/openCD',
+          setPushState:'wordset/setPushState',
+          setCreateState:'wordset/setCreateState'
         }),
       },
       computed:{
@@ -287,20 +294,22 @@
   .create-set{
      width: 40rem;
      height: 25rem;
-
-    position: relative;
    }
+  .out-container{
+    width: 100%;
+    overflow: hidden;
+  }
   .container{
-    width: 80%;
+    width: 105%;
     height: 25rem;
-    overflow-x: hidden;
-    overflow-y: scroll;
+    overflow: auto;
   }
   .item-container{
     width: 95%;
     height: fit-content;
     transition: all 2s;
     overflow: hidden;
+    box-sizing: border-box;
   }
   .fb-container{
     width: 100%;
@@ -336,21 +345,13 @@
     transition: all 0.6s ease-in-out;
   }
 
-  .container::-webkit-scrollbar {/*滚动条整体样式*/
-    width: 1px;     /*高宽分别对应横竖滚动条的尺寸*/
-  }
-
-  .container::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
-    border-radius: 1px;
-    background: var(--seablue);
-  }
-
   .fbTick{
     position: absolute;
-    right: 0;
+    right: 7rem;
     bottom: 2rem;
     cursor:pointer;
     box-shadow: 0px 0px 10px 1px #c4c4c4;
     z-index: 1000;
   }
 </style>
+

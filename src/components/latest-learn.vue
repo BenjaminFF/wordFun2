@@ -1,14 +1,24 @@
 <template>
     <div class="latest-learn">
-      <create-set></create-set>
+      latest-learn
     </div>
 </template>
 
 <script>
-    import CreateSet from "./create-set";
+    import {mapMutations} from 'vuex'
     export default {
         name: "latest-learn",
-      components: {CreateSet}
+      created(){
+        this.setCreateState(false);
+        this.selectCurLinkItem('/latestlearn');
+        console.log('latest');
+      },
+      methods:{
+        ...mapMutations({
+          setCreateState:'wordset/setCreateState',
+          selectCurLinkItem:'routerdata/selectCurLinkItem'
+        }),
+      }
     }
 </script>
 

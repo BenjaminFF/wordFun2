@@ -5,8 +5,20 @@
 </template>
 
 <script>
+  import {mapMutations} from 'vuex'
     export default {
-        name: "word-set"
+        name: "word-set",
+      created(){
+        this.setCreateState(false);
+        this.selectCurLinkItem('/wordset');
+        console.log('wordset created');
+      },
+      methods:{
+        ...mapMutations({
+          setCreateState:'wordset/setCreateState',
+          selectCurLinkItem:'routerdata/selectCurLinkItem'
+        }),
+      }
     }
 </script>
 

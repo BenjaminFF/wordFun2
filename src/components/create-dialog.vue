@@ -1,17 +1,16 @@
 <template>
-    <div class="model" @click="dismiss($event,false)">
+    <div class="model">
         <div class="dialog animated bounceInDown">
           <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{$t('createDialog.header')}}</div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
-          <div contenteditable="true" class="edit title" v-on:input="titleUpdate($event)" @keydown="banInput($event,40)"
-          @paste="onPaste($event)" @keyup="checkTitle($event)">&nbsp;</div>
-          <div class="title-hint"></div>
+          <div contenteditable="true" class="edit title" v-on="inputListener"
+               v-on:input="titleUpdate($event)" @keydown="banInput($event,40)"
+          @paste="onPaste($event)" @keyup="checkTitle($event)"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
             {{$t('createDialog.subTitle')}}</div>
           <div contenteditable="true" @keydown="banInput($event,50)"  @paste="onPaste($event)"
                @keyup="checkTitle($event)"
-               class="edit subtitle" v-on:input="subtitleUpdate($event)">&nbsp;</div>
-          <div class="subtitle-hint"></div>
+               class="edit subtitle" v-on:input="subtitleUpdate($event)"></div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
           <div class="folder">
             <div v-for="item in slideFolders" class="folder-item"
@@ -19,8 +18,8 @@
             <icon name="left" class="left" @click.native="clickLeft"></icon>
             <icon name="right" class="right" @click.native="clickRight"></icon>
           </div>
-          <div class="folder-hint" style="color: rgba(175,0,0,0.41);margin-top: 0.2rem">{{folderHint}}</div>
           <icon name="cross" class="delete-icon" @click.native="dismiss($event,true)"></icon>
+          <div class="loading" v-if="isPushing"></div>
         </div>
     </div>
 </template>
@@ -35,8 +34,6 @@
             title:"",
             subTitle:"",
             isShow:false,
-            titleHint:"",
-            folderHint:"",
           }
       },
       methods:{
@@ -222,15 +219,22 @@
         ...mapMutations({
           slideLeft:'wordset/slideLeft',
           slideRight:'wordset/slideRight',
-          closeCD:'wordset/closeCD'
+          closeCD:'wordset/closeCD',
         }),
       },
       components: {AniInput},
       computed:{
         ...mapState({
           slideFolders:state=>state.wordset.slideFolders,
-          showCD:state=>state.wordset.showCD
+          showCD:state=>state.wordset.showCD,
+          isPushing:state=>state.wordset.isPushing
         }),
+        inputListener(){
+          var vm=this;
+          return Object.assign({},
+            this.$listeners,
+          )
+        }
       }
     }
 </script>
@@ -257,7 +261,7 @@
     height: 80%;
     background-color: white;
     border-radius: 5px;
-    background-color: var(--seablue);
+    background-color: var(--maximumblue);
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -265,22 +269,22 @@
   }
   .edit{
     border: 1px solid white;
-    width: 70%;
+    width: 80%;
     outline: none;
     color: white;
     border-radius: 10px;
-    background-color: transparent;
     min-height: 1.5rem;
     word-break: break-all;
+    height: fit-content;
+    line-height: 1.5rem;
+    user-select: text;
   }
   .title{
-    text-align: center;
     font-size: 1.5rem;
     padding: 0.5rem 1rem;
   }
   .subtitle{
     font-size: 1.2rem;
-    text-align: center;
     padding: 0.5rem 1rem;
   }
   .delete-icon{
@@ -291,14 +295,6 @@
     width: 1.8rem;
     height: 1.8rem;
     cursor: pointer;
-  }
-  .title-hint{
-    width: 60%;
-    height: 1.2rem;
-  }
-  .subtitle-hint{
-    width: 60%;
-    height: 1.2rem;
   }
   .folder{
     width: 80%;
@@ -331,5 +327,16 @@
     text-align: center;
     color: white;
     left: 0;
+  }
+  .loading{
+    position: absolute;
+    width: 4rem;
+    height: 4rem;
+    box-sizing: border-box;
+    border: 2px solid white;
+    clip: rect(0,4rem,2rem,0rem);
+    transform-origin: center;
+    animation: rotate 1.5s infinite linear;
+    bottom: 2rem;
   }
 </style>

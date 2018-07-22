@@ -1,10 +1,15 @@
 <template>
     <div class="header">
       <p class="title"><a href="/">WordFun</a></p>
+      <div class="addws"
+                   @click="createSet" v-if="!isSetCreating">
+        <icon name="addws" class="addwsicon"></icon>
+        {{$t('header.create')}}
+      </div>
       <div class="default" v-if="defaultPage">
-      <p @click="showSU=true">{{$t('header.user[0]')}}</p>
-      <p @click="showLI=true">{{$t('header.user[1]')}}</p>
-    </div>
+        <p @click="showSU=true">{{$t('header.user[0]')}}</p>
+        <p @click="showLI=true">{{$t('header.user[1]')}}</p>
+      </div>
       <div class="user" v-if="!defaultPage" @click="showUserFunc">{{username}}
         <icon name="down" class="user-icon" :class="{iconUp:isIconUp}"></icon>
         <div class="user-func" v-if="showUF">
@@ -23,6 +28,7 @@
     import MyButton from "./my-button";
     import SignUp from "./sign-up";
     import LogIn from "./log-in";
+    import {mapMutations,mapState} from 'vuex'
     export default {
       name: "my-header",
       data() {
@@ -31,8 +37,14 @@
           showLI: false,
           showUF: false,
           rotateDeg: 0,
-          isIconUp: false
+          isIconUp: false,
+          link:'/createcontainer'
         }
+      },
+      computed:{
+        ...mapState({
+          isSetCreating:state=>state.wordset.isSetCreating
+        }),
       },
       created() {
       },
@@ -41,6 +53,10 @@
           let locale = this.$i18n.locale
           locale === 'zh' ? this.$i18n.locale = 'en' : this.$i18n.locale = 'zh'
           // LangStorage.setLang(this.$i18n.locale) //后面会用做切换和将用户习惯存储到本地浏览器
+        },
+        createSet(){
+          this.setCreateState(true);
+          this.$router.push('createcontainer');
         },
         showUserFunc() {
           this.showUF = !this.showUF;
@@ -56,6 +72,9 @@
           window.location.reload(true);
           console.log('gg');
         },
+        ...mapMutations({
+          setCreateState:'wordset/setCreateState'
+        }),
       },
       props:{
           defaultPage:{
@@ -93,6 +112,22 @@
   .title a{
     color: var(--seablue);
     text-decoration: none;
+  }
+  .addws{
+    text-decoration: none;
+    cursor: pointer;
+    display: flex;
+    position: absolute;
+    right: 25rem;
+    width: fit-content;
+    height: fit-content;
+    color: var(--seablue);
+    font-size: 1rem;
+  }
+  .addwsicon{
+    margin-right: 0.1rem;
+    width: 1.2rem;
+    height: 1.2rem;
   }
   .default{
     display: flex;

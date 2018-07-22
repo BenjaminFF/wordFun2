@@ -31,7 +31,12 @@ export default {
   created(){
     let euname=this.getCookie("euname");        //存入cookie中的还是经过escape后的，避免中文乱码
     let password=this.getCookie("password");
-    console.log(euname);
+    let currentPath=this.$router.currentRoute.fullPath;
+    if(currentPath=='/createcontainer'){
+      this.setCreateState(true);
+    }else {
+      this.setCreateState(false);
+    }
     let that=this;
     if(euname!=""&&password!=""){
       this.axios.post('/api/login', {
@@ -53,7 +58,7 @@ export default {
     }else {
       setTimeout(function () {
         that.Loading=false;
-      },2000);
+      },1000);
     }
   },
   components: {UserPage, DefaultPage, MyHeader},
@@ -73,7 +78,6 @@ export default {
           }
           that.setFolders(folders);
           that.setSlideFolders();
-          console.log(folders);
         })
         .catch(function (error) {
           console.log(error);
@@ -81,7 +85,8 @@ export default {
     },
     ...mapMutations({
       setFolders:'wordset/setFolders',
-      setSlideFolders:'wordset/setSlideFolders'
+      setSlideFolders:'wordset/setSlideFolders',
+      setCreateState:'wordset/setCreateState',
     }),
   }
 }
@@ -96,6 +101,9 @@ export default {
     --celestialblue:#3C9CD7;
     --wintergreen:#4A9180;
     --transblue: rgba(11, 134, 145, 0.21);
+    --maximumblue:#3FA7D6;
+    --royalblue:#4456DD;
+    --vermilion:#DD6E42
   }
 
   body,html{

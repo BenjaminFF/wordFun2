@@ -68,8 +68,10 @@ module.exports = {
       {
         test:/\.svg$/,
         loader: 'svg-sprite-loader'
-      }
-    ]
+      },
+      { test: /jquery-mousewheel/, loader: "imports?define=>false&this=>window" },
+      { test: /malihu-custom-scrollbar-plugin/, loader: "imports?define=>false&this=>window" }
+    ],
   },
   node: {
     // prevent webpack from injecting useless setImmediate polyfill because Vue

@@ -1,6 +1,6 @@
 <template>
     <div class="userpage">
-      <my-sidebar class="sidebar"></my-sidebar>
+      <my-sidebar class="sidebar" v-if="!isSetCreating"></my-sidebar>
       <div class="container">
         <router-view></router-view>
       </div>
@@ -9,9 +9,15 @@
 
 <script>
     import MySidebar from "./my-sidebar";
+    import {mapState} from 'vuex'
     export default {
         name: "user-page",
-      components: {MySidebar}
+      components: {MySidebar},
+      computed:{
+        ...mapState({
+          isSetCreating:state=>state.wordset.isSetCreating
+        }),
+      },
     }
 </script>
 

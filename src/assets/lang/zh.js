@@ -4,6 +4,7 @@ module.exports = {
   },
   sidebar: ['最近的学习','你的单词集','单词游戏','帮助中心'],
   header:{
+    create:"创建",
     user:['注册','登陆'],
     userfunc:['你的单词集',"升级","退出"]
   },
