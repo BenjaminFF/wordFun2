@@ -2,6 +2,9 @@ module.exports = {
   language: {
     name: 'E'
   },
+  defaultPage:{
+    welcome:'LogIn to explore more joy, join us!'
+  },
   sidebar: ['Latest Learning','Your WordSet','Word Fun','Help Center'],
   header:{
     create:'CREATE',
@@ -33,6 +36,8 @@ module.exports = {
   createSet:{
     termEmpty:' term is empty,please fill it up!',
     defEmpty:' definition is empty,please fill it up!',
-    setLength:'A Set at least contains 2 cards!'
+    setLength:'A Set at least contains 2 cards!',
+    termHint:'term...',
+    definitionHint:'definition...',
   }
 }

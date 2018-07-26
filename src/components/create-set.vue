@@ -20,7 +20,7 @@
                     @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
       <create-dialog v-if="showCD" v-bind:title.sync="title"
                      v-bind:subtitle.sync="subtitle"></create-dialog>
-      <my-toast v-for="toast in toastlist" :text="toast.text"></my-toast>
+      <my-toast v-for="(toast,index) in toastlist" :text="toast.text" :key="index"></my-toast>
     </div>
 </template>
 
@@ -253,7 +253,8 @@
             subtitle:subtitle,
             author:author,
             createtime:createtime,
-            folder:folder
+            folder:folder,
+            termCount:cards.length
           }
           let jsoncards=JSON.stringify(cards);
           let jsonwordset=JSON.stringify(wordset);
@@ -265,7 +266,7 @@
           })
             .then((response)=> {
               console.log(response.data);
-              this.$router.push('/wordset');
+              this.$router.push('/wordsets');
               this.setCreateState(false);
             });
         },
@@ -273,7 +274,8 @@
           add:'test/increment',
           openCD:'wordset/openCD',
           setPushState:'wordset/setPushState',
-          setCreateState:'wordset/setCreateState'
+          setCreateState:'wordset/setCreateState',
+          unshiftWordsets:'wordset/unshiftWordsets'
         }),
       },
       computed:{

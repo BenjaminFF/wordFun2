@@ -1,6 +1,6 @@
 <template>
     <div class="help-center">
-      helpcenter
+      HelpCenter 建设中。。。
     </div>
 </template>
 
@@ -25,6 +25,5 @@
   .help-center{
     width: 100%;
     height: 100%;
-    background-color: yellowgreen;
   }
 </style>

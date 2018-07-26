@@ -2,6 +2,9 @@ module.exports = {
   language: {
     name: '中'
   },
+  defaultPage:{
+    welcome:'登陆探索更多学习乐趣，加入我们吧！'
+  },
   sidebar: ['最近的学习','你的单词集','单词游戏','帮助中心'],
   header:{
     create:"创建",
@@ -32,6 +35,8 @@ module.exports = {
   createSet:{
     termEmpty:'行单词为空，请给它填上!',
     defEmpty:'行定义为空，请给它填上!',
-    setLength:'一个单词集至少包含2个卡片哦!'
+    setLength:'一个单词集至少包含2个卡片哦!',
+    termHint:'定义...',
+    definitionHint:'解释...',
   }
 }

@@ -4,7 +4,7 @@ import axios from 'axios'
 import vueaixos from 'vue-axios'
 import latestlearn from '@/components/latest-learn'
 import wordgame from '@/components/word-game'
-import wordset from '@/components/word-set'
+import wordsets from '@/components/word-sets'
 import helpcenter from '@/components/help-center'
 import createcontainer from '@/components/create-container'
 
@@ -31,9 +31,9 @@ export default new Router({
       component: wordgame
     },
     {
-      path: '/wordset',
-      name: 'wordset',
-      component: wordset
+      path: '/wordsets',
+      name: 'wordsets',
+      component: wordsets
     },
     {
       path: '/helpcenter',

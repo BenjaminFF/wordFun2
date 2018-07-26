@@ -1,8 +1,10 @@
 <template>
     <div class="create-input" :style="pStyle" @mouseover="showDel=true" @mouseleave="showDel=false">
       <div class="cardId">{{cardId}}</div>
-      <div class="term" contenteditable="true" v-on="inputListener" :style="{borderBottom:termBB}" @paste="onPaste($event)"></div>
-      <div class="definition" contenteditable="true" v-on="inputListener" :style="{borderBottom:defBB}" @paste="onPaste($event)"></div>
+      <div class="term" contenteditable="true" v-on="inputListener" :placeholder="$t('createSet.termHint')"
+           :style="{borderBottom:termBB}" @paste="onPaste($event)"></div>
+      <div class="definition" contenteditable="true" v-on="inputListener" :placeholder="$t('createSet.definitionHint')"
+           :style="{borderBottom:defBB}" @paste="onPaste($event)"></div>
       <icon name="delete" class="delete animated bounceIn" v-if="showDel" @click.native="$emit('delete')"></icon>
     </div>
 </template>
@@ -118,16 +120,6 @@
             document.execCommand("insertText", false, text);
           }
         },
-          randomColor(opacity){
-            var r=Math.round(Math.random()*256);
-            var g=Math.round(Math.random()*256);
-            var b=Math.round(Math.random()*256);
-            var a=opacity;
-            if(r>=200&&g>=200&&b>=200){
-              r-=50;
-            }
-            return 'rgba('+r+','+g+','+b+','+a+')';
-          },
         input1(event){
           this.termLT=event.target.innerHTML;
           console.info(this.termLT);
@@ -137,6 +129,11 @@
 </script>
 
 <style scoped>
+  [contenteditable=true]:empty:before{
+    content: attr(placeholder);
+    display: block; /* For Firefox */
+    cursor: text;
+  }
   .create-input{
     height: fit-content;
     display: flex;

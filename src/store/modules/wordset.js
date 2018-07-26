@@ -4,7 +4,9 @@ const state={
   folders:[],
   slideFolders:[],
   isSetCreating:false,                 //正在创建单词集
-  isPushing:false
+  isPushing:false,
+  wordsets:[],
+  vocabulary:[],
 }
 
 const mutations={
@@ -16,6 +18,15 @@ const mutations={
   },
   setFolders(state,folders){
     state.folders=folders;
+  },
+  setWordSets(state,sets){
+    state.wordsets=sets;
+  },
+  unshiftWordsets(state,item){
+    state.wordsets.unshift(item);
+  },
+  setVocabulary(state,vocabulary){
+    state.vocabulary=vocabulary;
   },
   setSlideFolders(state){
     let offset=parseInt(state.folders.length/2)*(-100);
@@ -65,7 +76,21 @@ const mutations={
 }
 
 const getters={
-
+  getDealedSets:(state)=>{
+    let items=[];
+    for(let i=0;i<state.wordsets.length;i++){
+      let title=unescape(state.wordsets[i].title);
+      let termCount=state.wordsets[i].termCount;
+      let timeStamp=state.wordsets[i].createtime;
+      let item={
+        title:title,
+        termCount:termCount,
+        timeStamp:timeStamp
+      }
+      items.push(item);
+    }
+    return items;
+  }
 }
 
 const actions={

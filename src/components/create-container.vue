@@ -23,7 +23,7 @@
         this.setCreateState(true);
         setTimeout(()=>{
           this.loaded=true;
-        },1200);
+        },500);
       },
       methods:{
         ...mapMutations({

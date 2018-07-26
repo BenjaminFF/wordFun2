@@ -271,7 +271,9 @@
                 }
               })
                 .then(function (response) {
-                  console.log(response.data);
+                  that.setCookie('euname',that.nameInfo.value,30);
+                  that.setCookie('password',encryptpw,30);
+                  window.location.reload(true);
                 })
                 .catch(function (error) {
                   console.log(error);

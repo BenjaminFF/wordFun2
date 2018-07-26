@@ -5,7 +5,7 @@ const state={
 const mutations={
   initLinkitems(state){
     let items=[];
-    let link=['/latestlearn','/wordset','/wordgame','/helpcenter'];
+    let link=['/latestlearn','/wordsets','/wordgame','/helpcenter'];
     for(let i=0;i<4;i++){
       let item={
         index:i,

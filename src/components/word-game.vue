@@ -1,6 +1,6 @@
 <template>
     <div class="word-game">
-      wordgame
+      WordGame 建设中。。。
     </div>
 </template>
 

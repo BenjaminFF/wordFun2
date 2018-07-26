@@ -1,6 +1,6 @@
 <template>
     <div class="latest-learn">
-      latest-learn
+      LatestLearn 建设中。。。
     </div>
 </template>
 

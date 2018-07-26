@@ -37,6 +37,7 @@ export default {
     }else {
       this.setCreateState(false);
     }
+    this.$router.push('/latestlearn');
     let that=this;
     if(euname!=""&&password!=""){
       this.axios.post('/api/login', {
@@ -44,17 +45,14 @@ export default {
           eu:euname,
           pw:password
         }
-      }).then(function (response) {
+      }).then((response)=> {
         if(response.data.result){
           that.curComponent=UserPage;
           that.isDefaultPage=false;
           that.username=euname;
+          this.initFoldersAndSets(euname);
         }
-        setTimeout(function () {
-          that.Loading=false;
-        },1000);
       });
-      this.initFolderFromDB(euname);
     }else {
       setTimeout(function () {
         that.Loading=false;
@@ -63,21 +61,20 @@ export default {
   },
   components: {UserPage, DefaultPage, MyHeader},
   methods:{
-    initFolderFromDB(euname){
+    initFoldersAndSets(euname){
       let that=this;
-      this.axios.get('/api/getfolder', {
+      this.axios.get('/api/getfoldersandsets', {
         params: {
           username:escape(euname)
         }
       })
-        .then(function (response) {
-          let i;
-          let folders=[];
-          for(i=0;i<response.data.length;i++){
-            folders[i]=response.data[i].title;
-          }
-          that.setFolders(folders);
-          that.setSlideFolders();
+        .then((response)=>{
+          console.log(response.data.sets);
+          this.setFolders(response.data.folders);
+          this.setSlideFolders();
+          this.setWordSets(response.data.sets);
+          this.Loading=false;
+          console.log("App created");
         })
         .catch(function (error) {
           console.log(error);
@@ -87,6 +84,7 @@ export default {
       setFolders:'wordset/setFolders',
       setSlideFolders:'wordset/setSlideFolders',
       setCreateState:'wordset/setCreateState',
+      setWordSets:'wordset/setWordSets'
     }),
   }
 }

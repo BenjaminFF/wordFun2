@@ -100,7 +100,6 @@ function queryeup(eu,pw,res){
 
 router.get('/api/verifyname',function (req,res) {
   escape(req.query.username);
-  console.log(req.query.username);
   queryData(req.query.username,res,'username');
 });
 
@@ -110,11 +109,47 @@ router.get('/api/verifyemail',function (req,res) {
 });
 
 router.post('/api/signup',function (req,res) {
-    let username=unescape(req.body.params.username);             //传过来的数据已经被escape一道了
-    let email=unescape(req.body.params.email);
-    let password=unescape(req.body.params.password);
-    console.log(req.body.params.username);
-    insertdata(escape(username),escape(email),escape(password),res);
+  let username = unescape(req.body.params.username);             //传过来的数据已经被escape一道了
+  let email = unescape(req.body.params.email);
+  let password = unescape(req.body.params.password);
+  //insertdata(escape(username),escape(email),escape(password),res);
+  let insertUserSql = 'insert into user(username,email,password) Values(\'' + escape(username) + '\',\''
+    + escape(email) + '\',\'' + escape(password) + '\')';
+  let insertDefaultFolder = 'insert into folder set ?';
+  let folderdata = {
+    title: 'All',
+    author: escape(username)
+  }
+  pool.getConnection(function (err, connection) {
+    if (err) throw err;
+    connection.beginTransaction(function (err) {
+      if (err) throw err;
+      connection.query(insertUserSql, function (err) {
+        if (err) {
+          return connection.rollback(function (error, results, fields) {
+            throw error;
+          });
+        }
+        connection.query(insertDefaultFolder, folderdata, function (err) {
+          if (err) {
+            return connection.rollback(function () {
+              throw err;
+            });
+          }
+          connection.commit(function (err) {
+            if (err) {
+              return connection.rollback(function () {
+                throw err;
+              });
+            }
+            console.log('success!');
+            res.send('success');
+            connection.release();
+          })
+        });
+      });
+    });
+  });
 });
 
 router.post('/api/login',function (req,res) {
@@ -123,10 +158,53 @@ router.post('/api/login',function (req,res) {
   queryeup(escape(username),escape(password),res);
 });
 
-router.get('/api/getfolder',function (req,res) {
-  if(req.query.username!=undefined){
-    queryFolder(req.query.username,res);
-  }
+router.get('/api/getfoldersandsets',function (req,res) {
+  let getfoldersSql='select * from folder where author=?';
+  let getsetsSql='select * from wordset where author=?';
+  let folders=[];
+  let sets=[];
+  pool.getConnection((err,connection)=> {
+    if(err) throw err;
+    connection.beginTransaction((err)=>{
+      if(err) throw err;
+      connection.query(getfoldersSql,req.query.username,(err,result)=>{
+        if(err){
+          return connection.rollback((error, results, fields)=>{
+            throw error;
+          });
+        }
+        for(let i=0;i<result.length;i++){
+          folders[i]=result[i].title;
+        }
+        connection.query(getsetsSql,req.query.username,(err,result)=>{
+          if(err){
+            return connection.rollback((error, results, fields)=>{
+              throw error;
+            });
+          }
+          for(let i=0;i<result.length;i++){
+            let set=result[i];
+            sets.push(set);
+          };
+          connection.commit(function (err) {
+            if (err) {
+              return connection.rollback(function () {
+                throw err;
+              });
+            }
+            let data={
+              folders:folders,
+              sets:sets
+            }
+            let jsondata=JSON.stringify(data);
+            console.log(jsondata);
+            res.send(jsondata);
+            connection.release();
+          });
+        })
+      });
+    });
+  });
 });
 router.post('/api/pushwordset',function (req,res) {
   let cards = JSON.parse(req.body.params.jsoncards);
@@ -137,24 +215,6 @@ router.post('/api/pushwordset',function (req,res) {
   }
   let insertcardsSql = 'insert into vocabulary values ?';
   let insertworsetSql='insert into wordset set ?';
-  /*pool.query(insertcardsSql,[valuesarr],function (err) {
-    if(err){
-      console.log('[SELECT ERROR] - '+err.message)
-      res.send('error');
-      return;
-    }else {
-      res.send('success');
-    }
-  });
-  pool.query(insertworsetSql,wordset,function (err) {
-    if(err){
-      console.log('[SELECT ERROR] - '+err.message)
-      res.send('error');
-      return;
-    }else {
-      res.send('success');
-    }
-  });*/
   pool.getConnection(function (err, connection) {
     if (err) throw err;
     connection.beginTransaction(function (err) {
@@ -186,10 +246,21 @@ router.post('/api/pushwordset',function (req,res) {
     })
   })
 });
+
 router.get('/api/getwordset',function (req,res) {
-  pool.query('select * from wordset where createtime=?',1532052163035,function (err, result) {
+  pool.query('select * from wordset where author=?',req.query.username,function (err, result) {
     if (err) throw err;
-    console.log(unescape(result[0].title));
+    let sets=[];
+    for(let i=0;i<result.length;i++){
+      let set=result[i];
+      sets.push(set);
+    };
+    let obj={
+      sets:sets
+    }
+    let data=JSON.stringify(obj);
+    res.send(data);
   });
-})
+});
+
 module.exports = router;
