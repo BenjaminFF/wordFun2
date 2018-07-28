@@ -233,7 +233,7 @@ router.post('/api/pushwordset',function (req,res) {
           }
           connection.commit(function (err) {
             if (err) {
-              return connection.rollback(function () {
+              return connection.rollback(function (err) {
                 throw err;
               });
             }
@@ -261,6 +261,47 @@ router.get('/api/getwordset',function (req,res) {
     let data=JSON.stringify(obj);
     res.send(data);
   });
+});
+
+router.post('/api/deleteSet',(req,res)=>{
+  let createTime=req.body.params.createTime;
+
+  let dSetSql='delete from wordset where createtime=?';
+  let dContentSql='delete from vocabulary where createtime=?';
+
+  pool.getConnection((err,connection)=>{
+    if(err) throw err;
+    connection.beginTransaction((err)=>{
+      if(err) throw err;
+
+      connection.query(dSetSql,createTime,(err)=>{
+        if (err) {
+          return connection.rollback((error)=> {
+            throw error;
+          });
+        }
+
+        connection.query(dContentSql,createTime,(err)=>{
+          if (err) {
+            return connection.rollback((error)=> {
+              throw error;
+            });
+          }
+
+          connection.commit((err)=> {
+            if (err) {
+              return connection.rollback((err)=> {
+                throw err;
+              });
+            }
+            console.log('delete success!');
+            res.send('delete success');
+            connection.release();
+          });
+        })
+      })
+    })
+  })
 });
 
 module.exports = router;

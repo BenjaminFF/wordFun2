@@ -43,6 +43,7 @@
           }
         },
       created(){
+          this.closeCD();
           let timestamp=new Date().getTime();
           for(let i=0;i<2;i++){
             var item={
@@ -273,6 +274,7 @@
         ...mapMutations({
           add:'test/increment',
           openCD:'wordset/openCD',
+          closeCD:'wordset/closeCD',
           setPushState:'wordset/setPushState',
           setCreateState:'wordset/setCreateState',
           unshiftWordsets:'wordset/unshiftWordsets'
@@ -312,6 +314,8 @@
     transition: all 2s;
     overflow: hidden;
     box-sizing: border-box;
+    padding-right: 1rem;
+    padding-left: 1rem;
   }
   .fb-container{
     width: 100%;
@@ -322,8 +326,8 @@
   .create-input{
     width: 100%;
     transition: all 0.5s;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px 1px rgba(203, 203, 203, 0.7);
+    border-radius: 30px;
+    box-shadow: 5px 5px 10px 1px lightgrey;
   }
   .fb-button{
     box-shadow: 0px 0px 10px 1px lightgrey;
@@ -333,18 +337,20 @@
 
   .add-button{
     user-select: none;
-    width: 95%;
+    width: 90%;
     height: 4.5rem;
     box-sizing: border-box;
+    margin-left: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 5px;
+    border-radius: 30px;
     background-color: yellowgreen;
     cursor: pointer;
     text-decoration: underline;
     color: white;
     transition: all 0.6s ease-in-out;
+    box-shadow: 5px 5px 10px 1px rgba(211, 211, 211, 0.6);
   }
 
   .fbTick{
@@ -352,7 +358,7 @@
     right: 7rem;
     bottom: 2rem;
     cursor:pointer;
-    box-shadow: 0px 0px 10px 1px #c4c4c4;
+    box-shadow: 0px 0px 10px 1px rgba(196, 196, 196, 0.6);
     z-index: 1000;
   }
 </style>

@@ -7,9 +7,17 @@ const state={
   isPushing:false,
   wordsets:[],
   vocabulary:[],
+  ddState:false,                  //delete dialog state
+  curSet:""                     //在word-sets里面点击其中一个set然后赋值，主要给delete dialog用
 }
 
 const mutations={
+  setCurSet(state,curSet){
+    state.curSet=curSet;
+  },
+  alterddState(state,isShow){
+    state.ddState=isShow;
+  },
   setPushState(state,pushState){
     state.isPushing=pushState;
   },

@@ -1,14 +1,16 @@
 <template>
-  <div class="set-item" :class="{hover:hovered}"
+  <div class="set-item" :class="{hover:hovered}" @click="clickItem"
        @mouseenter="hovered=true" @mouseleave="hovered=false"
        :style="{backgroundColor:backgroundColor}">
     <div class="item-title">{{item.title}}</div>
     <div class="term-count">{{item.termCount+" terms"}}</div>
     <div class="createtime">{{timeStamp2String(item.timeStamp)}}</div>
+    <icon name="delete" class="delete" v-if="hovered" v-on:click.native.stop="deleteItem"></icon>
   </div>
 </template>
 
 <script>
+  import {mapState,mapMutations} from 'vuex'
     export default {
         name: "set-item",
       data(){
@@ -21,6 +23,13 @@
           this.backgroundColor=this.randomColor(0.6);
       },
       methods:{
+        clickItem(){
+          console.log(this.item.timeStamp);
+        },
+        deleteItem(){
+          this.setCurSet(this.item);
+          this.alterddState(true);       //show delete dialog
+        },
         timeStamp2String(timeStamp){
           let dateTime=new Date(timeStamp);
           let year=dateTime.getFullYear();
@@ -33,7 +42,16 @@
         },
         mouseleave(){
           this.hovered=false;
-        }
+        },
+        ...mapMutations({
+          alterddState:'wordset/alterddState',
+          setCurSet:'wordset/setCurSet'
+        }),
+      },
+      computed:{
+        ...mapState({
+          ddState:state=>state.wordset.ddState
+        }),
       },
       props:{
        item:{
@@ -81,5 +99,15 @@
     -webkit-transform: scale3d(1.03, 1.03, 1.03);
     transform: scale3d(1.03, 1.03, 1.03);
     transition: all 0.2s ease-in-out;
+  }
+  .delete{
+    position: absolute;
+    right: 0.8rem;
+    width: 1.2rem;
+    height: 1.2rem;
+    top: 25%;
+  }
+  .delete:hover{
+    color: black;
   }
 </style>

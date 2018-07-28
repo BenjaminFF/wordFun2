@@ -38,5 +38,13 @@ module.exports = {
     setLength:'一个单词集至少包含2个卡片哦!',
     termHint:'定义...',
     definitionHint:'解释...',
+  },
+  deleteDialog:{
+    delete:'确定',
+    cancel:'取消',
+    text:'确认要删除这个单词集吗？这将删除单词集里面的所有内容，并且不能再恢复！'
+  },
+  wordSets:{
+    create:'创建新的单词集!'
   }
 }

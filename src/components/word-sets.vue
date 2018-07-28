@@ -5,11 +5,16 @@
       <div class="out-container">
         <wait-dialog :text="'W'" :color="'var(--seablue)'" style="margin-left: -1rem" v-if="!setinited"></wait-dialog>
         <div class="inner-container">
-        <transition-group leave-active-class="animated fadeOutLeft"
+        <transition-group leave-active-class="animated fadeOutLeft" :duration="{ leave: 500 }"
           enter-active-class="animated fadeInRightBig">
-          <set-item v-if="setinited" class="set-item" v-for="(item,index) in items" :item="item" :key="index"></set-item>
+          <set-item v-if="setinited" class="set-item"
+                    v-for="(item,index) in items" :item="item" :key="index"></set-item>
         </transition-group>
+          <transition enter-active-class="animated fadeIn">
+            <div class="add-set" v-if="isEmpty" @click="createSet">{{$t('wordSets.create')}}</div>
+          </transition>
         </div>
+        <delete-dialog v-if="ddState" v-on:updateData="fetchData"></delete-dialog>
       </div>
     </div>
 </template>
@@ -18,14 +23,16 @@
   import {mapMutations,mapState} from 'vuex'
   import SetItem from "./set-item";
   import WaitDialog from "./wait-dialog";
+  import DeleteDialog from "./delete-dialog";
     export default {
         name: "word-set",
-      components: {WaitDialog, SetItem},
+      components: {DeleteDialog, WaitDialog, SetItem},
       data(){
           return{
             items:[],
             setinited:false,
-            filterText:""
+            filterText:"",
+            isEmpty:'false'
           }
       },
       created(){
@@ -33,28 +40,40 @@
         this.selectCurLinkItem('/wordsets');
         console.log('wordsets created');
 
-        let euname=this.getCookie("euname");
-        this.axios.get('/api/getwordset', {
-          params: {
-            username:escape(euname)
-          }
-        })
-          .then((response)=>{
-            console.log(response.data.sets);
-            this.setWordSets(response.data.sets);
-            this.items=this.getDealedSets(response.data.sets);
-            setTimeout(()=>{
-              this.setinited=true;
-            },300);
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
+        this.isEmpty=false;
+        this.fetchData();
       },
       methods:{
+        createSet(){
+          this.setCreateState(true);
+          this.$router.push('createcontainer');
+        },
+        fetchData(){
+          this.setinited=false;
+          let euname=this.getCookie("euname");
+          this.axios.get('/api/getwordset', {
+            params: {
+              username:escape(euname)
+            }
+          })
+            .then((response)=>{
+              console.log(response.data.sets);
+              this.setWordSets(response.data.sets);
+              this.items=this.getDealedSets(response.data.sets);
+              if(this.items.length==0){
+                this.isEmpty=true;
+              }
+              setTimeout(()=>{
+                this.setinited=true;
+              },500);
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+        },
         filterSets(event){
           let text=event.target.value;
-          if(text==""){
+          if(text==""||this.sets.length==0){
             this.items=this.getDealedSets(this.sets);
             return;
           }
@@ -65,6 +84,9 @@
               newItems.push(this.getDealedSet(this.sets[i]));
             }
           }
+          newItems.sort(function (item1,item2) {
+            return item2.timeStamp-item1.timeStamp;
+          });
           this.items=newItems;
         },
         getDealedSet(wordset){
@@ -91,6 +113,9 @@
             }
             items.push(item);
           }
+          items.sort(function (item1,item2) {
+            return item2.timeStamp-item1.timeStamp;
+          });
           return items;
         },
         ...mapMutations({
@@ -100,9 +125,9 @@
         }),
       },
       computed:{
-
         ...mapState({
           sets:state=>state.wordset.wordsets,
+          ddState:state=>state.wordset.ddState
         }),
       }
     }
@@ -130,13 +155,38 @@
     background-color: transparent;
     outline: none;
     border: 0px;
-    border-bottom: 2px solid var(--seablue);
+    border-bottom: 2px solid var(--tealdeer);
     margin-bottom: 2rem;
     font-size: 1.5rem;
-    color: var(--seablue);
-    margin-left: 1rem;
+    color: var(--vermilion);
+    margin-left: 0.5rem;
   }
   .set-item{
     margin: 0.5rem 0.5rem 2rem;
+  }
+  .add-set{
+    margin-left: 0.5rem;
+    width: 30rem;
+    height: 4.5rem;
+    border-radius: 20px;
+    color: white;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 3px 3px 5px 1px rgb(211, 211, 211);
+    background-color: var(--tealdeer);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    letter-spacing: 5px;
+    position: absolute;
+    top: 0;
+  }
+  .add-set:hover{
+    -webkit-transform: scale3d(1.03, 1.03, 1.03);
+    transform: scale3d(1.03, 1.03, 1.03);
+    transition: all 0.2s ease-in-out;
   }
 </style>

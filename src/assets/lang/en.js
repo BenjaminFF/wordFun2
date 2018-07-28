@@ -39,5 +39,13 @@ module.exports = {
     setLength:'A Set at least contains 2 cards!',
     termHint:'term...',
     definitionHint:'definition...',
+  },
+  deleteDialog:{
+    delete:'Delete',
+    cancel:'Cancel',
+    text:'Sure to Delete this set?All of it\'s data will be deleted permanently,and cannot be restored!'
+  },
+  wordSets:{
+    create:'Create New Set!'
   }
 }
