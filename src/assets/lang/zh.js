@@ -46,5 +46,13 @@ module.exports = {
   },
   wordSets:{
     create:'创建新的单词集!'
+  },
+  setLearn:{
+    back:'返回',
+    setList:'单词集列表',
+    study:'趣味学习',
+    write:'拼写',
+    flashCards:'幻灯片',
+    matrix:'单词矩阵'
   }
 }

@@ -229,15 +229,15 @@
         },
         pushWordset(){
           let cards=[];
-          let title=escape(this.title.substring(0,this.title.length));
-          let subtitle=escape(this.subtitle.substring(0,this.subtitle.length));
+          let title=encodeURIComponent(this.title.substring(0,this.title.length));
+          let subtitle=encodeURIComponent(this.subtitle.substring(0,this.subtitle.length));
           let author=escape(this.getCookie('euname'));
           let createtime=new Date().getTime();       //时间轴作为标识
           let folder="";
           for(let i=0;i<this.items.length;i++){
             let card={
-              term:escape(this.items[i].termText),
-              definition:escape(this.items[i].defText),
+              term:encodeURIComponent(this.items[i].termText),
+              definition:encodeURIComponent(this.items[i].defText),
               author:author,
               createtime:createtime                  //这是它所属的单词集合的相同的createtime
             }

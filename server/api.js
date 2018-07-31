@@ -265,23 +265,23 @@ router.get('/api/getwordset',function (req,res) {
 
 router.post('/api/deleteSet',(req,res)=>{
   let createTime=req.body.params.createTime;
-
-  let dSetSql='delete from wordset where createtime=?';
-  let dContentSql='delete from vocabulary where createtime=?';
+  let username=req.body.params.username;
+  let dSetSql='delete from wordset where createtime=? and author=?';
+  let dContentSql='delete from vocabulary where createtime=? and author=?';
 
   pool.getConnection((err,connection)=>{
     if(err) throw err;
     connection.beginTransaction((err)=>{
       if(err) throw err;
 
-      connection.query(dSetSql,createTime,(err)=>{
+      connection.query(dSetSql,[createTime,username],(err)=>{
         if (err) {
           return connection.rollback((error)=> {
             throw error;
           });
         }
 
-        connection.query(dContentSql,createTime,(err)=>{
+        connection.query(dContentSql,[createTime,username],(err)=>{
           if (err) {
             return connection.rollback((error)=> {
               throw error;
@@ -302,6 +302,30 @@ router.post('/api/deleteSet',(req,res)=>{
       })
     })
   })
+});
+
+router.get('/api/getCards',(req,res)=>{
+  let username=req.query.username;
+  let createTime=req.query.createTime;
+  let getCardsSql='select * from vocabulary where author=? and createtime=?';
+  pool.query(getCardsSql,[username,createTime],(err,result)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    let cards=[];
+    for(let i=0;i<result.length;i++){
+      let term=result[i].term;
+      let definition=result[i].definition;
+      let card={
+        term:term,
+        definition:definition
+      }
+      cards.push(card);
+    }
+    let data=JSON.stringify(cards);
+    res.send(data);
+  });
 });
 
 module.exports = router;

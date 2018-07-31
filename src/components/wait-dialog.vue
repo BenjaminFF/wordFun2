@@ -29,10 +29,10 @@
     justify-content: center;
     background-color: #f3f3f3;
     z-index: 20;
+    align-items: center;
   }
   .loading{
     position: absolute;
-    top: 5rem;
     width: 6rem;
     height: 6rem;
     box-sizing: border-box;
@@ -44,7 +44,6 @@
   }
   .load_text{
     position: absolute;
-    top: 5rem;
     width: 6rem;
     height: 6rem;
     box-sizing: border-box;

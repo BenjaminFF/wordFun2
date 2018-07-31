@@ -6,8 +6,10 @@
 
 <script>
     import {mapMutations} from 'vuex'
+    import SetLearn from "./set-learn";
     export default {
         name: "latest-learn",
+      components: {SetLearn},
       created(){
         this.setCreateState(false);
         this.selectCurLinkItem('/latestlearn');

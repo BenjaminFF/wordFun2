@@ -7,10 +7,10 @@
         <div class="inner-container">
         <transition-group leave-active-class="animated fadeOutLeft" :duration="{ leave: 500 }"
           enter-active-class="animated fadeInRightBig">
-          <set-item v-if="setinited" class="set-item"
+          <set-item v-if="setinited" class="set-item" @click.native="setItemClick(item)"
                     v-for="(item,index) in items" :item="item" :key="index"></set-item>
         </transition-group>
-          <transition enter-active-class="animated fadeIn">
+          <transition enter-active-class="animated bounceInLeft">
             <div class="add-set" v-if="isEmpty" @click="createSet">{{$t('wordSets.create')}}</div>
           </transition>
         </div>
@@ -39,7 +39,6 @@
         this.setCreateState(false);
         this.selectCurLinkItem('/wordsets');
         console.log('wordsets created');
-
         this.isEmpty=false;
         this.fetchData();
       },
@@ -57,7 +56,6 @@
             }
           })
             .then((response)=>{
-              console.log(response.data.sets);
               this.setWordSets(response.data.sets);
               this.items=this.getDealedSets(response.data.sets);
               if(this.items.length==0){
@@ -90,7 +88,7 @@
           this.items=newItems;
         },
         getDealedSet(wordset){
-          let title=unescape(wordset.title);
+          let title=decodeURIComponent(wordset.title);
           let termCount=wordset.termCount;
           let timeStamp=wordset.createtime;
           let item={
@@ -103,7 +101,7 @@
         getDealedSets(wordsets){
           let items=[];
           for(let i=0;i<wordsets.length;i++){
-            let title=unescape(wordsets[i].title);
+            let title=decodeURIComponent(wordsets[i].title);
             let termCount=wordsets[i].termCount;
             let timeStamp=wordsets[i].createtime;
             let item={
@@ -118,10 +116,15 @@
           });
           return items;
         },
+        setItemClick(item){
+          this.setCurSet(item);
+          this.$router.push('setLearn');
+        },
         ...mapMutations({
           setCreateState:'wordset/setCreateState',
           selectCurLinkItem:'routerdata/selectCurLinkItem',
           setWordSets:'wordset/setWordSets',
+          setCurSet:'wordset/setCurSet'
         }),
       },
       computed:{

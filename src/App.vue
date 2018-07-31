@@ -101,7 +101,10 @@ export default {
     --transblue: rgba(11, 134, 145, 0.21);
     --maximumblue:#3FA7D6;
     --royalblue:#4456DD;
-    --vermilion:#DD6E42
+    --vermilion:#DD6E42;
+    --awesome:#FF1654;
+    --lightseagreen: rgba(178, 219, 191, 0.5);
+    --seagreen:#B2DBBF
   }
 
   body,html{

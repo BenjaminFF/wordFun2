@@ -7,6 +7,7 @@ import wordgame from '@/components/word-game'
 import wordsets from '@/components/word-sets'
 import helpcenter from '@/components/help-center'
 import createcontainer from '@/components/create-container'
+import setLearn from '@/components/set-learn';
 
 Vue.use(Router)
 Vue.use(vueaixos,axios)
@@ -45,5 +46,10 @@ export default new Router({
       name: 'createcontainer',
       component: createcontainer
     },
+    {
+      path: '/setLearn',
+      name: 'setLearn',
+      component: setLearn
+    }
   ]
 })

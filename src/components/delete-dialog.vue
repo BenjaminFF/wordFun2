@@ -19,9 +19,11 @@
         deleteCurSet(){
           console.log(this.curSet.title);
           let createTime=this.curSet.timeStamp;
+          let euname=this.getCookie("euname");
           this.axios.post('/api/deleteSet',{
             params:{
-              createTime:createTime
+              createTime:createTime,
+              username:escape(euname)
             }
           }).then((response)=>{
             console.log(response.data);

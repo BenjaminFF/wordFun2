@@ -70,15 +70,16 @@
             {
               input:function (event) {
                 let text="";
+
                 if(event.target.textContent!=undefined){
                   text=event.target.textContent;       //兼容火狐
                 }else {
                   text=event.target.innerText;
                 }
                 if(event.target.className=='term'){
-                  vm.$emit('update:termText',text);
+                  vm.$emit('update:termText',event.target.innerText);
                 }else if(event.target.className=='definition'){
-                  vm.$emit('update:defText',text);
+                  vm.$emit('update:defText',event.target.innerText);
                 }
               },
             }
@@ -120,10 +121,6 @@
             document.execCommand("insertText", false, text);
           }
         },
-        input1(event){
-          this.termLT=event.target.innerHTML;
-          console.info(this.termLT);
-        },
       }
     }
 </script>
@@ -155,7 +152,7 @@
     color: white;
     outline: none;
     min-height: 1.6rem;                  /*兼容firefox*/
-    word-break: break-all;              /*兼容firefox*/
+    white-space: pre-wrap;
   }
   .definition{
     width: 48%;
@@ -163,7 +160,7 @@
     color: white;
     outline: none;
     min-height: 1.6rem;
-    word-break: break-all;
+    white-space: pre-wrap;
   }
   .delete{
     width: 1.2rem;

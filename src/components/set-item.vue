@@ -1,5 +1,5 @@
 <template>
-  <div class="set-item" :class="{hover:hovered}" @click="clickItem"
+  <div class="set-item" :class="{hover:hovered}"
        @mouseenter="hovered=true" @mouseleave="hovered=false"
        :style="{backgroundColor:backgroundColor}">
     <div class="item-title">{{item.title}}</div>
@@ -23,9 +23,6 @@
           this.backgroundColor=this.randomColor(0.6);
       },
       methods:{
-        clickItem(){
-          console.log(this.item.timeStamp);
-        },
         deleteItem(){
           this.setCurSet(this.item);
           this.alterddState(true);       //show delete dialog

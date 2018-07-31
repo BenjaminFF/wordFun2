@@ -47,5 +47,12 @@ module.exports = {
   },
   wordSets:{
     create:'Create New Set!'
+  },
+  setLearn:{
+    back:'Back',
+    setList:'Set List',
+    write:'Write',
+    flashCards:'Flash Cards',
+    matrix:'Matrix'
   }
 }
