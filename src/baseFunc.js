@@ -36,6 +36,26 @@
         }
         return len;
       },
+      Vue.prototype.checkChinese=function(str){
+        let count=0;
+        for (let i = 0; i < str.length; i++) {
+          if (str.charCodeAt(i) >= 127 || str.charCodeAt(i) == 94) {            //中文字符算2个Length
+            count++;
+          }
+        }
+        return count;
+      },
+      Vue.prototype.limitLength=function(str,maxlength,hasEllipsis){
+        if(this.checkLength(str)>maxlength){
+          let chineseCount=this.checkChinese(str);
+          if(hasEllipsis){
+            str=str.substring(0,Math.round(maxlength-chineseCount/2))+'...';
+          }else {
+            str=str.substring(0,Math.round(maxlength-chineseCount/2));
+          }
+        }
+        return str;
+      },
       Vue.prototype.randomColor = function (opacity) {
         var r = Math.round(Math.random() * 256);
         var g = Math.round(Math.random() * 256);

@@ -1,6 +1,6 @@
 <template>
     <div class="set-learn">
-      <div class="sidebar">
+      <div class="sidebar" :style="{backgroundColor:randomColor(0.6)}">
       <div class="return" @click="backClick">
         <icon name="return" class="return-icon"></icon>
         {{$t('setLearn.back')}}
@@ -82,11 +82,13 @@
    }
   .sidebar{
     flex: 2 0 0;
-    background-color: var(--lightseagreen);
-    box-shadow: 10px 0px 20px 1px rgba(55, 55, 55, 0.16);
+    background-color: #9BC53D;
+    box-shadow: 10px 0px 20px 1px rgba(155, 155, 155, 0.31);
     z-index: 100;
     min-width: max-content;
     padding-right: 1rem;
+    color: white;
+    transition: .5s all ease-in-out;
   }
   .return{
     user-select: none;
@@ -96,11 +98,10 @@
     align-items: center;
     left: 1rem;
     top: 1rem;
-    color: gray;
     font-size: 1.2rem;
   }
   .return:hover{
-    color: var(--seablue);
+    color: black;
   }
   .return-icon{
     width: 1.2rem;
@@ -124,13 +125,12 @@
     margin-left: 1.2rem;
     align-items: center;
     font-size: 1.2rem;
-    color: gray;
   }
   .itemSelected{
-    color: var(--awesome);
+    color: black;
   }
   .bar-item:hover{
-    color: var(--awesome);
+    color: black;
   }
   .item-icon{
     width: 1.5rem;

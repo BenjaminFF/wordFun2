@@ -84,21 +84,7 @@ const mutations={
 }
 
 const getters={
-  getDealedSets:(state)=>{
-    let items=[];
-    for(let i=0;i<state.wordsets.length;i++){
-      let title=unescape(state.wordsets[i].title);
-      let termCount=state.wordsets[i].termCount;
-      let timeStamp=state.wordsets[i].createtime;
-      let item={
-        title:title,
-        termCount:termCount,
-        timeStamp:timeStamp
-      }
-      items.push(item);
-    }
-    return items;
-  }
+
 }
 
 const actions={

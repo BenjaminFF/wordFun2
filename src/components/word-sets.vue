@@ -78,7 +78,7 @@
           let regex=new RegExp(text,'i');
           let newItems=[];
           for(let i=0;i<this.sets.length;i++){
-            if(regex.test(unescape(this.sets[i].title))){
+            if(regex.test(decodeURIComponent(this.sets[i].title))){
               newItems.push(this.getDealedSet(this.sets[i]));
             }
           }
@@ -89,10 +89,12 @@
         },
         getDealedSet(wordset){
           let title=decodeURIComponent(wordset.title);
+          let subtitle=decodeURIComponent(wordset.subtitle);
           let termCount=wordset.termCount;
           let timeStamp=wordset.createtime;
           let item={
             title:title,
+            subtitle:subtitle,
             termCount:termCount,
             timeStamp:timeStamp
           }
@@ -102,10 +104,12 @@
           let items=[];
           for(let i=0;i<wordsets.length;i++){
             let title=decodeURIComponent(wordsets[i].title);
+            let subtitle=decodeURIComponent(wordsets[i].subtitle);
             let termCount=wordsets[i].termCount;
             let timeStamp=wordsets[i].createtime;
             let item={
               title:title,
+              subtitle:subtitle,
               termCount:termCount,
               timeStamp:timeStamp
             }

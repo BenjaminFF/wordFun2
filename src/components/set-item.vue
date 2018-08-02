@@ -2,7 +2,7 @@
   <div class="set-item" :class="{hover:hovered}"
        @mouseenter="hovered=true" @mouseleave="hovered=false"
        :style="{backgroundColor:backgroundColor}">
-    <div class="item-title">{{item.title}}</div>
+    <div class="item-title">{{limitLength(item.title,30,true)}}</div>
     <div class="term-count">{{item.termCount+" terms"}}</div>
     <div class="createtime">{{timeStamp2String(item.timeStamp)}}</div>
     <icon name="delete" class="delete" v-if="hovered" v-on:click.native.stop="deleteItem"></icon>
@@ -76,7 +76,7 @@
     margin-top: 0.3rem;
     width: fit-content;
     height: fit-content;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     margin-left: 1rem;
   }
   .term-count{
