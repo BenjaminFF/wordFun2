@@ -24,7 +24,7 @@
       },
       methods:{
         deleteItem(){
-          this.setCurSet(this.item);
+          this.setCookie('deleteInfo',this.item.timeStamp,1);
           this.alterddState(true);       //show delete dialog
         },
         timeStamp2String(timeStamp){
@@ -42,7 +42,6 @@
         },
         ...mapMutations({
           alterddState:'wordset/alterddState',
-          setCurSet:'wordset/setCurSet'
         }),
       },
       computed:{

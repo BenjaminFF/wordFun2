@@ -1,5 +1,5 @@
 const state={
-  linkItems:[]
+  linkItems:[],
 }
 
 const mutations={
@@ -29,7 +29,7 @@ const mutations={
         break;
       }
     }
-  }
+  },
 }
 
 export default {

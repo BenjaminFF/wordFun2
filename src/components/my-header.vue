@@ -56,6 +56,7 @@
         },
         createSet(){
           this.setCreateState(true);
+          this.setCookie('createSetMode','create',1);
           this.$router.push('createcontainer');
         },
         showUserFunc() {
@@ -69,6 +70,7 @@
         logout() {
           this.delCookie('euname');
           this.delCookie('password');
+          this.$router.push('/');
           window.location.reload(true);
           console.log('gg');
         },

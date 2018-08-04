@@ -46,6 +46,7 @@
         createSet(){
           this.setCreateState(true);
           this.$router.push('createcontainer');
+          this.setCookie('createSetMode','create',1);
         },
         fetchData(){
           this.setinited=false;
@@ -122,6 +123,7 @@
         },
         setItemClick(item){
           this.setCurSet(item);
+          this.setCookie('curSet',JSON.stringify(item),1);          //curSet存到cookie中，因为刷新后在set-learn中获取不到state.curSet
           this.$router.push('setLearn');
         },
         ...mapMutations({

@@ -3,18 +3,14 @@ const state={
   showCD:false,                      //show create dialog
   folders:[],
   slideFolders:[],
-  isSetCreating:false,                 //正在创建单词集
-  isPushing:false,
+  isSetCreating:false,                 //正在创建单词集，sidebar的显示和隐藏决定于它
+  isPushing:false,                    //主要用于create-dialog中的进度条，判断单词集push的状态
   wordsets:[],
   vocabulary:[],
   ddState:false,                  //delete dialog state
-  curSet:""                     //在word-sets里面点击其中一个set然后赋值，主要给delete dialog用
 }
 
 const mutations={
-  setCurSet(state,curSet){
-    state.curSet=curSet;
-  },
   alterddState(state,isShow){
     state.ddState=isShow;
   },

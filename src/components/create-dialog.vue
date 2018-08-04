@@ -1,15 +1,12 @@
 <template>
     <div class="model">
         <div class="dialog animated bounceInDown">
-          <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{$t('createDialog.header')}}</div>
+          <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{headerText}}</div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
-          <input contenteditable="true" class="edit title" v-on="inputListener"
-               v-on:input="titleUpdate($event)"
-          @paste="onPaste($event)" />
+          <input class="edit title" v-on:input="titleUpdate($event)" :value="initTitle"/>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
             {{$t('createDialog.subTitle')}}</div>
-          <input contenteditable="true" @paste="onPaste($event)"
-               class="edit subtitle" v-on:input="subtitleUpdate($event)" />
+          <input class="edit subtitle" v-on:input="subtitleUpdate($event)" :value="initSubTitle"/>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
           <div class="folder">
             <div v-for="item in slideFolders" class="folder-item"
@@ -28,52 +25,33 @@
     import { mapState,mapMutations } from 'vuex'
     export default {
         name: "create-dialog",
+      components: {},
       data(){
           return{
             title:"",
             subTitle:"",
             isShow:false,
+            headerText:''
           }
       },
+      created(){
+          if(this.initTitle!=""){        //表示为修改的单词集，而不是创建的单词集
+            this.headerText=this.$t('createDialog.editHeader');
+          }else {
+            this.headerText=this.$t('createDialog.header');
+          }
+      },
+      props:{
+          initTitle:{
+            type:String,
+            default:''
+          },
+          initSubTitle:{
+          type:String,
+          default:''
+        }
+      },
       methods:{
-        onPaste(e){
-          e.preventDefault();
-          var text = null;
-
-          if(window.clipboardData && clipboardData.setData) {
-            // IE
-            text = window.clipboardData.getData('text');
-          } else {
-            text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('在这里输入文本');
-          }
-
-          if(text.length>=30){
-            text=text.substring(0,30);
-          }
-          if (document.body.createTextRange) {
-            if (document.selection) {
-              textRange = document.selection.createRange();
-            } else if (window.getSelection) {
-              sel = window.getSelection();
-              var range = sel.getRangeAt(0);
-
-              // 创建临时元素，使得TextRange可以移动到正确的位置
-              var tempEl = document.createElement("span");
-              tempEl.innerHTML = "&#FEFF;";
-              range.deleteContents();
-              range.insertNode(tempEl);
-              textRange = document.body.createTextRange();
-                textRange.moveToElementText(tempEl);
-              tempEl.parentNode.removeChild(tempEl);
-            }
-            textRange.text = text;
-            textRange.collapse(false);
-            textRange.select();
-          } else {
-            // Chrome之类浏览器
-            document.execCommand("insertText", false, text);
-          }
-        },
         banInput(event,length){
           if(this.checkLength(event.target.innerText)>length){
             // Backspace, del, 左右方向键
@@ -189,7 +167,6 @@
           closeCD:'wordset/closeCD',
         }),
       },
-      components: {AniInput},
       computed:{
         ...mapState({
           slideFolders:state=>state.wordset.slideFolders,

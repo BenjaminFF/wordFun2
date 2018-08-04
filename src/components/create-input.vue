@@ -1,9 +1,11 @@
 <template>
     <div class="create-input" :style="pStyle" @mouseover="showDel=true" @mouseleave="showDel=false">
       <div class="cardId">{{cardId}}</div>
-      <div class="term" contenteditable="true" v-on="inputListener" :placeholder="$t('createSet.termHint')"
+      <div class="term" contenteditable="true" v-on="inputListener" v-html="initTermText"
+           :placeholder="termHint"
            :style="{borderBottom:termBB}" @paste="onPaste($event)"></div>
-      <div class="definition" contenteditable="true" v-on="inputListener" :placeholder="$t('createSet.definitionHint')"
+      <div class="definition" contenteditable="true" v-on="inputListener" v-html="initDefText"
+           :placeholder="defHint"
            :style="{borderBottom:defBB}" @paste="onPaste($event)"></div>
       <icon name="delete" class="delete animated bounceIn" v-if="showDel" @click.native="$emit('delete')"></icon>
     </div>
@@ -19,7 +21,9 @@
             defLT:"",
             showDel:false,
             termBB:"1px solid white",
-            defBB:"1px solid white"
+            defBB:"1px solid white",
+            termHint:"",
+            defHint:""
           }
       },
       props:{
@@ -39,17 +43,21 @@
           },
           cardId:{
             type:Number
+          },
+          hasInitValue:{
+            type:Boolean,
+            default:false
+          },
+          initTermText:{
+            type:String,
+            default:""
+          },
+          initDefText:{
+          type:String,
+            default:""
           }
       },
       watch:{
-          termLT:function (newval) {
-            console.info(newval);
-            this.$emit('update:termText', newval);
-          },
-          defLT:function (newval) {
-            console.info(newval);
-            this.$emit('update:defText', newval);
-          },
         termBorder:function () {
           this.termBB=this.termBorder;
         },
@@ -61,6 +69,13 @@
           this.pStyle={
             backgroundColor:this.randomColor(0.6),
           }
+          if(this.hasInitValue){             //如果input里面有初始值，就让term和def的hint为空
+            this.termHint="";
+            this.defHint="";
+          }else {
+            this.termHint=this.$t('createSet.termHint');
+            this.defHint=this.$t('createSet.definitionHint');
+          }
       },
       computed:{
         inputListener(){
@@ -69,14 +84,8 @@
             this.$listeners,
             {
               input:function (event) {
-                let text="";
-
-                if(event.target.textContent!=undefined){
-                  text=event.target.textContent;       //兼容火狐
-                }else {
-                  text=event.target.innerText;
-                }
                 if(event.target.className=='term'){
+                  console.log(event.target.innerText);
                   vm.$emit('update:termText',event.target.innerText);
                 }else if(event.target.className=='definition'){
                   vm.$emit('update:defText',event.target.innerText);

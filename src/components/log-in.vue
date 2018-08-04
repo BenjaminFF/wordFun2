@@ -3,9 +3,10 @@
   <div class="model" v-if="isShow">
     <div class="dialog">
       <div class="container">
-        <ani-input :title="$t('LogIn.basic[0]')" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener"></ani-input>
-        <ani-input :title="$t('LogIn.basic[1]')" :fontSize="1.3" :hint="pwInfo.hint" v-on:input="pwListener" :security="true"></ani-input>
-        <my-button :fontSize="1.2" class="button" v-on:click.native="login">{{$t('LogIn.basic[2]')}}</my-button>
+        <ani-input :title="$t('LogIn.basic[0]')" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener" v-on:keyup.enter="login"></ani-input>
+        <ani-input :title="$t('LogIn.basic[1]')" :fontSize="1.3" :hint="pwInfo.hint" v-on:input="pwListener" :security="true" v-on:keyup.enter="login"></ani-input>
+        <my-button :fontSize="1.2"
+                   class="button" v-on:click.native="login">{{$t('LogIn.basic[2]')}}</my-button>
         <p class="fg">{{$t('LogIn.basic[3]')}}</p>
       </div>
       <icon name="cross" class="rtimg"  @click.native="dismiss($event)"></icon>
@@ -53,6 +54,7 @@
             }
           },
           login:function () {
+            console.log('gg');
             let that=this;
             let elementList=document.querySelectorAll(".input");
             if(this.euInfo.value==""){

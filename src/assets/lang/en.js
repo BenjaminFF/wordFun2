@@ -31,7 +31,8 @@ module.exports = {
     subTitle:"SubTitle",
     folder:"Folder",
     folderHint:"only one folder!",
-    titleEmpty:'There is no Title!'
+    titleEmpty:'There is no Title!',
+    editHeader:'modified Set'
   },
   createSet:{
     termEmpty:' term is empty,please fill it up!',

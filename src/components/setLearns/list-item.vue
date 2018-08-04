@@ -1,9 +1,9 @@
 <template>
     <div class="list-item" :style="{backgroundColor:backgroundColor}">
       <div class="cardId">{{cardId}}</div>
-      <div class="termText" v-html="termText"></div>
-      <div class="defText" v-html="defText"></div>
-      <icon class="voice" name="voice"></icon>
+      <div class="termText" v-html="termText" @click="sayTerm"></div>
+      <div class="defText" v-html="defText" @click="sayDef"></div>
+      <icon class="voice" name="voice" @click.native="sayAll()"></icon>
     </div>
 </template>
 
@@ -21,7 +21,28 @@
         this.backgroundColor=this.randomColor(0.8);
       },
       methods:{
-
+        sayTerm(){
+          window.speechSynthesis.cancel();
+          setTimeout(()=>{
+            let utterThis = new window.SpeechSynthesisUtterance(this.termText);
+            window.speechSynthesis.speak(utterThis);
+          },1000);
+        },
+        sayDef(){
+          window.speechSynthesis.cancel();
+          setTimeout(()=>{
+            let utterThis = new window.SpeechSynthesisUtterance(this.defText);
+            window.speechSynthesis.speak(utterThis);
+          },500);
+        },
+        sayAll(){
+          window.speechSynthesis.cancel();
+          setTimeout(()=>{
+            let text=this.termText+this.defText;
+            let utterThis = new window.SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterThis);
+          },500);
+        }
       },
       props:{
         cardId:{

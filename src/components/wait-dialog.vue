@@ -13,7 +13,8 @@
             type:String
           },
           color:{
-            type:String
+            type:String,
+            default:'var(--vermilion)'
           }
         }
     }
@@ -25,6 +26,7 @@
     height: 100%;
     position: absolute;
     left: 0;
+    top: 0;
     display: flex;
     justify-content: center;
     background-color: #f3f3f3;

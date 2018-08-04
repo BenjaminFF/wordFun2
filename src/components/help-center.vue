@@ -15,7 +15,7 @@
       methods:{
         ...mapMutations({
           setCreateState:'wordset/setCreateState',
-          selectCurLinkItem:'routerdata/selectCurLinkItem'
+          selectCurLinkItem:'routerdata/selectCurLinkItem',
         }),
       }
     }

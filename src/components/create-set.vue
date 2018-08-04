@@ -4,7 +4,9 @@
         <div class="container">
           <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
             <create-input class="create-input" v-on:delete="deleteItem(index)"
-                          :cardId="index+1"
+                          :cardId="index+1" :hasInitValue="hasInitValue"
+                          :initTermText="item.initTermText"
+                          :initDefText="item.initDefText"
                           :defBorder="item.defBorder" :termBorder="item.termBorder"
                           :defText.sync="item.defText" :termText.sync="item.termText">
             </create-input>
@@ -18,9 +20,10 @@
       </div>
       <float-button iconname="tick" size="middle" class="fbTick" @click="fbTickClick"
                     @mouseenter="fbTickHover" @mouseleave="fbTickFlur"></float-button>
-      <create-dialog v-if="showCD" v-bind:title.sync="title"
+      <create-dialog v-if="showCD" v-bind:title.sync="title" :initTitle="initTitle" :initSubTitle="initSubTitle"
                      v-bind:subtitle.sync="subtitle"></create-dialog>
       <my-toast v-for="(toast,index) in toastlist" :text="toast.text" :key="index"></my-toast>
+      <wait-dialog :text="'C'" v-if="!loaded"></wait-dialog>
     </div>
 </template>
 
@@ -32,35 +35,90 @@
     import MyToast from "./my-toast";
     import $ from 'jquery'
     import { mapState,mapMutations,mapGetters } from 'vuex';
+    import WaitDialog from "./wait-dialog";
     export default {
-        name: "create-set",
+        name: "create-set",                  //create-set有两个mode，editmode和createmode。用cookie来存储mode
         data(){
           return{
             items:[],
             toastlist:[],
             title:"",
             subtitle:"",
+            initTitle:"",
+            initSubTitle:"",
+            loaded:false,
+            hasInitValue:""
           }
         },
       created(){
-          this.closeCD();
-          let timestamp=new Date().getTime();
-          for(let i=0;i<2;i++){
-            var item={
-              timestamp:timestamp,
-              termText:"",
-              defText:"",
-              showfb:false,
-              defBorder:"",
-              termBorder:""
+          this.closeCD();         //防止刷新打开了create dialog
+          this.setPushState(false);
+          if(this.getCookie('createSetMode')=='create'){   //createSetMode放在cookie中是为了重新刷新也不会丢失这个值，放在state中会
+            let items=[];
+            let timestamp=new Date().getTime();
+            for(let i=0;i<2;i++){
+              var item={
+                timestamp:timestamp,        //这个timestamp作为key而不用index原因是插入删除时timestamp不会变，index会变
+                termText:"",
+                defText:"",
+                showfb:false,
+                defBorder:"",
+                termBorder:"",
+                initTermText:"",
+                initDefText:""
+              }
+              timestamp++;
+              items.push(item);
             }
-            timestamp++;
-            this.items.push(item);
-            this.setPushState(false);
+            this.items=items;
+            this.hasInitValue=false;
+            setTimeout(()=>{
+              this.loaded=true;
+            },500);
+          }else if(this.getCookie('createSetMode')=='edit'){
+            this.hasInitValue=true;
+            let curSet=JSON.parse(this.getCookie('curSet')); //curSet在打开一个单词集就有了，这个create-set是从那个单词集跳转来的，可以获取，只是history.go时候的状态可能有问题
+            let euname=this.getCookie("euname");
+            this.initTitle=curSet.title;
+            this.initSubTitle=curSet.subtitle;
+            this.axios.get('/api/getCards', {
+              params: {
+                username:escape(euname),
+                createTime:curSet.timeStamp
+              }
+            })
+              .then((response)=>{
+                let cards=[];
+                let timestamp=new Date().getTime();
+                for(let i=0;i<response.data.length;i++){
+                  let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
+                  let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
+                  let card={
+                    timestamp:timestamp,
+                    termText:term,
+                    defText:definition,
+                    showfb:false,
+                    defBorder:"",
+                    termBorder:"",
+                    initTermText:term,
+                    initDefText:definition
+                  }
+                  cards.push(card);
+                  timestamp++;
+                }
+                this.items=cards;
+                console.log(cards);
+                setTimeout(()=>{
+                  this.loaded=true;
+                },500);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
           }
         },
       methods: {
-          addItem(index){
+        addItem(index){
             let timestamp=new Date().getTime();
             var item={
               timestamp:timestamp,
@@ -68,7 +126,9 @@
               defText:"",
               showfb:false,
               defBorder:"",
-              termBorder:""
+              termBorder:"",
+              initTermText:"",
+              initDefText:""
             }
             this.items.push(item);
             let insertTransition=[
@@ -97,7 +157,7 @@
               };
             });
           },
-          showFB(index){
+        showFB(index){
             if(index!=this.items.length-1){
               this.items[index].showfb=true;
             }
@@ -113,7 +173,9 @@
             defText:"",
             showfb:false,
             defBorder:"",
-            termBorder:""
+            termBorder:"",
+            initTermText:"",
+            initDefText:""
           }
           this.items.splice(index+1,0,item);
           let vm=this;
@@ -286,7 +348,7 @@
           slideFolders:state=>state.wordset.slideFolders
         }),
       },
-      components: {MyToast, CreateDialog, FloatButton, MyButton, CreateInput}
+      components: {WaitDialog, MyToast, CreateDialog, FloatButton, MyButton, CreateInput}
     }
 </script>
 
@@ -298,6 +360,7 @@
   .create-set{
      width: 40rem;
      height: 25rem;
+    position: relative;
    }
   .out-container{
     width: 100%;
@@ -354,7 +417,7 @@
   }
 
   .fbTick{
-    position: absolute;
+    position: fixed;
     right: 7rem;
     bottom: 2rem;
     cursor:pointer;

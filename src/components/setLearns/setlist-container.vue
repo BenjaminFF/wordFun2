@@ -1,20 +1,20 @@
 <template>
   <div class="container">
     <div class="header" :style="{backgroundColor:headerBackground}">
-      <div class="title">{{limitLength(curSet.title,30,true)}}</div>
-      <div class="subtitle">{{limitLength(curSet.subtitle,35,true)}}</div>
+      <div class="title">{{title}}</div>
+      <div class="subtitle">{{subtitle}}</div>
     </div>
     <div class="listItems-container">
       <div class="listItems-inner-container">
-        <transition-group enter-active-class="animated slideInLeft">
+        <transition-group enter-active-class="animated fadeIn">
           <list-item v-for="(card,index) in cards" class="list-item" :key="index" v-if="!loading"
                      :card-id="index+1" :termText="card.term" :defText="card.definition"></list-item>
         </transition-group>
       </div>
     </div>
     <div class="tool-container">
-      <icon name="tool" class="tool" @click.native="showTools":style="{backgroundColor:toolStyle.backGround}"></icon>
-      <icon name="edit" class="tool-edit" :style="{top:toolStyle.editTop,backgroundColor:toolStyle.backGround}"></icon>
+      <icon name="tool" class="tool" @click.native="showTools" :style="{backgroundColor:toolStyle.backGround}"></icon>
+      <icon name="edit" class="tool-edit" @click.native="editToCreateSet" :style="{top:toolStyle.editTop,backgroundColor:toolStyle.backGround}"></icon>
       <icon name="share" class="tool-share" :style="{top:toolStyle.shareTop,backgroundColor:toolStyle.backGround}"></icon>
     </div>
     <wait-dialog v-if="loading" :text="'G'" :color="'var(--seablue)'"></wait-dialog>
@@ -24,7 +24,7 @@
 <script>
     import ListItem from "./list-item";
     import WaitDialog from "../wait-dialog";
-    import {mapState} from 'vuex'
+    import {mapState,mapMutations} from 'vuex'
     import SetItem from "../set-item";
     export default {
         name: "setlist-container",
@@ -36,8 +36,10 @@
               editTop:0,
               shareTop:0,
               folded:true,
-              backGround:""
+              backGround:"",
             },
+            title:"",
+            subtitle:"",
             headerBackground:""
           }
       },
@@ -50,7 +52,10 @@
         fetchData(){
           this.loading=true;
           let euname=this.getCookie("euname");
-          let createTime=this.curSet.timeStamp;
+          let curSet=JSON.parse(this.getCookie('curSet'));
+          this.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
+          this.subtitle=this.limitLength(curSet.subtitle,40,true);
+          let createTime=curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
               username:escape(euname),
@@ -60,7 +65,7 @@
             .then((response)=>{
               let cards=[];
               for(let i=0;i<response.data.length;i++){
-                let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");
+                let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
                 let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
                 let card={
                   term:term,
@@ -69,6 +74,7 @@
                 cards.push(card);
               }
               this.cards=cards;
+              console.log(this.cards);
               setTimeout(()=>{
                 this.loading=false;
               },500);
@@ -88,10 +94,13 @@
             this.toolStyle.folded=true;
           }
         },
-      },
-      computed:{
-        ...mapState({
-          curSet:state=>state.wordset.curSet
+        editToCreateSet(){
+          this.setCreateState(true);
+          this.setCookie('createSetMode','edit',1);
+          this.$router.push('createcontainer');
+        },
+        ...mapMutations({
+          setCreateState:'wordset/setCreateState'
         }),
       },
       components: {SetItem, ListItem,WaitDialog}
@@ -106,6 +115,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    user-select: none;
   }
   .header{
     width: 70%;
@@ -118,6 +128,7 @@
     align-items: center;
     flex-direction: column;
     color: white;
+    user-select: text;
   }
   .header .title{
     font-size: 2rem;
@@ -146,13 +157,14 @@
     margin-top: 2rem;
     margin-left: auto;
     margin-right: auto;
+    user-select: text;
   }
   .tool-container{
     width: fit-content;
     height: fit-content;
     position: absolute;
-    right: 3rem;
-    bottom: 3rem;
+    right: 2rem;
+    bottom: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;

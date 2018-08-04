@@ -30,7 +30,8 @@ module.exports = {
     subTitle:"副标题",
     folder:"文件夹",
     folderHint:"你只有一个文件夹哦！",
-    titleEmpty:'标题不能为空哦'
+    titleEmpty:'标题不能为空哦',
+    editHeader:'修改单词集！'
   },
   createSet:{
     termEmpty:'行单词为空，请给它填上!',

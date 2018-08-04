@@ -1,10 +1,6 @@
 <template>
     <div class="create-container">
-        <create-set v-if="loaded"></create-set>
-      <div class="shadow" v-if="!loaded">
-        <div class="loading"></div>
-        <div class="load_text">C</div>
-      </div>
+        <create-set></create-set>
     </div>
 </template>
 
@@ -21,9 +17,6 @@
       },
       created(){
         this.setCreateState(true);
-        setTimeout(()=>{
-          this.loaded=true;
-        },500);
       },
       methods:{
         ...mapMutations({

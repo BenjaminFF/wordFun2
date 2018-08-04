@@ -3,11 +3,11 @@
     <div class="model" v-if="isShow">
         <div class="dialog">
           <div class="container">
-            <ani-input :font-size="1.3" :title="$t('SignUp.basic[0]')" :hint="nameInfo.hint"
+            <ani-input :font-size="1.3" :title="$t('SignUp.basic[0]')" :hint="nameInfo.hint" v-on:keyup.enter="signup"
                        v-on:input="nameListener" :validate="nameInfo.Validated" @keydown.native="banInput($event,nameInfo,25)"></ani-input>
-            <ani-input :font-size="1.3" :title="$t('SignUp.basic[1]')" :hint="emailInfo.hint"
+            <ani-input :font-size="1.3" :title="$t('SignUp.basic[1]')" :hint="emailInfo.hint" v-on:keyup.enter="signup"
                        :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="banInput($event,emailInfo,30)"></ani-input>
-            <ani-input :font-size="1.3" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true"
+            <ani-input :font-size="1.3" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true" v-on:keyup.enter="signup"
                        v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="banInput($event,pwInfo,30)"
             ></ani-input>
             <my-button :font-size="1.2" class="button" @click.native="signup">{{$t('SignUp.basic[3]')}}</my-button>

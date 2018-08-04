@@ -17,8 +17,8 @@
         name: "delete-dialog",
       methods:{
         deleteCurSet(){
-          console.log(this.curSet.title);
-          let createTime=this.curSet.timeStamp;
+          let createTime=this.getCookie('deleteInfo');
+          console.log(createTime);
           let euname=this.getCookie("euname");
           this.axios.post('/api/deleteSet',{
             params:{
@@ -39,9 +39,6 @@
         }),
       },
       computed:{
-        ...mapState({
-          curSet:state=>state.wordset.curSet
-        }),
       }
     }
 </script>

@@ -43,14 +43,8 @@
           ]
         this.curComponent=setListContainer;
       },
-      computed:{
-        ...mapState({
-          curSet:state=>state.wordset.curSet
-        }),
-      },
       methods:{
         backClick(){
-          console.log('gg');
           this.$router.go(-1);
         },
         itemClick(item){

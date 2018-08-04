@@ -6,8 +6,8 @@
     </div>
     <transition leave-active-class="animated fadeOut">
     <div class="shadow" v-if="Loading">
-      <div class="loading"></div>
-      <div class="load_text">W</div>
+      <div class="loading" v-if="showLT"></div>
+      <div class="load_text" v-if="showLT">W</div>
     </div>
   </transition>
   </div>
@@ -25,20 +25,23 @@ export default {
       curComponent:DefaultPage,
       isDefaultPage:true,
       Loading:true,
-      username:""
+      username:"",
+      showLT:false
     }
   },
   created(){
     let euname=this.getCookie("euname");        //存入cookie中的还是经过escape后的，避免中文乱码
     let password=this.getCookie("password");
     let currentPath=this.$router.currentRoute.fullPath;
+    console.log(currentPath);
+    if(currentPath=='/'){
+      this.showLT=true;
+    }
     if(currentPath=='/createcontainer'){
       this.setCreateState(true);
     }else {
       this.setCreateState(false);
     }
-    this.$router.push('/latestlearn');
-    let that=this;
     if(euname!=""&&password!=""){
       this.axios.post('/api/login', {
         params: {
@@ -47,15 +50,15 @@ export default {
         }
       }).then((response)=> {
         if(response.data.result){
-          that.curComponent=UserPage;
-          that.isDefaultPage=false;
-          that.username=euname;
+          this.curComponent=UserPage;
+          this.isDefaultPage=false;
+          this.username=euname;
           this.initFoldersAndSets(euname);
         }
       });
     }else {
-      setTimeout(function () {
-        that.Loading=false;
+      setTimeout( ()=> {
+        this.Loading=false;
       },1000);
     }
   },
