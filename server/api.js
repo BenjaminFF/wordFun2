@@ -206,6 +206,7 @@ router.get('/api/getfoldersandsets',function (req,res) {
     });
   });
 });
+
 router.post('/api/pushwordset',function (req,res) {
   let cards = JSON.parse(req.body.params.jsoncards);
   let wordset = JSON.parse(req.body.params.jsonwordset);
@@ -263,6 +264,30 @@ router.get('/api/getwordset',function (req,res) {
   });
 });
 
+router.get('/api/getCards',(req,res)=>{
+  let username=req.query.username;
+  let createTime=req.query.createTime;
+  let getCardsSql='select * from vocabulary where author=? and createtime=?';
+  pool.query(getCardsSql,[username,createTime],(err,result)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    let cards=[];
+    for(let i=0;i<result.length;i++){
+      let term=result[i].term;
+      let definition=result[i].definition;
+      let card={
+        term:term,
+        definition:definition
+      }
+      cards.push(card);
+    }
+    let data=JSON.stringify(cards);
+    res.send(data);
+  });
+});
+
 router.post('/api/deleteSet',(req,res)=>{
   let createTime=req.body.params.createTime;
   let username=req.body.params.username;
@@ -304,27 +329,55 @@ router.post('/api/deleteSet',(req,res)=>{
   })
 });
 
-router.get('/api/getCards',(req,res)=>{
-  let username=req.query.username;
-  let createTime=req.query.createTime;
-  let getCardsSql='select * from vocabulary where author=? and createtime=?';
-  pool.query(getCardsSql,[username,createTime],(err,result)=>{
-    if(err){
-      res.send('err');
-      throw err;
-    }
-    let cards=[];
-    for(let i=0;i<result.length;i++){
-      let term=result[i].term;
-      let definition=result[i].definition;
-      let card={
-        term:term,
-        definition:definition
-      }
-      cards.push(card);
-    }
-    let data=JSON.stringify(cards);
-    res.send(data);
+router.post('/api/updatewordset',(req,res)=>{           //先将vocabulary里面的所有内容删除，然后再重新加,set可以用update
+  let setInfo=JSON.parse(req.body.params.jsonwordset);
+  let cards=JSON.parse(req.body.params.jsoncards);
+  let updateSetSql='update wordset set title=?,subtitle=?,folder=?,termCount=? where createtime=? and author=?';
+  let deleteCardsSql='delete from vocabulary where createtime=? and author=?';
+  let insertCardsSql='insert into vocabulary values ?';
+  let valuesarr = [];
+  for (let i = 0; i < cards.length; i++) {
+    valuesarr.push(Object.values(cards[i]));
+  }
+  pool.getConnection((err,connection)=>{
+    connection.beginTransaction(err=>{
+      if(err) throw err;
+      connection.query(updateSetSql,[setInfo.title,
+        setInfo.subtitle,setInfo.folder,
+        setInfo.termCount,setInfo.createtime,setInfo.author],(err)=>{
+        if (err) {
+            return connection.rollback((error)=> {
+              throw error;
+            });
+        }
+        connection.query(deleteCardsSql,[setInfo.createtime,setInfo.author],(err)=>{
+          if (err) {
+            return connection.rollback((error)=> {
+              throw error;
+            });
+          }
+
+          connection.query(insertCardsSql,[valuesarr],(err)=>{
+            if (err) {
+              return connection.rollback((error)=> {
+                throw error;
+              });
+            }
+
+            connection.commit((err)=> {
+              if (err) {
+                return connection.rollback((err)=> {
+                  throw err;
+                });
+              }
+              console.log('update success!');
+              res.send('update success');
+              connection.release();
+            });
+          });
+        })
+      });
+    });
   });
 });
 

@@ -45,7 +45,7 @@
       },
       methods:{
         backClick(){
-          this.$router.go(-1);
+          this.$router.push('/wordsets');
         },
         itemClick(item){
           if(item.selected){
@@ -75,14 +75,15 @@
      background-color: white;
    }
   .sidebar{
-    flex: 2 0 0;
+    width: 17%;
     background-color: #9BC53D;
     box-shadow: 10px 0px 20px 1px rgba(155, 155, 155, 0.31);
     z-index: 100;
     min-width: max-content;
-    padding-right: 1rem;
     color: white;
     transition: .5s all ease-in-out;
+    position: relative;
+    padding-right: 1rem;
   }
   .return{
     user-select: none;
@@ -102,7 +103,7 @@
     height: 1.2rem;
   }
   .learn-container{
-    flex: 9 0 0;
+    width: 83%;
     background-color: rgba(243, 243, 243, 0.6);
   }
   .barItems-container{

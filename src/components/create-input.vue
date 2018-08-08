@@ -161,7 +161,7 @@
     color: white;
     outline: none;
     min-height: 1.6rem;                  /*兼容firefox*/
-    white-space: pre-wrap;
+    word-break: break-all;
   }
   .definition{
     width: 48%;
@@ -169,7 +169,7 @@
     color: white;
     outline: none;
     min-height: 1.6rem;
-    white-space: pre-wrap;
+    word-break: break-all;
   }
   .delete{
     width: 1.2rem;

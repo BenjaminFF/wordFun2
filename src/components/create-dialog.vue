@@ -3,10 +3,10 @@
         <div class="dialog animated bounceInDown">
           <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{headerText}}</div>
           <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
-          <input class="edit title" v-on:input="titleUpdate($event)" :value="initTitle"/>
+          <input class="edit title" v-on:input="titleUpdate($event)" :value="title"/>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
             {{$t('createDialog.subTitle')}}</div>
-          <input class="edit subtitle" v-on:input="subtitleUpdate($event)" :value="initSubTitle"/>
+          <input class="edit subtitle" v-on:input="subtitleUpdate($event)" :value="subTitle"/>
           <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
           <div class="folder">
             <div v-for="item in slideFolders" class="folder-item"
@@ -31,7 +31,7 @@
             title:"",
             subTitle:"",
             isShow:false,
-            headerText:''
+            headerText:'',
           }
       },
       created(){
@@ -40,6 +40,8 @@
           }else {
             this.headerText=this.$t('createDialog.header');
           }
+          this.title=this.initTitle;
+          this.subTitle=this.initSubTitle;
       },
       props:{
           initTitle:{
@@ -62,14 +64,12 @@
           }
         },
           titleUpdate(event){
-            this.$emit('update:title',event.target.value);
+            this.title=event.target.value;
+            this.$emit('update:title',this.title);
           },
           subtitleUpdate(event){
-          this.$emit('update:subtitle',event.target.value);
-          },
-          init(){
-            this.title="";
-            this.subTitle="";
+            this.subTitle=event.target.value;
+          this.$emit('update:subtitle',this.subTitle);
           },
           addTransition(el,transition,delay){
           return el.animate(

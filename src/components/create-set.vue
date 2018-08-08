@@ -4,7 +4,7 @@
         <div class="container">
           <div v-for="(item,index) in items"  :key="item.timestamp" class="item-container animated bounceInLeft">
             <create-input class="create-input" v-on:delete="deleteItem(index)"
-                          :cardId="index+1" :hasInitValue="hasInitValue"
+                          :cardId="index+1" :hasInitValue="item.hasInitValue"
                           :initTermText="item.initTermText"
                           :initDefText="item.initDefText"
                           :defBorder="item.defBorder" :termBorder="item.termBorder"
@@ -65,22 +65,23 @@
                 defBorder:"",
                 termBorder:"",
                 initTermText:"",
-                initDefText:""
+                initDefText:"",
+                hasInitValue:false
               }
               timestamp++;
               items.push(item);
             }
             this.items=items;
-            this.hasInitValue=false;
             setTimeout(()=>{
               this.loaded=true;
             },500);
           }else if(this.getCookie('createSetMode')=='edit'){
-            this.hasInitValue=true;
             let curSet=JSON.parse(this.getCookie('curSet')); //curSet在打开一个单词集就有了，这个create-set是从那个单词集跳转来的，可以获取，只是history.go时候的状态可能有问题
             let euname=this.getCookie("euname");
             this.initTitle=curSet.title;
             this.initSubTitle=curSet.subtitle;
+            this.title=curSet.title;            //如果title没有修改，就用这个title
+            this.subtitle=curSet.subtitle;      //同上
             this.axios.get('/api/getCards', {
               params: {
                 username:escape(euname),
@@ -101,7 +102,8 @@
                     defBorder:"",
                     termBorder:"",
                     initTermText:term,
-                    initDefText:definition
+                    initDefText:definition,
+                    hasInitValue:true
                   }
                   cards.push(card);
                   timestamp++;
@@ -128,7 +130,8 @@
               defBorder:"",
               termBorder:"",
               initTermText:"",
-              initDefText:""
+              initDefText:"",
+              hasInitValue:false
             }
             this.items.push(item);
             let insertTransition=[
@@ -175,7 +178,8 @@
             defBorder:"",
             termBorder:"",
             initTermText:"",
-            initDefText:""
+            initDefText:"",
+            hasInitValue:false
           }
           this.items.splice(index+1,0,item);
           let vm=this;
@@ -294,7 +298,19 @@
           let title=encodeURIComponent(this.title.substring(0,this.title.length));
           let subtitle=encodeURIComponent(this.subtitle.substring(0,this.subtitle.length));
           let author=escape(this.getCookie('euname'));
-          let createtime=new Date().getTime();       //时间轴作为标识
+          let postUrl='';
+          let createtime=null;       //时间轴作为标识
+          if(this.getCookie('createSetMode')=='edit'){
+            postUrl='/api/updatewordset';
+            let curSet=JSON.parse(this.getCookie('curSet'));
+            createtime=curSet.timeStamp;
+            curSet.title=this.title;
+            curSet.subtitle=this.subtitle;
+            this.setCookie('curSet',JSON.stringify(curSet),1);
+          }else if(this.getCookie('createSetMode')=='create'){
+            postUrl='/api/pushwordset';
+            createtime=new Date().getTime();
+          }
           let folder="";
           for(let i=0;i<this.items.length;i++){
             let card={
@@ -321,7 +337,8 @@
           }
           let jsoncards=JSON.stringify(cards);
           let jsonwordset=JSON.stringify(wordset);
-          this.axios.post('/api/pushwordset', {
+          console.log(postUrl);
+          this.axios.post(postUrl, {
             params: {
               jsoncards:jsoncards,
               jsonwordset:jsonwordset
@@ -329,7 +346,11 @@
           })
             .then((response)=> {
               console.log(response.data);
-              this.$router.push('/wordsets');
+              if(this.getCookie('createSetMode')=='edit'){
+                this.$router.push('/setLearn');
+              }else if(this.getCookie('createSetMode')=='create'){
+                this.$router.push('/wordsets');
+              }
               this.setCreateState(false);
             });
         },
