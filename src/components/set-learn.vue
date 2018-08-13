@@ -1,9 +1,9 @@
 <template>
     <div class="set-learn">
-      <div class="sidebar" :style="{backgroundColor:randomColor(0.6)}">
+      <div class="sidebar" :style="{backgroundColor:randomColor(0.7)}">
       <div class="return" @click="backClick">
         <icon name="return" class="return-icon"></icon>
-        {{$t('setLearn.back')}}
+        {{$t('setLearn.sideBar.back')}}
       </div>
         <div class="barItems-container">
           <div class="bar-item" v-for="item in barItems" @click="itemClick(item)"
@@ -11,6 +11,10 @@
             <icon :name="item.icon" class="item-icon"></icon>
             {{item.title}}
           </div>
+        </div>
+        <div class="help-item">
+          <icon name="help" class="help-item-icon"></icon>
+          {{$t('setLearn.sideBar.help')}}
         </div>
       </div>
       <div class="learn-container">
@@ -36,10 +40,10 @@
       },
       created(){
           this.barItems=[
-            {icon:'list',title:this.$t('setLearn.setList'),selected:true,comp:setListContainer},
-            {icon:'write',title:this.$t('setLearn.write'),selected:false,comp:writeContainer},
-            {icon:'flashcards',title:this.$t('setLearn.flashCards'),selected:false,comp:flashcardsContainer},
-            {icon:'matrix',title:this.$t('setLearn.matrix'),selected:false,comp:matrixContainer}
+            {icon:'list',title:this.$t('setLearn.sideBar.setList'),selected:true,comp:setListContainer},
+            {icon:'write',title:this.$t('setLearn.sideBar.write'),selected:false,comp:writeContainer},
+            {icon:'flashcards',title:this.$t('setLearn.sideBar.flashCards'),selected:false,comp:flashcardsContainer},
+            {icon:'matrix',title:this.$t('setLearn.sideBar.matrix'),selected:false,comp:matrixContainer}
           ]
         this.curComponent=setListContainer;
       },
@@ -121,6 +125,29 @@
     align-items: center;
     font-size: 1.2rem;
   }
+
+  .help-item{
+    width: 100%;
+    height: 4rem;
+    position: absolute;
+    margin-left: 1.2rem;
+    align-items: center;
+    display: flex;
+    font-size: 1.2rem;
+    bottom: 3rem;
+  }
+
+  .help-item-icon{
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.3rem;
+  }
+
+  .help-item:hover{
+    color: black;
+    cursor: pointer;
+  }
+
   .itemSelected{
     color: black;
   }

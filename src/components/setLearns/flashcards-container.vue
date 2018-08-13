@@ -1,13 +1,39 @@
 <template>
-  <div class="container">
+  <div class="fc-container" tabindex="-1" @keyup.space="turnCurCard"
+       @keyup.left="slideLeft('left')" @keyup.right="slideRight('right')" @keydown="banTab($event)">
     <div class="cards-container" v-if="!loading">
-      <flashcard v-for="card in cards" :termText="card.term" :defText="card.definition"
-         :style="{backgroundColor:card.bg,transform:'translate3d('+card.offset+'%'+',0,0)'}"></flashcard>
-      <icon name="left" class="slideLeft" @click.native="slideLeft" v-if="leftVisibility"></icon>
-      <icon name="right" class="slideRight" @click.native="slideRight" v-if="rightVisibility"></icon>
+      <flashcard v-for="(card,index) in cards" :termText="card.term" :defText="card.definition"
+         :style="{transform:'translate3d('+card.offset+'%'+',0,0)',
+         '-moz-transform':'translate3d('+card.offset+'%'+',0,0)', '-webkit-transform'
+         :'translate3d('+card.offset+'%'+',0,0)'}" :key="index" :visibility="card.visibility"
+                 :hideDef="hideDef" :backGround="card.bg" ref="flashcards"></flashcard>
+      <icon name="left" class="slideLeft" @click.native="slideLeft('left')" v-if="leftVisibility"></icon>
+      <icon name="right" class="slideRight" @click.native="slideRight('right')" v-if="rightVisibility"></icon>
+      <icon name="keyboard" class="keyBoard"></icon>
     </div>
-    <div class="progressbar" :style="{backgroundColor:progressBG}" v-if="!loading">
-    </div>
+    <div class="fc-sidebar"  v-if="!loading">
+      <div class="inner-container">
+        <div class="pgb-container" :style="{backgroundColor:fcSideItemBG}">
+          <svg class="progressbar" viewBox="0 0 1500 1500">
+            <circle r="500" cx="750" cy="750" class="bg-circle" ></circle>
+            <circle r="500" cx="750" cy="750" class="pgb-circle" :style="{'stroke-dashoffset':dashOffset}"></circle>
+            <text x="750" y="750" class="pgbText">{{pgbText}}</text>
+          </svg>
+        </div>
+        <div class="fc-side-item" :style="{backgroundColor:sideColors[0]}" @click="playCards">
+          <icon :name="playIcon" class="fc-play-icon"></icon>
+          {{$t('setLearn.flashCards.play')}}
+        </div>
+        <div class="fc-side-item" :style="{backgroundColor:sideColors[1]}" @click="shuffle">
+          <icon name="shuffle" class="fc-play-icon"></icon>
+          {{$t('setLearn.flashCards.shuffle')}}
+        </div>
+        <div class="fc-side-item" :style="{backgroundColor:sideColors[2]}" @click="defOption">
+          <icon :name="defOptionStyle.icon" class="fc-play-icon"></icon>
+          {{defOptionStyle.text}}
+        </div>
+      </div>
+      </div>
     <wait-dialog v-if="loading" :text="'F'" :color="'var(--seablue)'"></wait-dialog>
   </div>
 </template>
@@ -15,6 +41,7 @@
 <script>
     import Flashcard from "./flashcard";
     import WaitDialog from "../wait-dialog";
+    import _ from 'lodash'
     export default {
         name: "flashcards-container",
       components: {Flashcard,WaitDialog},
@@ -25,16 +52,47 @@
             curIndex:0,
             leftVisibility:false,
             rightVisibility:false,
-            progressBG:""
+            fcSideItemBG:"",
+            pgbTotalLen:3140,
+            pgbSingleLen:"",
+            dashOffset:"",
+            pgbText:"",
+            play:"",
+            playIcon:"",
+            sideColors:[],
+            defOptionStyle:{}
           }
       },
       created(){
           this.fetchData();
           this.leftVisibility=false;
           this.rightVisibility=true;
-          this.progressBG=this.randomColor(0.1);
+          this.fcSideItemBG=this.randomColor(0.1);
+          this.$nextTick(()=>{
+            let fc=document.getElementsByClassName('fc-container');
+            fc[0].focus();
+          });
+          this.playIcon='play';
+          for(let i=0;i<3;i++){
+            this.sideColors[i]=this.randomColor(0.1);
+          }
+          let text=this.$t('setLearn.flashCards.hideDef');
+          this.defOptionStyle={
+            icon:'hide',
+            text:text
+          }
+          this.hideDef=false;
       },
       methods:{
+        banTab(e){
+          let keyCode=e.keyCode||e.which;
+          if(keyCode===9){
+            e.preventDefault();
+          }
+        },
+        turnCurCard(){
+          this.$refs.flashcards[this.curIndex].turnCard();
+        },
         fetchData(){
           this.loading=true;
           let euname=this.getCookie("euname");
@@ -54,17 +112,22 @@
               for(let i=0;i<response.data.length;i++){
                 let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
                 let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
-                let bg=this.randomColor(0.6);
+                let bg=this.randomColor(1);
                 let card={
                   term:term,
                   definition:definition,
                   offset:offset,
-                  bg:bg
+                  bg:bg,
+                  visibility:'hidden'
                 }
                 offset-=100;
                 cards.push(card);
               }
               this.cards=cards;
+              this.cards[0].visibility='visible';
+              this.pgbSingleLen=this.pgbTotalLen/this.cards.length;
+              this.dashOffset=this.pgbTotalLen-this.pgbSingleLen;
+              this.pgbText=this.curIndex+1+'/'+this.cards.length;
               console.log(this.cards);
               setTimeout(()=>{
                 this.loading=false;
@@ -74,7 +137,13 @@
               console.log(error);
             });
         },
-        slideLeft(){
+        slideLeft(invoker){
+          if(invoker=='left'){          //判断该方法的调用者，如果是leftIcon,就停止playIcon的状态
+            if(this.playIcon=='pause'){
+              clearInterval(this.play);
+              this.playIcon='play';
+            }
+          }
           if(this.curIndex>=1){
             this.curIndex--;
             for(let i=0;i<this.cards.length;i++){
@@ -87,9 +156,17 @@
               this.leftVisibility=true;
               this.rightVisibility=true;
             }
+            this.dashOffset+=this.pgbSingleLen;
+            this.pgbText=this.curIndex+1+'/'+this.cards.length;
           }
         },
-        slideRight(){
+        slideRight(invoker){
+          if(invoker=='right'){
+            if(this.playIcon=='pause'){
+              clearInterval(this.play);
+              this.playIcon='play';
+            }
+          }
           if(this.curIndex<this.cards.length-1){
             this.curIndex++;
             for(let i=0;i<this.cards.length;i++){
@@ -102,62 +179,193 @@
               this.rightVisibility=true;
               this.leftVisibility=true;
             }
+            this.dashOffset-=this.pgbSingleLen;
+            this.pgbText=this.curIndex+1+'/'+this.cards.length;
           }
           console.log(this.curIndex);
           console.log("this.rightVisibility："+this.rightVisibility);
         },
+        playCards(){
+          if(this.playIcon=='play'){
+            this.playIcon='pause';
+            this.play=setInterval(()=>{
+              if(this.curIndex<this.cards.length-1){
+                this.slideRight("play");
+              }else {
+                clearInterval(this.play);
+                this.playIcon='play';
+              }
+            },2000);
+          }else if(this.playIcon=='pause'){
+            this.playIcon='play';
+            clearInterval(this.play);
+          }
+        },
+        shuffle(){
+          this.cards=_.shuffle(this.cards);
+          let offset=0;
+          for(let i=0;i<this.cards.length;i++){
+            this.cards[i].offset=offset;
+            offset-=100;
+          }
+          console.log(this.cards);
+          this.curIndex=0;
+          this.leftVisibility=false;
+          this.rightVisibility=true;
+          this.dashOffset=this.pgbTotalLen-this.pgbSingleLen;
+          this.pgbText=this.curIndex+1+'/'+this.cards.length;
+        },
+        defOption(){
+          if(this.defOptionStyle.icon=='hide'){
+            this.defOptionStyle.icon='show';
+            this.defOptionStyle.text=this.$t('setLearn.flashCards.showDef');
+            this.hideDef=true;
+          }else if(this.defOptionStyle.icon=='show'){
+            this.defOptionStyle.icon='hide';
+            this.defOptionStyle.text=this.$t('setLearn.flashCards.hideDef');
+            this.hideDef=false;
+          }
+        }
       }
     }
 </script>
 
 <style scoped>
-  .container{
+  .fc-container{
     position: relative;
     width: 100%;
     height: 100%;
     display: flex;
     justify-content: space-evenly;
+    outline: none;
   }
   .cards-container{
-    width: 50%;
-    height: 80%;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
-    margin-top: 4rem;
+    width: 65%;
+    height: 100%;
     position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
     overflow: hidden;
+    transition:all ease-in-out 1s;
   }
-  .progressbar{
-    margin-top: 4rem;
-    width: 20%;
-    height: 50%;
-    border-radius: 5px;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
-  }
+
   .slideLeft{
     position: absolute;
-    left: 1rem;
+    left: 0rem;
     width: 2rem;
     height: 2rem;
     color: white;
     z-index: 100;
     cursor: pointer;
+    color: lightgrey;
   }
   .slideRight{
     position: absolute;
-    right: 1rem;
+    right: 0rem;
     width: 2rem;
     height: 2rem;
-    color: white;
+    color: lightgrey;
     z-index: 100;
     cursor: pointer;
   }
   .slideLeft:hover{
-    color: black;
+    color: var(--seablue);
   }
   .slideRight:hover{
-    color: black;
+    color: var(--seablue);
+  }
+
+  .keyBoard{
+     position: absolute;
+     right: 0rem;
+     bottom: 13%;
+     width: 1.8rem;
+     height: 1.8rem;
+     color: gray;
+     z-index: 100;
+     cursor: pointer;
+   }
+
+  .keyBoard:hover{
+    color: var(--awesome);
+  }
+
+  .fc-sidebar{
+    width: 20%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+  }
+
+  .inner-container{
+    width: 100%;
+    height: 75%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pgb-container{
+    width: 100%;
+    height: 13rem;
+    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+  }
+
+  .progressbar{
+    width: 100%;
+    height: 15rem;
+  }
+
+  .pgb-circle{
+    fill: transparent;
+    stroke: var(--seablue);
+    stroke-width: 100px;
+    stroke-dasharray: 3140;
+    transition: all 1s ease-in-out;
+  }
+  .pgbText{
+    fill: var(--seablue);
+    font-size: 200px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .bg-circle{
+    fill: transparent;
+    stroke: lightgrey;
+    stroke-width: 100px;
+  }
+
+  .fc-side-item{
+    width: 100%;
+    height: 3rem;
+    box-shadow: 0px 0px 10px 3px rgba(211, 211, 211, 0.76);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    color: var(--seablue);
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .fc-play-icon{
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    letter-spacing: 0.1rem;
+  }
+
+  .fc-side-item:hover{
+    -webkit-transform: scale3d(1.03, 1.03, 1.03);
+    transform: scale3d(1.03, 1.03, 1.03);
+    transition: all 0.2s ease-in-out;
   }
 </style>

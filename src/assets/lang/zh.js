@@ -49,11 +49,8 @@ module.exports = {
     create:'创建新的单词集!'
   },
   setLearn:{
-    back:'返回',
-    setList:'单词集列表',
-    study:'趣味学习',
-    write:'拼写',
-    flashCards:'幻灯片',
-    matrix:'单词矩阵'
+    sideBar:{back:'返回',setList:'单词集列表'
+      ,write:'拼写',flashCards:'幻灯片',matrix:'单词矩阵',help:'使用帮助'},
+    flashCards:{play:'播放',shuffle:'重新排序',hideDef:'隐藏释义',showDef:'显示释义'}
   }
 }

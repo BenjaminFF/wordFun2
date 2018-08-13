@@ -50,10 +50,8 @@ module.exports = {
     create:'Create New Set!'
   },
   setLearn:{
-    back:'Back',
-    setList:'Set List',
-    write:'Write',
-    flashCards:'Flash Cards',
-    matrix:'Matrix'
-  }
+    sideBar:{back:'Back',setList:'Set List'
+      ,write:'Write',flashCards:'Flash Cards',matrix:'Matrix',help:'Instruction'},
+    flashCards:{play:'Play',shuffle:'Shuffle',hideDef:'HideDef',showDef:'ShowDef'}
+  },
 }
