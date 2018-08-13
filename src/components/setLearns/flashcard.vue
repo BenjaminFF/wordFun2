@@ -69,6 +69,7 @@
     justify-content: center;
     align-items: center;
     transition: 1s ease-in-out all;
+    user-select: none;
   }
   .inner-container{
     width: 75%;
@@ -85,6 +86,7 @@
     color: white;
     border-radius: 10px;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
+    user-select: contain;
   }
   .both .term{
     width: 100%;
@@ -126,7 +128,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all linear 1s;
+    transition: all ease-in .7s;
     border-radius: 10px;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
   }
@@ -140,7 +142,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: all linear 1s;
+    transition: all ease-in .7s;
     border-radius: 10px;
   }
 </style>

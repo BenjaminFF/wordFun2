@@ -51,6 +51,10 @@ module.exports = {
   setLearn:{
     sideBar:{back:'返回',setList:'单词集列表'
       ,write:'拼写',flashCards:'幻灯片',matrix:'单词矩阵',help:'使用帮助'},
-    flashCards:{play:'播放',shuffle:'重新排序',hideDef:'隐藏释义',showDef:'显示释义'}
+    flashCards:{play:'播放',shuffle:'重新排序',
+      hideDef:'隐藏释义',showDef:'显示释义',
+      keyBoard:['左滑','右滑',
+        '重新排序','播放幻灯片','隐藏/显示释义','翻转']
+    },
   }
 }

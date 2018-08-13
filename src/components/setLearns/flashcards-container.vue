@@ -1,6 +1,6 @@
 <template>
-  <div class="fc-container" tabindex="-1" @keyup.space="turnCurCard"
-       @keyup.left="slideLeft('left')" @keyup.right="slideRight('right')" @keydown="banTab($event)">
+  <div class="fc-container" tabindex="-1" @keyup.space="turnCurCard" @keyup.s="shuffle" @keyup.m="defOption"
+      @keyup.p="playCards"  @keyup.left="slideLeft('left')" @keyup.right="slideRight('right')" @keydown="banTab($event)">
     <div class="cards-container" v-if="!loading">
       <flashcard v-for="(card,index) in cards" :termText="card.term" :defText="card.definition"
          :style="{transform:'translate3d('+card.offset+'%'+',0,0)',
@@ -9,7 +9,7 @@
                  :hideDef="hideDef" :backGround="card.bg" ref="flashcards"></flashcard>
       <icon name="left" class="slideLeft" @click.native="slideLeft('left')" v-if="leftVisibility"></icon>
       <icon name="right" class="slideRight" @click.native="slideRight('right')" v-if="rightVisibility"></icon>
-      <icon name="keyboard" class="keyBoard"></icon>
+      <icon name="keyboard" class="keyBoard" @click.native="showKBInstruct=true"></icon>
     </div>
     <div class="fc-sidebar"  v-if="!loading">
       <div class="inner-container">
@@ -35,6 +35,24 @@
       </div>
       </div>
     <wait-dialog v-if="loading" :text="'F'" :color="'var(--seablue)'"></wait-dialog>
+    <div class="keyBoard-instruction" @click="showKBInstruct=false" v-if="showKBInstruct">
+      <div class="KBI-container">
+        <div class="KBI-item" v-for="item in KBIItems">
+          <p style="color: yellowgreen">{{item.text}}</p>
+          <svg width="1.8rem" height="1.8rem" viewBox="0 0 100 100">
+            <rect height="100" width="100" style="stroke-width: 10px;stroke: yellowgreen;fill: transparent"></rect>
+            <text x="50%" y="60%" class="svgText">{{item.svgText}}</text>
+          </svg>
+        </div>
+        <div class="KBI-item">
+          <p style="color: yellowgreen">{{$t('setLearn.flashCards.keyBoard[5]')}}</p>
+          <svg width="3.6rem" height="1.8rem" viewBox="0 0 200 100">
+            <rect x="0" y="0" height="100" width="200" style="stroke-width: 10px;stroke: yellowgreen;fill: transparent"></rect>
+            <text x="50%" y="60%" class="svgText">SPACE</text>
+          </svg>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -60,7 +78,9 @@
             play:"",
             playIcon:"",
             sideColors:[],
-            defOptionStyle:{}
+            defOptionStyle:{},
+            showKBInstruct:false,
+            KBIItems:[]
           }
       },
       created(){
@@ -82,6 +102,17 @@
             text:text
           }
           this.hideDef=false;
+          let KBSvgTexts=['←','→','S','P','M'];
+          let items=[];
+          for(let i=0;i<KBSvgTexts.length;i++){
+            let text=this.$t('setLearn.flashCards.keyBoard')[i];
+            let item={
+              svgText:KBSvgTexts[i],
+              text:text
+            }
+            items.push(item);
+          }
+          this.KBIItems=items;
       },
       methods:{
         banTab(e){
@@ -238,6 +269,7 @@
     display: flex;
     justify-content: space-evenly;
     outline: none;
+    user-select: none;
   }
   .cards-container{
     width: 65%;
@@ -291,6 +323,43 @@
     color: var(--awesome);
   }
 
+  .keyBoard-instruction{
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background-color: rgba(0, 0, 0, 0.31);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .KBI-container{
+    width: 10rem;
+    height: fit-content;
+    background-color: white;
+    padding: 0rem 0.5rem;
+    font-size: 1.2rem;
+  }
+
+  .KBI-item{
+    width: 100%;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid lightgrey;
+  }
+
+  .KBI-item .svgText{
+    fill: yellowgreen;
+    font-size: 50px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+
   .fc-sidebar{
     width: 20%;
     height: 100%;
@@ -298,6 +367,7 @@
     align-items: center;
     justify-content: center;
     background-color: transparent;
+    user-select: none;
   }
 
   .inner-container{
