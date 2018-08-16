@@ -155,7 +155,6 @@
                 cards.push(card);
               }
               this.cards=cards;
-              this.cards[0].visibility='visible';
               this.pgbSingleLen=this.pgbTotalLen/this.cards.length;
               this.dashOffset=this.pgbTotalLen-this.pgbSingleLen;
               this.pgbText=this.curIndex+1+'/'+this.cards.length;

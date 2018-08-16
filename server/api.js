@@ -277,9 +277,11 @@ router.get('/api/getCards',(req,res)=>{
     for(let i=0;i<result.length;i++){
       let term=result[i].term;
       let definition=result[i].definition;
+      let matrixed=result[i].matrixed;
       let card={
         term:term,
-        definition:definition
+        definition:definition,
+        matrixed:matrixed
       }
       cards.push(card);
     }

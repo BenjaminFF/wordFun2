@@ -6,7 +6,7 @@
 
 <script>
     import {mapMutations} from 'vuex'
-    import SetLearn from "./set-learn";
+    import SetLearn from "./setLearns/set-learn";
     export default {
         name: "latest-learn",
       components: {SetLearn},

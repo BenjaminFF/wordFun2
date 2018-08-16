@@ -21,7 +21,7 @@
 
 <script>
   import {mapMutations,mapState} from 'vuex'
-  import SetItem from "./set-item";
+  import SetItem from "./setLearns/set-item";
   import WaitDialog from "./wait-dialog";
   import DeleteDialog from "./delete-dialog";
     export default {

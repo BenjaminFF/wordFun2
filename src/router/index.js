@@ -6,8 +6,8 @@ import latestlearn from '@/components/latest-learn'
 import wordgame from '@/components/word-game'
 import wordsets from '@/components/word-sets'
 import helpcenter from '@/components/help-center'
-import createcontainer from '@/components/create-container'
-import setLearn from '@/components/set-learn';
+import createcontainer from '@/components/create-set/create-container'
+import setLearn from '@/components/setLearns/set-learn';
 
 Vue.use(Router)
 Vue.use(vueaixos,axios)

@@ -24,10 +24,10 @@
 </template>
 
 <script>
-    import writeContainer from "./setLearns/write-container";
-    import matrixContainer from "./setLearns/matrix-container";
-    import setListContainer from "./setLearns/setlist-container";
-    import flashcardsContainer from "./setLearns/flashcards-container";
+    import writeContainer from "./write-container";
+    import matrixContainer from "./matrixs-container";
+    import setListContainer from "./setlist-container";
+    import flashcardsContainer from "./flashcards-container";
     import {mapState} from 'vuex'
     export default {
         name: "set-learn",
@@ -82,12 +82,13 @@
     width: 17%;
     background-color: #9BC53D;
     box-shadow: 10px 0px 20px 1px rgba(155, 155, 155, 0.31);
-    z-index: 100;
+    z-index: 1000;
     min-width: max-content;
     color: white;
     transition: .5s all ease-in-out;
     position: relative;
     padding-right: 1rem;
+    user-select: none;
   }
   .return{
     user-select: none;

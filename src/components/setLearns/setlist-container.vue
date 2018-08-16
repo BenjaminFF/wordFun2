@@ -25,7 +25,7 @@
     import ListItem from "./list-item";
     import WaitDialog from "../wait-dialog";
     import {mapState,mapMutations} from 'vuex'
-    import SetItem from "../set-item";
+    import SetItem from "./set-item";
     export default {
         name: "setlist-container",
       data(){

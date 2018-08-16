@@ -29,13 +29,13 @@
 
 <script>
     import CreateInput from "./create-input";
-    import MyButton from "./my-button";
-    import FloatButton from "./float-button";
+    import MyButton from "../my-button";
+    import FloatButton from "../float-button";
     import CreateDialog from "./create-dialog";
-    import MyToast from "./my-toast";
+    import MyToast from "../my-toast";
     import $ from 'jquery'
     import { mapState,mapMutations,mapGetters } from 'vuex';
-    import WaitDialog from "./wait-dialog";
+    import WaitDialog from "../wait-dialog";
     export default {
         name: "create-set",                  //create-set有两个mode，editmode和createmode。用cookie来存储mode
         data(){
@@ -317,7 +317,8 @@
               term:encodeURIComponent(this.items[i].termText),
               definition:encodeURIComponent(this.items[i].defText),
               author:author,
-              createtime:createtime                  //这是它所属的单词集合的相同的createtime
+              createtime:createtime,                  //这是它所属的单词集合的相同的createtime
+              matrixed:false                         //用来记录单词矩阵中单个item的状态
             }
             cards.push(card);
           }

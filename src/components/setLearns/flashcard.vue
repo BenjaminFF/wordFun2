@@ -1,14 +1,16 @@
 <template>
     <div class="container">
       <div class="inner-container">
-        <div class="both" v-if="!hideDef" :style="{backgroundColor:backGround}">
-          <div class="term" v-html="termText"></div>
-          <div class="def" v-html="defText"></div>
-        </div>
-        <div class="single" v-if="hideDef">
-          <div class="term" v-html="termText" :style="{transform:'rotateX('+sTermDeg+'deg)',backgroundColor:backGround}"></div>
-          <div class="def" v-html="defText" :style="{transform:'rotateX('+sDefDeg+'deg)',backgroundColor:backGround}"></div>
-        </div>
+        <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+          <div class="both" v-if="!hideDef" :style="{backgroundColor:backGround}">
+            <div class="term" v-html="termText"></div>
+            <div class="def" v-html="defText"></div>
+          </div>
+        </transition>
+          <div class="single" v-if="hideDef">
+            <div class="term" v-html="termText" :style="{transform:'rotateX('+sTermDeg+'deg)',backgroundColor:backGround}"></div>
+            <div class="def" v-html="defText" :style="{transform:'rotateX('+sDefDeg+'deg)',backgroundColor:backGround}"></div>
+          </div>
       </div>
     </div>
 </template>
@@ -19,8 +21,7 @@
       data(){
           return{
             sTermDeg:"",
-            sDefDeg:"",
-            offsetDeg:0
+            sDefDeg:""
         }
       },
       created(){
@@ -52,9 +53,13 @@
       methods:{
           turnCard(){
             console.log('turnCard');
-            this.offsetDeg+=180;
-            this.sTermDeg=this.offsetDeg;
-            this.sDefDeg=this.offsetDeg+180;
+            if(this.sTermDeg==0){
+              this.sTermDeg=180;
+              this.sDefDeg=360;
+            }else {
+              this.sTermDeg=0;
+              this.sDefDeg=180;
+            }
           }
       }
     }
@@ -87,6 +92,8 @@
     border-radius: 10px;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     user-select: contain;
+    box-sizing: border-box;
+    padding: 1.5rem;
   }
   .both .term{
     width: 100%;
@@ -95,6 +102,8 @@
     justify-content: center;
     align-items: center;
     font-size: 1.8rem;
+    word-break: break-word;
+    border-bottom: 1px solid white;
   }
   .both .def{
     width: 100%;
@@ -102,6 +111,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
+    word-break: break-word;
   }
 
   .single{
@@ -131,6 +142,8 @@
     transition: all ease-in .7s;
     border-radius: 10px;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
+    box-sizing: border-box;
+    padding: 2rem;
   }
 
   .single .def{
@@ -144,5 +157,7 @@
     align-items: center;
     transition: all ease-in .7s;
     border-radius: 10px;
+    box-sizing: border-box;
+    padding: 2rem;
   }
 </style>

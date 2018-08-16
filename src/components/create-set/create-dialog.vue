@@ -21,7 +21,7 @@
 </template>
 
 <script>
-    import AniInput from "./ani-input";
+    import AniInput from "../ani-input";
     import { mapState,mapMutations } from 'vuex'
     export default {
         name: "create-dialog",
