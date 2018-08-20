@@ -248,6 +248,8 @@
           var vm=this;
           for(let i=0;i<this.items.length;i++){
             let item=this.items[i];
+            item.termText=item.termText.trim();
+            item.defText=item.defText.trim();
             if(item.termText==""){
               item.termBorder="1px solid red";
               $('.term')[i].focus();
@@ -313,7 +315,9 @@
           }
           let folder="";
           for(let i=0;i<this.items.length;i++){
+            let vid=this.items[i].timestamp;
             let card={
+              vid:vid,
               term:encodeURIComponent(this.items[i].termText),
               definition:encodeURIComponent(this.items[i].defText),
               author:author,

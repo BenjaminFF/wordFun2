@@ -279,6 +279,7 @@ router.get('/api/getCards',(req,res)=>{
       let definition=result[i].definition;
       let matrixed=result[i].matrixed;
       let card={
+        vid:result[i].vid,
         term:term,
         definition:definition,
         matrixed:matrixed
@@ -380,6 +381,31 @@ router.post('/api/updatewordset',(req,res)=>{           //先将vocabulary里面
         })
       });
     });
+  });
+});
+
+router.post('/api/updatematrix',(req,res)=>{
+  let vid=req.body.params.vid;
+
+  pool.query('update vocabulary set matrixed=1 where vid=?',[vid],(err)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    res.send('success');
+  });
+});
+
+router.post('/api/updatematrixs',(req,res)=>{
+  let createtime=req.body.params.createtime;
+
+  let euname=req.body.params.euname;
+  pool.query('update vocabulary set matrixed=0 where createtime=? and author=?',[createtime,euname],(err)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    res.send('success');
   });
 });
 

@@ -16,6 +16,7 @@
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut ">
         <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
       </transition>
+      <icon name="idea" class="idea-icon" @click.native="autoFill"></icon>
     </div>
   </transition>
 </template>
@@ -50,8 +51,7 @@
         }
       },
       created(){
-          this.bg=this.randomColor(0.8);
-          this.showmaxdef=false;
+          this.bg=this.randomColor(0.7);
           this.initCells();
       },
       methods:{
@@ -61,14 +61,14 @@
             for(let i=letters.length;i<16;i++){
               let randomLetter=String.fromCharCode(parseInt(Math.random()*25)+97);   //A-Z是65~90 a-z是96~122,单词定义不区分大小写
               letters.push(randomLetter);
-              this.size='4rem';
             }
+            this.size='4rem';
           }else if(letters.length<25){
             for(let i=letters.length;i<25;i++){
               let randomLetter=String.fromCharCode(parseInt(Math.random()*25)+97);   //A-Z是65~90 a-z是96~122,单词定义不区分大小写
               letters[i]=randomLetter;
-              this.size='3.5rem';
             }
+            this.size='3.5rem';
           }
           letters=_.shuffle(letters);
           let cells=[];
@@ -102,7 +102,21 @@
             this.$emit('dismiss');
           }
         },
-        test(){
+        autoFill(){
+          if(this.curIndex==this.term.length){
+            this.$emit('dismiss');
+            return;
+          }
+          let curLetter=this.term[this.curIndex].toLowerCase();
+          for(let i=0;i<this.cells.length;i++){
+            if(this.cells[i].letter==curLetter&&!this.cells[i].isActive){
+              let cell=this.cells[i];
+              cell.isActive=true;
+              cell.color='white';
+              this.curIndex++;
+              break;
+            }
+          }
           console.log('gg');
         }
       }
@@ -134,7 +148,8 @@
     align-items: center;
     text-align: center;
     cursor: pointer;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    user-select: none;
   }
 
   .matrix-container{
@@ -193,5 +208,19 @@
     font-size: 2rem;
     color: yellowgreen;
     user-select: none;
+  }
+
+  .idea-icon{
+    width: 2rem;
+    height: 2rem;
+    color:white;
+    position: absolute;
+    right: 1.5rem;
+    bottom: 1.5rem;
+  }
+
+  .idea-icon:hover{
+    cursor: pointer;
+    color: yellow;
   }
 </style>

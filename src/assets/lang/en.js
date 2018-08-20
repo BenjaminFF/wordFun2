@@ -55,7 +55,8 @@ module.exports = {
     flashCards:{play:'Play',shuffle:'Shuffle',
       hideDef:'HideDef',showDef:'ShowDef',
       keyBoard:['Previous','Next',
-        'Shuffle','Play','hide/showDef','Flip']
-    }
+        'Shuffle','Play','hide/showDef','Flip'],
+    },
+    matrix:{endHeader:'Congratulations!<br>You learned all of them!',startOver:'RELEARN',shuffle:'shuffle'}
   },
 }
