@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-    <wait-dialog v-if="loading" :text="'F'" :color="'var(--seablue)'"></wait-dialog>
+    <wait-dialog v-if="loading" :text="'M'" :color="'var(--seablue)'"></wait-dialog>
   </div>
 </template>
 
@@ -227,7 +227,7 @@
 
   .pgb-container{
     width: 100%;
-    height: 60%;
+    height: 40%;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
     user-select: none;

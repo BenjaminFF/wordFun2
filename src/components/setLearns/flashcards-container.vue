@@ -35,24 +35,26 @@
       </div>
       </div>
     <wait-dialog v-if="loading" :text="'F'" :color="'var(--seablue)'"></wait-dialog>
-    <div class="keyBoard-instruction" @click="showKBInstruct=false" v-if="showKBInstruct">
-      <div class="KBI-container">
-        <div class="KBI-item" v-for="item in KBIItems">
-          <p style="color: yellowgreen">{{item.text}}</p>
-          <svg width="1.8rem" height="1.8rem" viewBox="0 0 100 100">
-            <rect height="100" width="100" style="stroke-width: 10px;stroke: yellowgreen;fill: transparent"></rect>
-            <text x="50%" y="60%" class="svgText">{{item.svgText}}</text>
-          </svg>
-        </div>
-        <div class="KBI-item">
-          <p style="color: yellowgreen">{{$t('setLearn.flashCards.keyBoard[5]')}}</p>
-          <svg width="3.6rem" height="1.8rem" viewBox="0 0 200 100">
-            <rect x="0" y="0" height="100" width="200" style="stroke-width: 10px;stroke: yellowgreen;fill: transparent"></rect>
-            <text x="50%" y="60%" class="svgText">SPACE</text>
-          </svg>
+    <transition leave-active-class="animated fadeOut" enter-active-class="animated fadeIn">
+      <div class="keyBoard-instruction" @click="showKBInstruct=false" v-if="showKBInstruct">
+        <div class="KBI-container">
+          <div class="KBI-item" v-for="item in KBIItems">
+            <p style="color: yellowgreen">{{item.text}}</p>
+            <svg width="1.8rem" height="1.8rem" viewBox="0 0 100 100">
+              <rect height="100" width="100" style="stroke-width: 10px;stroke: yellowgreen;fill: transparent"></rect>
+              <text x="50%" y="60%" class="svgText">{{item.svgText}}</text>
+            </svg>
+          </div>
+          <div class="KBI-item">
+            <p style="color: yellowgreen">{{$t('setLearn.flashCards.keyBoard[5]')}}</p>
+            <svg width="3.6rem" height="1.8rem" viewBox="0 0 200 100">
+              <rect x="0" y="0" height="100" width="200" style="stroke-width: 10px;stroke: yellowgreen;fill: transparent"></rect>
+              <text x="50%" y="60%" class="svgText">SPACE</text>
+            </svg>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 

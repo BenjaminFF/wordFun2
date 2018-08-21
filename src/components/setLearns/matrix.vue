@@ -51,7 +51,7 @@
         }
       },
       created(){
-          this.bg=this.randomColor(0.7);
+          this.bg=this.randomColor(0.8);
           this.initCells();
       },
       methods:{
@@ -188,7 +188,7 @@
     height: 1.8rem;
   }
   .cellActive{
-    background-color: #0FA3B1;
+    background-color: var(--seablue);
     color: white;
   }
 
@@ -208,6 +208,7 @@
     font-size: 2rem;
     color: yellowgreen;
     user-select: none;
+    z-index: 100;
   }
 
   .idea-icon{

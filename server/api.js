@@ -278,11 +278,13 @@ router.get('/api/getCards',(req,res)=>{
       let term=result[i].term;
       let definition=result[i].definition;
       let matrixed=result[i].matrixed;
+      let writed=result[i].writed;
       let card={
         vid:result[i].vid,
         term:term,
         definition:definition,
-        matrixed:matrixed
+        matrixed:matrixed,
+        writed:writed
       }
       cards.push(card);
     }

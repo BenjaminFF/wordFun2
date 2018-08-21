@@ -57,6 +57,7 @@ module.exports = {
       keyBoard:['Previous','Next',
         'Shuffle','Play','hide/showDef','Flip'],
     },
-    matrix:{endHeader:'Congratulations!<br>You learned all of them!',startOver:'RELEARN',shuffle:'shuffle'}
+    matrix:{endHeader:'Congratulations!<br>You learned all of them!',startOver:'RELEARN',shuffle:'shuffle'},
+    write:{typeAnswer:'TYPE YOUR ANSWER',round:'ROUND',progress:'PROGRESS'}
   },
 }

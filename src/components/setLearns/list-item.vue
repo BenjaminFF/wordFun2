@@ -87,6 +87,7 @@
     justify-content: center;
     align-items: center;
     padding: 0rem 1.5rem;
+    word-break: break-word;
   }
   .defText{
     padding: 0rem 1.5rem;
@@ -95,6 +96,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    word-break: break-word;
   }
   .voice{
     width: 1.2rem;

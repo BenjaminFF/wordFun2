@@ -322,7 +322,8 @@
               definition:encodeURIComponent(this.items[i].defText),
               author:author,
               createtime:createtime,                  //这是它所属的单词集合的相同的createtime
-              matrixed:false                         //用来记录单词矩阵中单个item的状态
+              matrixed:false,                        //用来记录单词矩阵中单个item的状态
+              writed:false                      //用来记录拼写中单词的状态
             }
             cards.push(card);
           }
