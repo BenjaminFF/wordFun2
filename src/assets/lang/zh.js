@@ -57,6 +57,6 @@ module.exports = {
         '重新排序','播放幻灯片','隐藏/显示释义','翻转'],
     },
     matrix:{endHeader:'恭喜！你完成了所有内容!',startOver:'重新学习',shuffle:'打 乱'},
-    write:{typeAnswer:'输入答案',round:'单轮',progress:'进度'}
+    write:{typeAnswer:'输入答案',round:'单轮',progress:'进度',ya:'你的答案：',ra:'正确答案：'}
   }
 }

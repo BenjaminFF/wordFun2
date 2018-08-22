@@ -411,4 +411,29 @@ router.post('/api/updatematrixs',(req,res)=>{
   });
 });
 
+router.post('/api/updateWrite',(req,res)=>{
+  let vid=req.body.params.vid;
+
+  pool.query('update vocabulary set writed=1 where vid=?',[vid],(err)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    res.send('success');
+  });
+});
+
+router.post('/api/updateWrites',(req,res)=>{
+  let createtime=req.body.params.createtime;
+
+  let euname=req.body.params.euname;
+  pool.query('update vocabulary set writed=0 where createtime=? and author=?',[createtime,euname],(err)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    res.send('success');
+  });
+});
+
 module.exports = router;

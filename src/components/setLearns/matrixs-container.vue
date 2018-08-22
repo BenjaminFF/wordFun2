@@ -98,8 +98,10 @@
                 let definition = decodeURIComponent(response.data[i].definition).replace(/\n/g, "<br>");
                 let vid=response.data[i].vid;
                 let maxdef = definition;
-                if (this.checkLength(definition) >= 100) {
-                  definition = definition.substring(0, 180) + '...';
+                if (this.checkLength(definition) >= 124) {
+                  let chineseLen=this.checkChinese(definition);
+                  definition = definition.substring(0, 124-Math.round(chineseLen/2)) + '...';
+                  console.log(definition.length);
                 }
                 let matrix = {
                   vid:vid,

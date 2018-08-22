@@ -141,7 +141,7 @@
     height: 30%;
     font-size: 1.5rem;
     color: white;
-    word-wrap: break-word;
+    word-break: break-word;
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -209,6 +209,7 @@
     color: yellowgreen;
     user-select: none;
     z-index: 100;
+    word-break: break-word;
   }
 
   .idea-icon{

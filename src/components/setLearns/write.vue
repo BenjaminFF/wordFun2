@@ -1,18 +1,25 @@
 <template>
     <div class="container" :style="{backgroundColor:bg}">
       <div class="definition" v-html="definition" @click="showMaxDef=true"></div>
-      <div class="wrong-hint"></div>
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+        <div class="wrong-hint" style="color:red" v-if="showWrongHint">
+          <div style="width: 100%;height: 50%;word-break: break-all">{{$t('setLearn.write.ya')+limitLength(twInput.value,50,true)}}</div>
+          <div style="width: 100%;height: 50%">{{$t('setLearn.write.ra')+term}}</div>
+        </div>
+      </transition>
       <div class="term-write">
         <div class="tw-input-container">
-          <input class="tw-input" @focus="twInputFocus"/>
+          <input class="tw-input" @focus="twInputFocus" @keyup.enter="checkAnswer"
+                 v-model="twInput.value" v-focus/>
           <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
-            <icon name="enter" class="tw-input-icon" v-if="twInput.isIconVisible"></icon>
+            <icon name="enter" class="tw-input-icon" @click.native="checkAnswer"
+                  v-if="twInput.isIconVisible"></icon>
           </transition>
           <div class="tw-ani-bb" :style="{width:twInput.twBB}"></div>
         </div>
         <div class="term-write-hint">{{$t('setLearn.write.typeAnswer')}}</div>
       </div>
-      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut ">
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
         <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
       </transition>
     </div>
@@ -26,22 +33,39 @@
             twInput:{
               twBB:0,
               isIconVisible:false,
+              value:""
             },
             bg:"",
-            showMaxDef:false
+            showMaxDef:false,
+            showWrongHint:false
           }
       },
       created(){
           this.bg=this.randomColor(0.1);
-          this.$nextTick(()=>{
-            let input=document.querySelector('.tw-input');
-            input.focus();
-          });
+      },
+      directives: {
+        focus: {
+          // directive definition
+          inserted: function (el) {
+            el.focus()
+          }
+        }
       },
       methods:{
           twInputFocus(){
             this.twInput.twBB='100%';
             this.twInput.isIconVisible=true;
+          },
+          checkAnswer(){
+            if(this.twInput.value==this.term){
+              this.$emit('dismiss');
+            }else if(!this.showWrongHint) {
+              this.showWrongHint = true;
+              setTimeout(()=>{
+                this.showWrongHint = false;
+              },3000);
+            }
+            console.log('gg');
           }
       },
       props:{
@@ -65,7 +89,7 @@
   .container{
     width: 100%;
     height: 100%;
-    padding: 2rem;
+    padding: 3rem 2rem;
     box-sizing: border-box;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     display: flex;
@@ -75,20 +99,20 @@
   }
   .definition{
     width: 100%;
-    height: 30%;
-    word-break: break-word;
+    height: 50%;
+    word-break: break-all;
     font-size: 1.5rem;
     display: flex;
-    align-items: center;
     cursor: pointer;
+    transition: 1s all ease-in-out;
   }
   .wrong-hint{
     width: 100%;
-    height: 40%;
+    height: 30%;
   }
   .term-write{
     width: 100%;
-    height: 30%;
+    height: 20%;
     display: flex;
     justify-content: center;
     align-items: center;
