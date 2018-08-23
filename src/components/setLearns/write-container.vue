@@ -1,13 +1,19 @@
 <template>
-  <div class="container">
+  <div class="write-out-container" tabindex="-1" @keyup="startNextRound">
      <div class="content-container">
        <transition-group enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
-         <write v-for="(card,index) in roundcards" v-on:dismiss="dismiss(index)"
-                :maxdef="card.maxdef" class="write-container" :key="index"
-                :definition="card.definition" :term="card.term" v-if="card.visibility"></write>
+         <write v-for="(card,index) in roundcards" class="write-container" v-if="card.visibility"
+                :key="index" v-on:dismiss="dismiss($event,index)"
+                :definition="card.definition" :term="card.term" :maxdef="card.maxdef"></write>
        </transition-group>
-       <div class="roundEnd" v-if="roundEnd.visibility"></div>
-       <div class="learnEnd" v-if="learnEnd.visibility"></div>
+       <div class="roundEnd" v-if="roundEnd.visibility" :style="{backgroundColor:sidebarBG}">
+       <div class="roundEnd-header">很赞，再接再厉！</div>
+       <div class="roundEnd-button">{{$t('setLearn.write.continue')}}</div>
+     </div>
+       <div class="learnEnd" v-if="learnEnd.visibility" :style="{backgroundColor:learnEnd.bg}">
+         <div class="learnEnd-header">{{$t('setLearn.write.learnEnd')}}</div>
+         <div class="learnEnd-button">{{$t('setLearn.write.reLearn')}}</div>
+       </div>
      </div>
     <div class="sidebar">
       <div class="pgb-container" :style="{backgroundColor:sidebarBG}">
@@ -65,11 +71,13 @@
               singlen:'',
               percentage:'',
               curIndex:'',
-              cardsLen:''
+              cardsLen:'',
+              roundLen:''
             },
             writedLen:0,
             roundEnd:{
-              visibility:false
+              visibility:false,
+              bg:''
             },
             learnEnd:{
               visibility:false
@@ -78,6 +86,7 @@
       },
       created(){
           this.sidebarBG=this.randomColor(0.1);
+          this.learnEnd.bg=this.randomColor(0.2);
           this.$nextTick(()=>{
             let pgEL=document.querySelector('.progress-pgb-bg');
             this.roundData.totalLen=pgEL.getTotalLength();
@@ -87,6 +96,8 @@
       },
       methods:{
         fetchData() {
+          this.roundcards=[];
+          this.cards=[];
           this.loading = true;
           let euname = this.getCookie("euname");
           let curSet = JSON.parse(this.getCookie('curSet'));
@@ -132,28 +143,65 @@
                 }
                 cards.push(card);
               }
-              this.cards=cards;
+              this.cards=cards;         //除去了writed的
 
-              let totalSetLen=this.cards.length+this.writedLen;
+              let totalSetLen=response.data.length;
 
               if(totalSetLen>=8){
+                this.pgData.roundLen=parseInt(totalSetLen/7);
+                if(parseInt(totalSetLen/7)<totalSetLen/7){
+                  this.pgData.roundLen+=1;
+                }
+                this.pgData.curIndex=parseInt(this.writedLen/7);
+
+                if(this.cards.length>7){
+                  for(let i=0;i<7;i++){
+                    this.roundcards.push(this.cards.shift());
+                  }
+                  this.roundData.curIndex=0;
+                  this.roundData.cardsLen=7;
+                }else if(this.cards.length!=0){
+                  for(let i=0;i<this.cards.length;i++){
+                    this.roundcards.push(this.cards.shift());
+                  }
+                  this.roundData.curIndex=0;
+                  this.roundData.cardsLen=this.cards.length;
+                }else {            //如果this.cards.length==0,表示已经完成所有内容
+                  if(parseInt(this.writedLen/7)<this.writedLen/7){
+                    this.pgData.curIndex+=1;
+                  }
+                  this.roundData.cardsLen=totalSetLen%7;
+                  this.roundData.curIndex=totalSetLen%7;
+                }
+                this.roundData.percentage=this.roundData.curIndex+'/'+this.roundData.cardsLen;
+                this.roundData.singlen=this.roundData.totalLen/this.roundData.cardsLen;
+                this.roundData.offset=this.roundData.totalLen;
+
+                this.pgData.percentage=this.pgData.curIndex+'/'+this.pgData.roundLen;
 
               }else {
-                this.pgData.singlen=this.pgData.totalLen;
-                this.pgData.offset=this.pgData.totalLen;
-                this.pgData.percentage='0/1';
-                this.pgData.curIndex=0;
-                this.pgData.cardsLen=1;
-
                 this.roundcards=this.cards;
+                this.cards=[];
                 this.roundData.singlen=this.roundData.totalLen/totalSetLen;
                 this.roundData.offset=this.roundData.totalLen-this.writedLen*this.roundData.singlen;
-                console.log(this.roundData.offset);
+
                 this.roundData.curIndex=this.writedLen;
                 this.roundData.percentage=this.roundData.curIndex+'/'+totalSetLen;
-                this.roundData.cardsLen=this.roundcards.length;
+                this.roundData.cardsLen=totalSetLen;
+
+                this.pgData.singlen=this.pgData.totalLen;
+                this.pgData.offset=this.pgData.totalLen;
+                if(this.roundData.curIndex==totalSetLen){         //如果当前卡片已经没有了，就体现结束
+                  this.pgData.percentage='1/1';
+                  this.learnEnd.visibility=true;
+                  this.pgData.offset-=this.pgData.singlen;
+                }else {
+                  this.pgData.percentage='0/1';
+                  this.pgData.curIndex=0;
+                  this.pgData.cardsLen=1;
+                  this.roundcards[0].visibility=true;
+                }
               }
-              this.roundcards[0].visibility=true;
               setTimeout(() => {
                 this.loading = false;
               }, 500);
@@ -162,11 +210,25 @@
               console.log(error);
             });
         },
-        dismiss(index){
+        dismiss(isAnswerWrong,index){
           this.roundcards[index].visibility=false;
           let vid=this.roundcards[index].vid;
 
-          this.updateWrite(vid,index);
+          if(!isAnswerWrong){
+            this.updateWrite(vid,index);
+          }else {
+            let isContain=false;
+            for(let i=0;i<this.cards.length;i++){
+              if(this.cards[i]===this.roundcards[index]){
+                isContain=true;
+                break;
+              }
+            }
+            if(!isContain){
+              this.cards.push(this.roundcards[index]);       //如果回答错误,就把这个卡片push到总卡片中,并且不更新它的writed
+            }
+            this.showNext(index+1);
+          }
         },
         updateWrite(vid,index){
           this.axios.post('/api/updateWrite', {
@@ -181,13 +243,41 @@
           });
         },
         showNext(nextIndex){
-          if(nextIndex!=this.roundData.cardsLen){
+          if(nextIndex!=this.roundcards.length){      //这里是判断roundcards是否为空，注意，roundcards是除去了writed card的
             setTimeout(() => {
               this.roundcards[nextIndex].visibility=true;
             }, 500);
-            this.roundData.curIndex++;
-            this.roundData.offset-=this.roundData.singlen;
-            this.roundData.percentage=this.roundData.curIndex+'/'+this.roundData.cardsLen;
+          }else {
+            if(this.cards.length==0){        //总卡片里面没有卡片，就代表整个结束
+              this.learnEnd.visibility=true;
+              this.pgData.offset-=this.pgData.singlen;
+              this.pgData.curIndex++;
+              this.pgData.percentage=this.pgData.curIndex+'/'+this.pgData.cardsLen;
+            }else {                          //有卡片，就将剩余卡片推给下一轮
+              this.pgData.curIndex=0;
+              this.roundEnd.visibility=true;
+              this.roundcards=[];
+              if(this.cards.length<8){
+                this.roundcards=this.cards;
+                this.cards=[];
+              }else {
+                for(let i=0;i<7;i++){
+                  this.roundcards.push(this.cards.shift());
+                }
+              }
+
+              let el=document.getElementsByClassName('write-out-container');
+              el[0].focus();
+            }
+          }
+          this.roundData.curIndex++;
+          this.roundData.offset-=this.roundData.singlen;
+          this.roundData.percentage=this.roundData.curIndex+'/'+this.roundData.cardsLen;
+        },
+        startNextRound(){
+          if(this.roundEnd.visibility){
+            this.roundEnd.visibility=false;
+            this.roundcards[0].visibility=true;
           }
         }
       },
@@ -196,7 +286,7 @@
 </script>
 
 <style scoped>
-  .container{
+  .write-out-container{
     width: 100%;
     height: 100%;
     display: flex;
@@ -229,7 +319,35 @@
     top: 0;
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
-    background-color: yellowgreen;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--seablue);
+    box-sizing: border-box;
+  }
+
+  .roundEnd-header{
+    width: 100%;
+    height: fit-content;
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .roundEnd-button{
+    width: fit-content;
+    height: fit-content;
+    font-size: 1.5rem;
+    padding: 1rem 1rem;
+    background-color: var(--seablue);
+    color: white;
+    border-radius: 10px;
+    margin-top: 50%;
+  }
+
+  .roundEnd-button:hover{
+    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
+    cursor: pointer;
   }
 
   .learnEnd{
@@ -241,6 +359,35 @@
     box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
     background-color: yellowgreen;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--seablue);
+    box-sizing: border-box;
+  }
+
+  .learnEnd-header{
+    width: 100%;
+    height: fit-content;
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .learnEnd-button{
+    width: fit-content;
+    height: fit-content;
+    font-size: 1.5rem;
+    padding: 1rem 1rem;
+    background-color: var(--seablue);
+    color: white;
+    border-radius: 10px;
+    margin-top: 50%;
+  }
+
+  .learnEnd-button:hover{
+    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
+    cursor: pointer;
   }
 
   .sidebar{

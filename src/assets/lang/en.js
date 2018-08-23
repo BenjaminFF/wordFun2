@@ -58,6 +58,8 @@ module.exports = {
         'Shuffle','Play','hide/showDef','Flip'],
     },
     matrix:{endHeader:'Congratulations!<br>You learned all of them!',startOver:'RELEARN',shuffle:'shuffle'},
-    write:{typeAnswer:'TYPE YOUR ANSWER',round:'ROUND',progress:'PROGRESS',ya:'YOUR ANSWER: ',ra:'RIGHT ANSWER: '}
+    write:{typeAnswer:'TYPE YOUR ANSWER',round:'ROUND',progress:'PROGRESS'
+      ,ya:'YOUR ANSWER: ',ra:'RIGHT ANSWER: ',noidea:'don\'t know',
+      continue:'Press Any Key To Continue!',learnEnd:'Congratulation!You finished them All!',reLearn:'START OVER'}
   },
 }

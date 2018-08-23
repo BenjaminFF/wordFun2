@@ -22,6 +22,10 @@
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
         <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
       </transition>
+      <div class="noidea" @click="showAnswer">
+        <icon name="noidea" class="noidea-icon"></icon>
+        {{$t('setLearn.write.noidea')}}
+      </div>
     </div>
 </template>
 
@@ -33,11 +37,12 @@
             twInput:{
               twBB:0,
               isIconVisible:false,
-              value:""
+              value:"",
             },
             bg:"",
             showMaxDef:false,
-            showWrongHint:false
+            showWrongHint:false,
+            isAnswerWrong:false
           }
       },
       created(){
@@ -58,14 +63,28 @@
           },
           checkAnswer(){
             if(this.twInput.value==this.term){
-              this.$emit('dismiss');
+              this.$emit('dismiss',this.isAnswerWrong);
             }else if(!this.showWrongHint) {
+              if(!this.isAnswerWrong){
+                this.isAnswerWrong=true;
+              }
               this.showWrongHint = true;
               setTimeout(()=>{
                 this.showWrongHint = false;
               },3000);
             }
             console.log('gg');
+          },
+          showAnswer() {
+            if(!this.isAnswerWrong){
+              this.isAnswerWrong=true;
+            }
+            if (!this.showWrongHint) {
+              this.showWrongHint = true;
+              setTimeout(() => {
+                this.showWrongHint = false;
+              }, 3000);
+            }
           }
       },
       props:{
@@ -184,5 +203,24 @@
     user-select: none;
     z-index: 100;
     word-break: break-word;
+  }
+
+  .noidea{
+    position: absolute;
+    right: 2rem;
+    bottom: 2rem;
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+  .noidea-icon{
+    right: 2rem;
+    bottom: 3rem;
+    width: 1rem;
+    height: 1.2rem;
+    cursor: pointer;
   }
 </style>
