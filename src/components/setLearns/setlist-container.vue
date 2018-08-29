@@ -1,23 +1,23 @@
 <template>
-  <div class="container">
-    <div class="header" :style="{backgroundColor:headerBackground}">
+  <div class="container" :style="{color:theme.itemTextColor}">
+    <div class="header" :style="{backgroundColor:theme.itemBG}">
       <div class="title">{{title}}</div>
       <div class="subtitle">{{subtitle}}</div>
     </div>
     <div class="listItems-container">
       <div class="listItems-inner-container">
         <transition-group enter-active-class="animated fadeIn">
-          <list-item v-for="(card,index) in cards" class="list-item" :key="index" v-if="!loading"
+          <list-item v-for="(card,index) in cards" class="list-item" :key="index" v-if="!loading" :style="{backgroundColor:theme.itemBG}"
                      :card-id="index+1" :termText="card.term" :defText="card.definition"></list-item>
         </transition-group>
       </div>
     </div>
     <div class="tool-container">
-      <icon name="tool" class="tool" @click.native="showTools" :style="{backgroundColor:toolStyle.backGround}"></icon>
-      <icon name="edit" class="tool-edit" @click.native="editToCreateSet" :style="{top:toolStyle.editTop,backgroundColor:toolStyle.backGround}"></icon>
-      <icon name="share" class="tool-share" :style="{top:toolStyle.shareTop,backgroundColor:toolStyle.backGround}"></icon>
+      <icon name="tool" class="tool" @click.native="showTools" :style="{backgroundColor:theme.itemBG}"></icon>
+      <icon name="edit" class="tool-edit" @click.native="editToCreateSet" :style="{top:toolStyle.editTop,backgroundColor:theme.itemBG}"></icon>
+      <icon name="share" class="tool-share" :style="{top:toolStyle.shareTop,backgroundColor:theme.itemBG}"></icon>
     </div>
-    <wait-dialog v-if="loading" :text="'G'" :color="'var(--seablue)'"></wait-dialog>
+    <wait-dialog v-if="loading" :text="'S'" :color="dialog.color" :style="{backgroundColor:dialog.bg}"></wait-dialog>
   </div>
 </template>
 
@@ -26,6 +26,7 @@
     import WaitDialog from "../wait-dialog";
     import {mapState,mapMutations} from 'vuex'
     import SetItem from "../set-item";
+    import theme from '../../assets/theme/TsetLearn';
     export default {
         name: "setlist-container",
       data(){
@@ -40,12 +41,17 @@
             },
             title:"",
             subtitle:"",
-            headerBackground:""
+            theme:{},
+            dialog:{
+              bg:'',
+              color:''
+            }
           }
       },
       created(){
-          this.headerBackground=this.randomColor(1);
-          this.toolStyle.backGround=this.randomColor(1);
+          this.theme=theme.default.setListT;
+          this.dialog.bg=theme.default.mainContainer.dialogBG;
+          this.dialog.color=theme.dark.mainContainer.dialogColor;
           this.fetchData();
       },
       methods:{
@@ -120,15 +126,12 @@
   .header{
     width: 70%;
     height: 10%;
-    margin-top: 1rem;
-    border-radius: 1rem;
-    background-color: rgba(235, 235, 235, 0.8);
-    box-shadow: 0px 10px 10px 1px rgb(211, 211, 211);
     display: flex;
     align-items: center;
     flex-direction: column;
-    color: white;
     user-select: text;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
   }
   .header .title{
     font-size: 2rem;
@@ -174,10 +177,8 @@
     width: 1.8rem;
     height: 1.8rem;
     background-color: yellowgreen;
-    color: white;
     border-radius: 2rem;
     cursor: pointer;
-    box-shadow: 0px 0px 20px 1px rgb(200, 200, 200);
     z-index: 20;
   }
   .tool-edit{
@@ -186,11 +187,9 @@
     width: 1.2rem;
     height: 1.2rem;
     top: 0;
-    color: white;
     background-color: yellowgreen;
     border-radius: 2rem;
     cursor: pointer;
-    box-shadow: 0px 0px 20px 1px rgb(200, 200, 200);
     transition: 0.5s all ease-in-out;
   }
   .tool-share{
@@ -199,11 +198,9 @@
     width: 1.2rem;
     height: 1.2rem;
     top: 0;
-    color: white;
     background-color: yellowgreen;
     border-radius: 2rem;
     cursor: pointer;
-    box-shadow: 0px 0px 20px 1px rgb(200, 200, 200);
     transition: 0.5s all ease-in-out;
   }
 </style>

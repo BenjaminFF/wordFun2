@@ -1,5 +1,5 @@
 <template>
-    <div class="list-item" :style="{backgroundColor:backgroundColor}">
+    <div class="list-item">
       <div class="cardId">{{cardId}}</div>
       <div class="termText" v-html="termText" @click="sayTerm"></div>
       <div class="defText" v-html="defText" @click="sayDef"></div>
@@ -14,11 +14,10 @@
       components: {},
       data(){
           return{
-            backgroundColor:""
+
           }
       },
       created(){
-        this.backgroundColor=this.randomColor(0.8);
       },
       methods:{
         sayTerm(){
@@ -67,13 +66,11 @@
      width: 80%;
      height: fit-content;
      position: relative;
-     color: white;
      background-color: yellowgreen;
      align-items: center;
      padding: 1rem 2rem;
     box-sizing: border-box;
-    border-radius: 2rem;
-    box-shadow: 3px 3px 5px 1px rgb(211, 211, 211);
+    border-radius: 0.5rem;
    }
   .cardId{
     position: absolute;

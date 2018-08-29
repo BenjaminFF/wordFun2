@@ -3,8 +3,8 @@
     <div class="matrixs-container" v-if="!loading">
       <matrix :term="m.term" v-on:dismiss="dismiss(index)"  v-for="(m,index) in matrixs"
                      :key="index" v-if="m.showMatrix" :maxdef="m.maxdef"
-                     :definition="m.definition" class="matrix">
-    </matrix>
+                     :definition="m.definition" class="matrix" :cellStyle="theme.cellStyle"
+              :style="{backgroundColor:theme.matrixBG}" :textColor="theme.textColor"></matrix>
       <div class="learn-end" v-if="isLearnEnd" :style="{backgroundColor:endBG}">
         <div class="header" v-html="$t('setLearn.matrix.endHeader')">
         </div>
@@ -15,18 +15,18 @@
     </div>
     <div class="sidebar"  v-if="!loading">
       <div class="sidebar-inner-container">
-        <div class="pgb-container" :style="{backgroundColor:sidebarBG}">
+        <div class="pgb-container" :style="{backgroundColor:theme.pgbBG}">
           <svg class="progressbar" viewBox="0 0 1500 1500">
-            <circle r="500" cx="750" cy="750" class="bg-circle" ></circle>
-            <circle r="500" cx="750" cy="750" class="pgb-circle" :style="{'stroke-dashoffset':dashOffset}"></circle>
-            <text x="750" y="750" class="pgbText">{{pgbText}}</text>
+            <circle r="500" cx="750" cy="750" class="bg-circle" :style="{stroke:theme.circleBG}"></circle>
+            <path class="pgb-circle" d="M750 250A500 500 0 1 1 750 1250 A500 500 0 1 1 750 250" :style="{'stroke-dashoffset':dashOffset,stroke:theme.circleStroke}"></path>
+            <text x="750" y="750" class="pgbText" :style="{fill:theme.circleStroke}">{{pgbText}}</text>
           </svg>
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:sidebarBG}" @click="relearn(false)">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="relearn(false)">
           <icon name="shuffle" class="fc-play-icon"></icon>
           {{$t('setLearn.matrix.startOver')}}
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:sidebarBG}" @click="shuffle">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
           <icon name="shuffle" class="fc-play-icon"></icon>
           {{$t('setLearn.matrix.shuffle')}}
         </div>
@@ -39,7 +39,8 @@
 <script>
     import Matrix from "./matrix";
     import WaitDialog from "../wait-dialog";
-    import _ from 'lodash'
+    import _ from 'lodash';
+    import theme from '../../assets/theme/TsetLearn'
     export default {
         name: "matrix-container",
       components: {WaitDialog, Matrix},
@@ -52,15 +53,15 @@
             dashOffset:"",
             pgbText:"",
             curIndex:"",
-            sidebarBG:"",
             isLearnEnd:false,
             endBG:'',
-            mLength:''
+            mLength:'',
+            theme:{}
           }
       },
       created(){
+          this.theme=theme.default.matrixsT;
           this.fetchData(false);
-          this.sidebarBG=this.randomColor(0.1);
           this.endBG=this.randomColor(0.1);
       },
       methods: {
@@ -98,10 +99,9 @@
                 let definition = decodeURIComponent(response.data[i].definition).replace(/\n/g, "<br>");
                 let vid=response.data[i].vid;
                 let maxdef = definition;
-                if (this.checkLength(definition) >= 124) {
+                if (this.checkLength(definition) >= 100) {
                   let chineseLen=this.checkChinese(definition);
-                  definition = definition.substring(0, 124-Math.round(chineseLen/2)) + '...';
-                  console.log(definition.length);
+                  definition = definition.substring(0, 100-Math.round(chineseLen/2)) + '...';
                 }
                 let matrix = {
                   vid:vid,
@@ -205,7 +205,7 @@
     position: relative;
   }
   .matrixs-container{
-    width: 55%;
+    width: 50%;
     height: 100%;
     display: flex;
     justify-content: center;
@@ -213,7 +213,7 @@
     position: relative;
   }
   .sidebar{
-    width: 20%;
+    width: 18%;
     height: 100%;
     display: flex;
     align-items: center;
@@ -221,7 +221,7 @@
 
   .sidebar-inner-container{
     width: 100%;
-    height: 85%;
+    height: 80%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -230,7 +230,6 @@
   .pgb-container{
     width: 100%;
     height: 40%;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
     user-select: none;
   }
@@ -242,10 +241,10 @@
 
   .pgb-circle{
     fill: transparent;
-    stroke: var(--seablue);
-    stroke-width: 100px;
+    stroke-width: 80px;
     stroke-dasharray: 3140;
     transition: all 1s ease-in-out;
+    stroke-linecap: round;
   }
   .pgbText{
     fill: var(--seablue);
@@ -255,8 +254,7 @@
   }
   .bg-circle{
     fill: transparent;
-    stroke: lightgrey;
-    stroke-width: 100px;
+    stroke-width: 80px;
   }
 
   .matrix{
@@ -270,7 +268,6 @@
     background-color: rgb(207, 0, 128);
     width: 100%;
     height: 85%;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
   }
 
@@ -309,13 +306,11 @@
 
   .learn-end .content .button:hover{
     cursor: pointer;
-    box-shadow: 0px 0px 10px 3px rgb(195, 195, 195);
   }
 
   .fc-side-item{
     width: 100%;
     height: 3rem;
-    box-shadow: 0px 0px 10px 3px rgba(211, 211, 211, 0.76);
     display: flex;
     justify-content: center;
     align-items: center;

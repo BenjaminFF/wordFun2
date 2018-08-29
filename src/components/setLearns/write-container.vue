@@ -413,14 +413,14 @@
 
   .round-pgb-bg{
     fill: transparent;
-    stroke-width: 10px;
+    stroke-width: 6px;
     stroke: lightgrey;
     stroke-linecap: round;
   }
 
   .round-pgb-path{
     fill: transparent;
-    stroke-width: 10px;
+    stroke-width: 6px;
     stroke: var(--seablue);
     stroke-linecap: round;
     transition: all .5s ease-in;
@@ -434,14 +434,14 @@
 
   .progress-pgb-bg{
     fill: transparent;
-    stroke-width: 10px;
+    stroke-width: 6px;
     stroke: lightgrey;
     stroke-linecap: round;
   }
 
   .progress-pgb-path{
     fill: transparent;
-    stroke-width: 10px;
+    stroke-width: 6px;
     stroke: var(--seablue);
     stroke-linecap: round;
     transition: all .5s ease-in;

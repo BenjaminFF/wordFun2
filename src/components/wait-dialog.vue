@@ -15,7 +15,7 @@
           color:{
             type:String,
             default:'var(--vermilion)'
-          }
+          },
         }
     }
 </script>
@@ -29,7 +29,6 @@
     top: 0;
     display: flex;
     justify-content: center;
-    background-color: #f3f3f3;
     z-index: 20;
     align-items: center;
   }

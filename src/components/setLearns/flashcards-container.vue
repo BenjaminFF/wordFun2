@@ -2,33 +2,34 @@
   <div class="fc-container" tabindex="-1" @keyup.space="turnCurCard" @keyup.s="shuffle" @keyup.m="defOption"
       @keyup.p="playCards"  @keyup.left="slideLeft('left')" @keyup.right="slideRight('right')" @keydown="banTab($event)">
     <div class="cards-container" v-if="!loading">
-      <flashcard v-for="(card,index) in cards" :termText="card.term" :defText="card.definition"
-         :style="{transform:'translate3d('+card.offset+'%'+',0,0)',
-         '-moz-transform':'translate3d('+card.offset+'%'+',0,0)', '-webkit-transform'
-         :'translate3d('+card.offset+'%'+',0,0)'}" :key="index" :visibility="card.visibility"
-                 :hideDef="hideDef" :backGround="card.bg" ref="flashcards"></flashcard>
-      <icon name="left" class="slideLeft" @click.native="slideLeft('left')" v-if="leftVisibility"></icon>
-      <icon name="right" class="slideRight" @click.native="slideRight('right')" v-if="rightVisibility"></icon>
-      <icon name="keyboard" class="keyBoard" @click.native="showKBInstruct=true"></icon>
+      <flashcard v-for="(card,index) in cards" :maxdef="card.maxdef" :termText="card.term" :defText="card.definition"
+         :style="{left:card.offset+'%'}" :key="index" :visibility="card.visibility" :textColor="theme.textColor"
+                 :hideDef="hideDef" :backGround="theme.flashcardBG" ref="flashcards"></flashcard>
+      <icon name="left" class="slideLeft" @click.native="slideLeft('left')" v-if="leftVisibility" :style="{color:lIconColor}"
+            @mouseenter.native="lIconColor=theme.iconActiveColor" @mouseleave.native="lIconColor=theme.iconColor"></icon>
+      <icon name="right" class="slideRight" @click.native="slideRight('right')" v-if="rightVisibility" :style="{color:rIconColor}"
+            @mouseenter.native="rIconColor=theme.iconActiveColor" @mouseleave.native="rIconColor=theme.iconColor"></icon>
+      <icon name="keyboard" class="keyBoard" @click.native="showKBInstruct=true" :style="{color:kIconColor}"
+            @mouseenter.native="kIconColor=theme.iconActiveColor" @mouseleave.native="kIconColor=theme.iconColor"></icon>
     </div>
     <div class="fc-sidebar"  v-if="!loading">
       <div class="inner-container">
-        <div class="pgb-container" :style="{backgroundColor:fcSideItemBG}">
+        <div class="pgb-container" :style="{backgroundColor:theme.pgbBG}">
           <svg class="progressbar" viewBox="0 0 1500 1500">
-            <circle r="500" cx="750" cy="750" class="bg-circle" ></circle>
-            <circle r="500" cx="750" cy="750" class="pgb-circle" :style="{'stroke-dashoffset':dashOffset}"></circle>
-            <text x="750" y="750" class="pgbText">{{pgbText}}</text>
+            <circle r="500" cx="750" cy="750" class="bg-circle" :style="{stroke:theme.circleBG}"></circle>
+            <path class="pgb-circle" d="M750 250A500 500 0 1 1 750 1250 A500 500 0 1 1 750 250" :style="{'stroke-dashoffset':dashOffset,stroke:theme.circleStroke}"></path>
+            <text x="750" y="750" class="pgbText" :style="{fill:theme.circleStroke}">{{pgbText}}</text>
           </svg>
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:sideColors[0]}" @click="playCards">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="playCards">
           <icon :name="playIcon" class="fc-play-icon"></icon>
           {{$t('setLearn.flashCards.play')}}
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:sideColors[1]}" @click="shuffle">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
           <icon name="shuffle" class="fc-play-icon"></icon>
           {{$t('setLearn.flashCards.shuffle')}}
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:sideColors[2]}" @click="defOption">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="defOption">
           <icon :name="defOptionStyle.icon" class="fc-play-icon"></icon>
           {{defOptionStyle.text}}
         </div>
@@ -61,6 +62,7 @@
 <script>
     import Flashcard from "./flashcard";
     import WaitDialog from "../wait-dialog";
+    import theme from '../../assets/theme/TsetLearn'
     import _ from 'lodash'
     export default {
         name: "flashcards-container",
@@ -72,32 +74,34 @@
             curIndex:0,
             leftVisibility:false,
             rightVisibility:false,
-            fcSideItemBG:"",
             pgbTotalLen:3140,
             pgbSingleLen:"",
             dashOffset:"",
             pgbText:"",
             play:"",
             playIcon:"",
-            sideColors:[],
             defOptionStyle:{},
             showKBInstruct:false,
-            KBIItems:[]
+            KBIItems:[],
+            theme:{},
+            lIconColor:'',
+            rIconColor:'',
+            kIconColor:''
           }
       },
       created(){
+          this.theme=theme.default.flashCardsT;
+          this.lIconColor=this.rIconColor=this.kIconColor=this.theme.iconColor;
+
           this.fetchData();
           this.leftVisibility=false;
           this.rightVisibility=true;
-          this.fcSideItemBG=this.randomColor(0.1);
           this.$nextTick(()=>{
             let fc=document.getElementsByClassName('fc-container');
             fc[0].focus();
           });
           this.playIcon='play';
-          for(let i=0;i<3;i++){
-            this.sideColors[i]=this.randomColor(0.1);
-          }
+
           let text=this.$t('setLearn.flashCards.hideDef');
           this.defOptionStyle={
             icon:'hide',
@@ -143,12 +147,20 @@
               let cards=[];
               let offset=0;      //positon left
               for(let i=0;i<response.data.length;i++){
-                let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
-                let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
-                let bg=this.randomColor(1);
+                  let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
+                  let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
+                  let bg=this.randomColor(1);
+
+                  let maxdef = definition;
+                  if (this.checkLength(definition) >= 140) {
+                    let chineseLen=this.checkChinese(definition);
+                    definition = definition.substring(0, 140-Math.round(chineseLen/2)) + '...';
+                  }
+
                 let card={
                   term:term,
                   definition:definition,
+                  maxdef: maxdef,
                   offset:offset,
                   bg:bg,
                   visibility:'hidden'
@@ -160,7 +172,7 @@
               this.pgbSingleLen=this.pgbTotalLen/this.cards.length;
               this.dashOffset=this.pgbTotalLen-this.pgbSingleLen;
               this.pgbText=this.curIndex+1+'/'+this.cards.length;
-              console.log(this.cards);
+
               setTimeout(()=>{
                 this.loading=false;
               },500);
@@ -288,26 +300,17 @@
     left: 0rem;
     width: 2rem;
     height: 2rem;
-    color: white;
-    z-index: 100;
     cursor: pointer;
-    color: lightgrey;
   }
   .slideRight{
     position: absolute;
     right: 0rem;
     width: 2rem;
     height: 2rem;
-    color: lightgrey;
-    z-index: 100;
     cursor: pointer;
   }
-  .slideLeft:hover{
-    color: var(--seablue);
-  }
-  .slideRight:hover{
-    color: var(--seablue);
-  }
+
+
 
   .keyBoard{
      position: absolute;
@@ -316,7 +319,6 @@
      width: 1.8rem;
      height: 1.8rem;
      color: gray;
-     z-index: 100;
      cursor: pointer;
    }
 
@@ -383,7 +385,6 @@
   .pgb-container{
     width: 100%;
     height: 13rem;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -397,10 +398,10 @@
 
   .pgb-circle{
     fill: transparent;
-    stroke: var(--seablue);
-    stroke-width: 100px;
+    stroke-width: 80px;
     stroke-dasharray: 3140;
     transition: all 1s ease-in-out;
+    stroke-linecap: round;
   }
   .pgbText{
     fill: var(--seablue);
@@ -410,19 +411,16 @@
   }
   .bg-circle{
     fill: transparent;
-    stroke: lightgrey;
-    stroke-width: 100px;
+    stroke-width: 80px;
   }
 
   .fc-side-item{
     width: 100%;
     height: 3rem;
-    box-shadow: 0px 0px 10px 3px rgba(211, 211, 211, 0.76);
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
-    color: var(--seablue);
     user-select: none;
     cursor: pointer;
   }

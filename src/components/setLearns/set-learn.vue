@@ -1,23 +1,25 @@
 <template>
     <div class="set-learn">
-      <div class="sidebar" :style="{backgroundColor:randomColor(0.7)}">
-      <div class="return" @click="backClick">
+      <div class="sidebar" :style="{backgroundColor:sidebarBG}">
+      <div class="return" @click="backClick" :style="{color:returnItem.color}" @mouseleave="returnItem.color=sideBarT.textColor"
+           @mouseenter="returnItem.color=sideBarT.textActiveColor">
         <icon name="return" class="return-icon"></icon>
         {{$t('setLearn.sideBar.back')}}
       </div>
         <div class="barItems-container">
-          <div class="bar-item" v-for="item in barItems" @click="itemClick(item)"
-               :class="{itemSelected:item.selected}">
+          <div class="bar-item" v-for="item in barItems" @click="itemClick(item)" @mouseleave="leaveItem(item)"
+               :style="{color:item.color}" @mouseenter="hoverItem(item)">
             <icon :name="item.icon" class="item-icon"></icon>
             {{item.title}}
           </div>
         </div>
-        <div class="help-item">
+        <div class="help-item" :style="{color:helpItem.color}" @mouseleave="helpItem.color=sideBarT.textColor"
+             @mouseenter="helpItem.color=sideBarT.textActiveColor">
           <icon name="help" class="help-item-icon"></icon>
           {{$t('setLearn.sideBar.help')}}
         </div>
       </div>
-      <div class="learn-container">
+      <div class="learn-container" :style="{backgroundColor:mainBG}">
         <component v-bind:is="curComponent"></component>
       </div>
     </div>
@@ -28,7 +30,7 @@
     import matrixContainer from "./matrixs-container";
     import setListContainer from "./setlist-container";
     import flashcardsContainer from "./flashcards-container";
-    import {mapState} from 'vuex'
+    import theme from '../../assets/theme/TsetLearn'
     export default {
         name: "set-learn",
       components: {flashcardsContainer,writeContainer,setListContainer,matrixContainer},
@@ -36,16 +38,35 @@
           return{
             barItems:[],
             curComponent:"",
+            sidebarBG:'',
+            textColor:'',
+            textBG:'',
+            sideBarT:{},
+            mainBG:'',
+            returnItem:{
+              color:''
+            },
+            helpItem:{
+              color:''
+            }
           }
       },
       created(){
+          this.sideBarT=theme.default.sidebarT;
+          this.mainBG=theme.default.mainContainer.bg;
+          let sidebarT=this.sideBarT;
           this.barItems=[
-            {icon:'list',title:this.$t('setLearn.sideBar.setList'),selected:true,comp:setListContainer},
-            {icon:'write',title:this.$t('setLearn.sideBar.write'),selected:false,comp:writeContainer},
-            {icon:'flashcards',title:this.$t('setLearn.sideBar.flashCards'),selected:false,comp:flashcardsContainer},
-            {icon:'matrix',title:this.$t('setLearn.sideBar.matrix'),selected:false,comp:matrixContainer}
+            {icon:'list',title:this.$t('setLearn.sideBar.setList'),selected:true,comp:setListContainer,color:sidebarT.textColor},
+            {icon:'write',title:this.$t('setLearn.sideBar.write'),selected:false,comp:writeContainer,color:sidebarT.textColor},
+            {icon:'flashcards',title:this.$t('setLearn.sideBar.flashCards'),selected:false,comp:flashcardsContainer,color:sidebarT.textColor},
+            {icon:'matrix',title:this.$t('setLearn.sideBar.matrix'),selected:false,comp:matrixContainer,color:sidebarT.textColor}
           ]
         this.curComponent=setListContainer;
+        this.sidebarBG=this.sideBarT.sideBarBG;
+        this.barItems[0].color=this.sideBarT.textActiveColor;
+
+        this.returnItem.color=this.sideBarT.textColor;
+        this.helpItem.color=this.sideBarT.textColor;
       },
       methods:{
         backClick(){
@@ -58,11 +79,21 @@
           for(let i=0;i<this.barItems.length;i++){
             if(this.barItems[i].selected){
               this.barItems[i].selected=false;
+              this.barItems[i].color=this.sideBarT.textColor;
               break;
             }
           }
           item.selected=true;
+          item.color=this.sideBarT.textActiveColor;
           this.curComponent=item.comp;
+        },
+        hoverItem(item){
+          item.color=this.sideBarT.textActiveColor;
+        },
+        leaveItem(item){
+          if(!item.selected){
+            item.color=this.sideBarT.textColor;
+          }
         }
       }
     }
@@ -76,18 +107,14 @@
      left: 0;
      top: 0;
      display: flex;
-     background-color: white;
    }
   .sidebar{
     width: 17%;
-    background-color: #9BC53D;
-    box-shadow: 10px 0px 20px 1px rgba(155, 155, 155, 0.31);
     z-index: 1000;
     min-width: max-content;
     color: white;
     transition: .5s all ease-in-out;
     position: relative;
-    padding-right: 1rem;
     user-select: none;
   }
   .return{
@@ -100,16 +127,12 @@
     top: 1rem;
     font-size: 1.2rem;
   }
-  .return:hover{
-    color: black;
-  }
   .return-icon{
     width: 1.2rem;
     height: 1.2rem;
   }
   .learn-container{
     width: 83%;
-    background-color: rgba(243, 243, 243, 0.6);
   }
   .barItems-container{
     width: 100%;
@@ -117,14 +140,16 @@
     margin-top: 6rem;
   }
   .bar-item{
+    padding-left: 1rem;
+    box-sizing: border-box;
     cursor: pointer;
     user-select: none;
     width: 100%;
-    height: 4rem;
+    height: 2.5rem;
     display: flex;
-    margin-left: 1.2rem;
     align-items: center;
     font-size: 1.2rem;
+    margin-top: 0.2rem;
   }
 
   .help-item{
@@ -142,18 +167,11 @@
     width: 1.2rem;
     height: 1.2rem;
     margin-right: 0.3rem;
-  }
-
-  .help-item:hover{
-    color: black;
     cursor: pointer;
   }
 
-  .itemSelected{
-    color: black;
-  }
-  .bar-item:hover{
-    color: black;
+  .help-item:hover{
+    cursor: pointer;
   }
   .item-icon{
     width: 1.5rem;

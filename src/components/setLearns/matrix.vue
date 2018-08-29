@@ -1,13 +1,12 @@
 <template>
   <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
-    <div class="container" :style="{backgroundColor:bg}">
-      <div class="def-container" @click="showMaxDef=true" v-html="definition">
-
+    <div class="container">
+      <div class="def-container" @click="showMaxDef=true" v-html="definition" :style="{color:textColor}">
       </div>
       <div class="matrix-container">
         <div class="matrix-inner-container" :style="{'--row':row,'--column':row,'--size':size}">
-          <div v-for="(cell,index) in cells" class="cell" :class="{cellActive:cell.isActive}"
-               @click="checkLetter(cell)" :key="index" :style="{color:cell.color}">
+          <div v-for="(cell,index) in cells" class="cell"
+               @click="checkLetter(cell)" :key="index" :style="{backgroundColor:cell.BG,color:cell.color}">
             {{cell.letter}}
             <icon name="space" class="cell-space" v-if="cell.isSpace"></icon>
           </div>
@@ -31,9 +30,7 @@
           row:0,
           curIndex:0,
           size:0,
-          bg:"",
-          cellColor:"",
-          showMaxDef:false
+          showMaxDef:false,
         }
       },
       props:{
@@ -48,37 +45,45 @@
         maxdef:{
           type:String,
           required:true
+        },
+        cellStyle:{
+          type:Object,
+          required:true
+        },
+        textColor:{
+          type:String,
+          required:true
         }
       },
       created(){
-          this.bg=this.randomColor(0.8);
           this.initCells();
       },
       methods:{
         initCells(){
           let letters=this.term.toLowerCase().split("");
+          let cellStyle=this.cellStyle;
           if(letters.length<16){
             for(let i=letters.length;i<16;i++){
               let randomLetter=String.fromCharCode(parseInt(Math.random()*25)+97);   //A-Z是65~90 a-z是96~122,单词定义不区分大小写
               letters.push(randomLetter);
             }
-            this.size='4rem';
+            this.size='3.5rem';
           }else if(letters.length<25){
             for(let i=letters.length;i<25;i++){
               let randomLetter=String.fromCharCode(parseInt(Math.random()*25)+97);   //A-Z是65~90 a-z是96~122,单词定义不区分大小写
               letters[i]=randomLetter;
             }
-            this.size='3.5rem';
+            this.size='3rem';
           }
           letters=_.shuffle(letters);
           let cells=[];
-          let bg=this.bg;
           for(let i=0;i<letters.length;i++){
             let cell={
               letter:letters[i],
               isActive:false,
               isSpace:false,
-              color:bg,
+              color:cellStyle.color,
+              BG:cellStyle.BG
             }
             if(letters[i].charCodeAt(0)==32){
               cell.isSpace=true;
@@ -86,6 +91,7 @@
             cells.push(cell);
           }
           this.cells=cells;
+          console.log(cells);
           this.initGrid();
         },
         initGrid(){
@@ -96,7 +102,8 @@
           if(curLetter==cell.letter){
             cell.isActive=true;
             this.curIndex++;
-            cell.color='white';
+            cell.color=this.cellStyle.activeColor;
+            cell.BG=this.cellStyle.activeBG;
           }
           if(this.curIndex==this.term.length){
             this.$emit('dismiss');
@@ -112,12 +119,12 @@
             if(this.cells[i].letter==curLetter&&!this.cells[i].isActive){
               let cell=this.cells[i];
               cell.isActive=true;
-              cell.color='white';
+              cell.color=this.cellStyle.activeColor;
+              cell.BG=this.cellStyle.activeBG;
               this.curIndex++;
               break;
             }
           }
-          console.log('gg');
         }
       }
     }
@@ -129,8 +136,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 85%;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
+    height: 80%;
     border-radius: 10px;
     box-sizing: border-box;
     padding: 2rem;
@@ -163,7 +169,7 @@
   .matrix-inner-container{
     --row:5;
     --column:5;
-    --size:4rem;
+    --size:3.5rem;
     width: fit-content;
     height: fit-content;
     display: grid;
@@ -173,7 +179,6 @@
   .cell{
     width: auto;
     height: auto;
-    background-color: white;
     margin: 7px;
     border-radius: 5px;
     display: flex;
@@ -208,7 +213,7 @@
     font-size: 2rem;
     color: yellowgreen;
     user-select: none;
-    z-index: 100;
+    z-index: 1000;
     word-break: break-word;
   }
 

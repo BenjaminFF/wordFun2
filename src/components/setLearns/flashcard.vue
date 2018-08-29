@@ -1,17 +1,20 @@
 <template>
     <div class="container">
-      <div class="inner-container">
+      <div class="inner-container" :style="{color:textColor}">
         <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
           <div class="both" v-if="!hideDef" :style="{backgroundColor:backGround}">
             <div class="term" v-html="termText"></div>
-            <div class="def" v-html="defText"></div>
+            <div class="def" v-html="defText" @click="showMaxDef=true"></div>
           </div>
         </transition>
-          <div class="single" v-if="hideDef">
+          <div class="single" v-if="hideDef" @click="showMaxDef=(sDefDeg==360)">
             <div class="term" v-html="termText" :style="{transform:'rotateX('+sTermDeg+'deg)',backgroundColor:backGround}"></div>
             <div class="def" v-html="defText" :style="{transform:'rotateX('+sDefDeg+'deg)',backgroundColor:backGround}"></div>
           </div>
       </div>
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut ">
+        <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
+      </transition>
     </div>
 </template>
 
@@ -21,7 +24,8 @@
       data(){
           return{
             sTermDeg:"",
-            sDefDeg:""
+            sDefDeg:"",
+            showMaxDef:false
         }
       },
       created(){
@@ -32,6 +36,10 @@
           termText:{
             type:String,
             required:true
+          },
+          maxdef:{
+          type:String,
+          required:true
           },
           defText:{
             type:String,
@@ -46,6 +54,10 @@
             required:true
           },
           visibility:{
+            type:String,
+            required:true
+          },
+          textColor:{
             type:String,
             required:true
           }
@@ -88,9 +100,7 @@
   .both{
     width: 100%;
     height: 100%;
-    color: white;
     border-radius: 10px;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     user-select: contain;
     box-sizing: border-box;
     padding: 1.5rem;
@@ -113,6 +123,7 @@
     align-items: center;
     text-align: center;
     word-break: break-word;
+    cursor: pointer;
   }
 
   .single{
@@ -125,9 +136,9 @@
     justify-content: center;
     align-items: center;
     font-size: 1.8rem;
-    color: white;
     border-radius: 10px;
     background-color: transparent;
+    cursor: pointer;
   }
 
   .single .term{
@@ -141,9 +152,9 @@
     align-items: center;
     transition: all ease-in .7s;
     border-radius: 10px;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     box-sizing: border-box;
     padding: 2rem;
+    word-break: break-all;
   }
 
   .single .def{
@@ -159,5 +170,26 @@
     border-radius: 10px;
     box-sizing: border-box;
     padding: 2rem;
+    word-break: break-all;
+  }
+
+  .maxdef{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 20rem;
+    padding-right: 20rem;
+    box-sizing: border-box;
+    font-size: 2rem;
+    color: yellowgreen;
+    user-select: none;
+    word-break: break-all;
+    z-index: 1000;
   }
 </style>
