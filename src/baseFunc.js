@@ -65,5 +65,10 @@
           r -= 50;
         }
         return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+      },
+      Vue.prototype.getColor=function (colorArray) {
+        let colorslen=colorArray.length;
+        let randomIndex=parseInt(Math.random()*colorslen);
+        return colorArray[randomIndex];
       }
   }

@@ -1,28 +1,28 @@
 <template>
-    <div class="container" :style="{backgroundColor:bg}">
-      <div class="definition" v-html="definition" @click="showMaxDef=true"></div>
+    <div class="container">
+      <div class="definition" v-html="definition" @click="showMaxDef=true" :style="{color:textColor}"></div>
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
-        <div class="wrong-hint" style="color:red" v-if="showWrongHint">
+        <div class="wrong-hint" :style="{color:hintColor}" v-if="showWrongHint">
           <div style="width: 100%;height: 50%;word-break: break-all">{{$t('setLearn.write.ya')+limitLength(twInput.value,50,true)}}</div>
           <div style="width: 100%;height: 50%">{{$t('setLearn.write.ra')+term}}</div>
         </div>
       </transition>
       <div class="term-write">
         <div class="tw-input-container">
-          <input class="tw-input" @focus="twInputFocus" @keyup.enter="checkAnswer"
+          <input class="tw-input" @focus="twInputFocus" @keyup.enter="checkAnswer" :style="{color:textColor}"
                  v-model="twInput.value" v-focus/>
           <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
             <icon name="enter" class="tw-input-icon" @click.native="checkAnswer"
-                  v-if="twInput.isIconVisible"></icon>
+                  v-if="twInput.isIconVisible" :style="{color:textColor}"></icon>
           </transition>
-          <div class="tw-ani-bb" :style="{width:twInput.twBB}"></div>
+          <div class="tw-ani-bb" :style="{width:twInput.twBB,'border-bottom':'3px solid '+textColor}"></div>
         </div>
-        <div class="term-write-hint">{{$t('setLearn.write.typeAnswer')}}</div>
+        <div class="term-write-hint" :style="{color:textColor}">{{$t('setLearn.write.typeAnswer')}}</div>
       </div>
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
         <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
       </transition>
-      <div class="noidea" @click="showAnswer">
+      <div class="noidea" @click="showAnswer" :style="{color:textColor}">
         <icon name="noidea" class="noidea-icon"></icon>
         {{$t('setLearn.write.noidea')}}
       </div>
@@ -42,7 +42,7 @@
             bg:"",
             showMaxDef:false,
             showWrongHint:false,
-            isAnswerWrong:false
+            canUpdate:false,                //如果第一次答案错误就不能update
           }
       },
       created(){
@@ -62,29 +62,18 @@
             this.twInput.isIconVisible=true;
           },
           checkAnswer(){
-            if(this.twInput.value==this.term){
-              this.$emit('dismiss',this.isAnswerWrong);
-            }else if(!this.showWrongHint) {
-              if(!this.isAnswerWrong){
-                this.isAnswerWrong=true;
+            if(this.twInput.value==this.term){           //如果从没有出现错误提示，canUpdate就为true
+              if(!this.showWrongHint){
+                this.canUpdate=true;
               }
-              this.showWrongHint = true;
-              setTimeout(()=>{
-                this.showWrongHint = false;
-              },3000);
+              this.$emit('dismiss',this.canUpdate);
+            }else if(this.twInput.value!=this.term){
+              this.canUpdate=false;
+              this.showWrongHint=true;
             }
-            console.log('gg');
           },
           showAnswer() {
-            if(!this.isAnswerWrong){
-              this.isAnswerWrong=true;
-            }
-            if (!this.showWrongHint) {
               this.showWrongHint = true;
-              setTimeout(() => {
-                this.showWrongHint = false;
-              }, 3000);
-            }
           }
       },
       props:{
@@ -99,6 +88,14 @@
         maxdef:{
           type:String,
           required:true
+        },
+        textColor:{
+          type:String,
+          required:true
+        },
+        hintColor:{
+          type:String,
+          required:true
         }
       }
     }
@@ -110,11 +107,9 @@
     height: 100%;
     padding: 3rem 2rem;
     box-sizing: border-box;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     display: flex;
     flex-direction: column;
     border-radius: 10px;
-    color: var(--seablue);
   }
   .definition{
     width: 100%;
@@ -144,7 +139,6 @@
     display: flex;
     align-items: center;
     padding-bottom: 0.2rem;
-    border-bottom: 3px solid lightgrey;
   }
   .tw-input{
     outline: none;
@@ -155,7 +149,6 @@
     background-color: transparent;
     font-size: 1.5rem;
     z-index: 10;
-    color: seagreen;
   }
 
   .tw-input-icon{
@@ -173,7 +166,6 @@
     height: 100%;
     left: 0;
     top: 0;
-    border-bottom: 3px solid var(--seablue);
     transition: 1s all ease-in-out;
     transition-delay: .2s;
   }
@@ -182,7 +174,7 @@
     width: 100%;
     height: 2rem;
     font-size: 1rem;
-    margin-top: 0.1rem;
+    margin-top: 0.5rem;
   }
 
   .maxdef{

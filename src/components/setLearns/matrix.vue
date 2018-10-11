@@ -110,10 +110,6 @@
           }
         },
         autoFill(){
-          if(this.curIndex==this.term.length){
-            this.$emit('dismiss');
-            return;
-          }
           let curLetter=this.term[this.curIndex].toLowerCase();
           for(let i=0;i<this.cells.length;i++){
             if(this.cells[i].letter==curLetter&&!this.cells[i].isActive){
@@ -124,6 +120,12 @@
               this.curIndex++;
               break;
             }
+          }
+
+          if(this.curIndex==this.term.length){
+            setTimeout(()=>{
+              this.$emit('dismiss');
+            },200);
           }
         }
       }

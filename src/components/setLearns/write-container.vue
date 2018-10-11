@@ -1,108 +1,223 @@
 <template>
-  <div class="write-out-container" tabindex="-1" @keyup="startNextRound">
+  <div class="write-out-container">
      <div class="content-container">
        <transition-group enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
          <write v-for="(card,index) in roundcards" class="write-container" v-if="card.visibility"
-                :key="index" v-on:dismiss="dismiss($event,index)"
-                :definition="card.definition" :term="card.term" :maxdef="card.maxdef"></write>
+                :key="index" v-on:dismiss="dismiss($event,index)" :style="{backgroundColor:card.bg}"
+                :definition="card.definition" :term="card.term" :maxdef="card.maxdef" :textColor="theme.textColor" :hintColor="theme.hintColor"></write>
        </transition-group>
-       <div class="roundEnd" v-if="roundEnd.visibility" :style="{backgroundColor:sidebarBG}">
-       <div class="roundEnd-header">很赞，再接再厉！</div>
-       <div class="roundEnd-button">{{$t('setLearn.write.continue')}}</div>
-     </div>
-       <div class="learnEnd" v-if="learnEnd.visibility" :style="{backgroundColor:learnEnd.bg}">
-         <div class="learnEnd-header">{{$t('setLearn.write.learnEnd')}}</div>
-         <div class="learnEnd-button">{{$t('setLearn.write.reLearn')}}</div>
-       </div>
+       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+         <div class="roundEnd" v-if="roundEnd.visibility" :style="{backgroundColor:roundEnd.bg,color:theme.textColor}">
+           <div class="roundEnd-header">很赞，再接再厉！</div>
+           <div class="roundEnd-button" @click="startNextRound" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.write.continue')}}</div>
+         </div>
+       </transition>
+       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+         <div class="learnEnd" v-if="learnEnd.visibility" :style="{backgroundColor:learnEnd.bg,color:theme.textColor}">
+           <div class="learnEnd-header">{{$t('setLearn.write.learnEnd')}}</div>
+           <div class="learnEnd-button" @click="updateWrites" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.write.reLearn')}}</div>
+         </div>
+       </transition>
      </div>
     <div class="sidebar">
-      <div class="pgb-container" :style="{backgroundColor:sidebarBG}">
+      <div class="pgb-container" :style="{backgroundColor:theme.pgbBG}">
         <svg class="round-pgb" viewBox="0 0 160 80">
-          <path d="M30 50 A50 50 0 1 1 130 50" class="round-pgb-bg"></path>
+          <path d="M30 50 A50 50 0 1 1 130 50" class="round-pgb-bg" :style="{stroke:theme.circleBG}"></path>
           <path d="M30 50 A50 50 0 1 1 130 50" class="round-pgb-path"
-                :style="{'stroke-dasharray':roundData.totalLen,'stroke-dashoffset':roundData.offset}"></path>
-          <text x="80" y="50" class="round-percentage">{{roundData.percentage}}</text>
-          <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;fill: var(--seablue)">{{$t('setLearn.write.round')}}</text>
+                :style="{'stroke-dasharray':roundData.totalLen,'stroke-dashoffset':roundData.offset,stroke:theme.circleStroke}"></path>
+          <text x="80" y="50" class="round-percentage" :style="{fill:theme.sideItemColor}">{{roundData.text}}</text>
+          <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.round')}}</text>
         </svg>
         <svg class="progress-pgb" viewBox="0 0 160 80">
-          <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-bg"></path>
+          <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-bg" :style="{stroke:theme.circleBG}"></path>
           <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-path"
-                :style="{'stroke-dasharray':pgData.totalLen,'stroke-dashoffset':pgData.offset}"></path>
-          <text x="80" y="50" class="round-percentage">{{pgData.percentage}}</text>
-          <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;fill: var(--seablue)">{{$t('setLearn.write.progress')}}</text>
+                :style="{'stroke-dasharray':pgData.totalLen,'stroke-dashoffset':pgData.offset,stroke:theme.circleStroke}"></path>
+          <text x="80" y="50" class="round-percentage" :style="{fill:theme.sideItemColor}">{{pgData.text}}</text>
+          <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.progress')}}</text>
         </svg>
       </div>
-      <div class="fc-side-item" :style="{backgroundColor:sidebarBG}">
-        <icon name="shuffle" class="fc-play-icon"></icon>
-        {{$t('setLearn.matrix.startOver')}}
-      </div>
-      <div class="fc-side-item" :style="{backgroundColor:sidebarBG}">
+      <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="updateWrites">
+      <icon name="relearn" class="fc-play-icon"></icon>
+      {{$t('setLearn.matrix.startOver')}}
+    </div>
+      <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
         <icon name="shuffle" class="fc-play-icon"></icon>
         {{$t('setLearn.matrix.shuffle')}}
       </div>
     </div>
-    <wait-dialog v-if="loading" :text="'W'" :color="'var(--seablue)'"></wait-dialog>
+    <wait-dialog v-if="loading" :text="'W'" :color="theme.dialogColor" :style="{backgroundColor:theme.dialogBG}"></wait-dialog>
   </div>
 </template>
 
 <script>
     import Write from "./write";
     import WaitDialog from "../wait-dialog";
+    import theme from '../../assets/theme/TsetLearn';
+    import _ from 'lodash';
     export default {
         name: "write-container",
       components: {WaitDialog, Write},
       data(){
           return{
             sidebarBG:"",
-            loading:true,
+            loading:'',
             cards:[],
             roundcards:[],            //单轮卡片
-            roundData:{
-              totalLen:'',
-              offset:'',
-              singlen:'',
-              percentage:'',
-              curIndex:'',
-              cardsLen:''
-            },
-            pgData:{                //progressData
-              totalLen:'',
-              offset:'',
-              singlen:'',
-              percentage:'',
-              curIndex:'',
-              cardsLen:'',
-              roundLen:''
-            },
-            writedLen:0,
-            roundEnd:{
-              visibility:false,
-              bg:''
-            },
-            learnEnd:{
-              visibility:false
-            }
+            roundData:{},
+            pgData:{},                //progressData
+            writedLen:'',
+            roundEnd:{},
+            learnEnd:{},
+            roundLen:'',           //在initPGB里面被初始化
+            curRound:'',
+            theme:{}
           }
       },
       created(){
-          this.sidebarBG=this.randomColor(0.1);
-          this.learnEnd.bg=this.randomColor(0.2);
+          this.theme=theme[this.themeName].writeT;
           this.$nextTick(()=>{
             let pgEL=document.querySelector('.progress-pgb-bg');
             this.roundData.totalLen=pgEL.getTotalLength();
             this.pgData.totalLen=pgEL.getTotalLength();
           })
-          this.fetchData();
+          this.fetchData(false);
       },
       methods:{
-        fetchData() {
+        initWrite(){
+          this.writedLen=0;
           this.roundcards=[];
           this.cards=[];
           this.loading = true;
+          this.roundData={
+              offset:'',
+              singleLen:'',
+              totalLen:'',
+              curIndex:'',
+              cardsLen:'',
+              text:''
+          },
+          this.pgData={                //progressData
+              offset:'',
+              singleLen:'',
+              totalLen:'',
+              curIndex:'',
+              cardsLen:'',
+              text:''
+          }
+          let bg=this.getColor(this.theme.itemBGs);
+          this.roundEnd={
+            visibility:false,
+            bg:bg
+          }
+          this.learnEnd={
+            visibility:false,
+            bg:bg
+          }
+        },
+        initCards(data,isShuffle){
+          let cards=[];
+
+          let lastCard={};
+          for (let i = 0; i <data.length; i++) {
+            let writed=data[i].writed;
+
+            if(writed){
+              this.writedLen+=1;
+              continue;
+            }
+
+            let term = decodeURIComponent(data[i].term).replace(/\n/g, "<br>");   //用\n替代<br>才能实现换行
+            let definition = decodeURIComponent(data[i].definition).replace(/\n/g, "<br>");
+            let maxdef = definition;
+            let vid=data[i].vid;
+
+            let bg=this.getColor(this.theme.itemBGs);
+            if(this.theme.itemBGs.length!=1&&this.cards.length!=0){
+              while (bg==cards[i-1].bg){
+                bg=this.getColor(this.theme.itemBGs);
+              }
+            }
+
+            if (this.checkLength(definition) >= 160) {
+              let chineseLen=this.checkChinese(definition);
+              if(chineseLen>=100){
+                chineseLen+=55;
+              }
+              definition = definition.substring(0, 160-Math.round(chineseLen/2)) + '...';
+            }
+            let card = {
+              vid:vid,
+              term: term,
+              definition: definition,
+              maxdef:maxdef,
+              writed:writed,
+              visibility:false,
+              bg:bg
+            }
+            cards.push(card);
+          }
+          if(isShuffle){
+            this.cards=_.shuffle(cards);
+          }else {
+            this.cards=cards;
+          }
+        },
+        setPGB(pgb,cardsLen,curIndex,isPercentage){
+          pgb.cardsLen=cardsLen;
+          pgb.singleLen=pgb.totalLen/cardsLen;
+
+          pgb.curIndex=curIndex;
+          pgb.offset=pgb.totalLen-curIndex*pgb.singleLen;
+
+          if(isPercentage){
+            pgb.text=Math.round(curIndex/cardsLen*100)+'%';
+          }else {
+            pgb.text=curIndex+'/'+cardsLen;
+          }
+        },
+        initPGB(totalSetLen){
+          let pgEL=document.querySelector('.progress-pgb-bg');
+          this.roundData.totalLen=pgEL.getTotalLength();
+          this.pgData.totalLen=pgEL.getTotalLength();
+
+          if(this.writedLen==totalSetLen) {     //表示全部writed
+            this.learnEnd.visibility = true;
+          }
+
+          this.setPGB(this.pgData,totalSetLen,this.writedLen,true);
+          let roundLen=parseInt(totalSetLen/7);
+          if(parseInt(totalSetLen/7)!=totalSetLen/7){
+            roundLen+=1;
+          }
+
+          this.roundLen=roundLen;
+          if(roundLen==1){            //只有一轮,不必考虑roundEnd
+            this.setPGB(this.roundData,totalSetLen,this.writedLen,false);
+          }else if(roundLen>=2){
+            let curRound=parseInt(this.writedLen/7);
+            if(parseInt(this.writedLen/7)!=this.writedLen/7||this.writedLen==0){
+              curRound+=1;
+            }
+            this.curRound=curRound;
+
+            if(curRound==roundLen){         //最后一轮,不必考虑roundEnd
+              let roundCardsLen=totalSetLen%7;
+              let curRoundIndex=roundCardsLen-(totalSetLen-this.writedLen);
+              this.setPGB(this.roundData,totalSetLen%7,curRoundIndex,false);
+            }else {     //中间轮，要考虑roundEnd
+              if(this.writedLen%7==0&&this.writedLen!=0) {
+                this.roundEnd.visibility = true;
+                this.setPGB(this.roundData,7,7,false);
+              }else {
+                this.setPGB(this.roundData,7,this.writedLen%7,false);
+              }
+            }
+          }
+        },
+        fetchData(isShuffle) {
+          this.initWrite();
           let euname = this.getCookie("euname");
           let curSet = JSON.parse(this.getCookie('curSet'));
-          this.title = this.limitLength(curSet.title, 40, true);     //title字数过长，影响视觉
-          this.subtitle = this.limitLength(curSet.subtitle, 40, true);
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
@@ -111,129 +226,37 @@
             }
           })
             .then((response) => {
-              let cards=[];
-              for (let i = 0; i < response.data.length; i++) {
-                let writed=response.data[i].writed;
-
-                if(writed){
-                  this.writedLen+=1;
-                  continue;
-                }
-
-                let term = decodeURIComponent(response.data[i].term).replace(/\n/g, "<br>");   //用\n替代<br>才能实现换行
-                let definition = decodeURIComponent(response.data[i].definition).replace(/\n/g, "<br>");
-                let maxdef = definition;
-                let vid=response.data[i].vid;
-
-                if (this.checkLength(definition) >= 160) {
-                  let chineseLen=this.checkChinese(definition);
-                  if(chineseLen>=100){
-                    chineseLen+=55;
-                  }
-                  definition = definition.substring(0, 160-Math.round(chineseLen/2)) + '...';
-                  console.log(definition.length);
-                }
-                let card = {
-                  vid:vid,
-                  term: term,
-                  definition: definition,
-                  maxdef:maxdef,
-                  writed:writed,
-                  visibility:false
-                }
-                cards.push(card);
-              }
-              this.cards=cards;         //除去了writed的
-
-              let totalSetLen=response.data.length;
-
-              if(totalSetLen>=8){
-                this.pgData.roundLen=parseInt(totalSetLen/7);
-                if(parseInt(totalSetLen/7)<totalSetLen/7){
-                  this.pgData.roundLen+=1;
-                }
-                this.pgData.curIndex=parseInt(this.writedLen/7);
-
-                if(this.cards.length>7){
-                  for(let i=0;i<7;i++){
+              this.initCards(response.data,isShuffle);
+              this.initPGB(response.data.length);
+              if(!this.roundEnd.visibility){
+                if(this.roundLen==1||this.curRound==this.roundLen){     //只有一轮或是最后一轮就把cards全部给roundcards
+                  let cardsLen=this.cards.length;
+                  for(let i=0;i<cardsLen;i++){
                     this.roundcards.push(this.cards.shift());
                   }
-                  this.roundData.curIndex=0;
-                  this.roundData.cardsLen=7;
-                }else if(this.cards.length!=0){
-                  for(let i=0;i<this.cards.length;i++){
+                }else {         //总轮数大于1并且是中间轮
+                  let cardsLen=7-this.roundData.curIndex;
+                  for(let i=0;i<cardsLen;i++){
                     this.roundcards.push(this.cards.shift());
                   }
-                  this.roundData.curIndex=0;
-                  this.roundData.cardsLen=this.cards.length;
-                }else {            //如果this.cards.length==0,表示已经完成所有内容
-                  if(parseInt(this.writedLen/7)<this.writedLen/7){
-                    this.pgData.curIndex+=1;
-                  }
-                  this.roundData.cardsLen=totalSetLen%7;
-                  this.roundData.curIndex=totalSetLen%7;
                 }
-                this.roundData.percentage=this.roundData.curIndex+'/'+this.roundData.cardsLen;
-                this.roundData.singlen=this.roundData.totalLen/this.roundData.cardsLen;
-                this.roundData.offset=this.roundData.totalLen;
-
-                this.pgData.percentage=this.pgData.curIndex+'/'+this.pgData.roundLen;
-
-              }else {
-                this.roundcards=this.cards;
-                this.cards=[];
-                this.roundData.singlen=this.roundData.totalLen/totalSetLen;
-                this.roundData.offset=this.roundData.totalLen-this.writedLen*this.roundData.singlen;
-
-                this.roundData.curIndex=this.writedLen;
-                this.roundData.percentage=this.roundData.curIndex+'/'+totalSetLen;
-                this.roundData.cardsLen=totalSetLen;
-
-                this.pgData.singlen=this.pgData.totalLen;
-                this.pgData.offset=this.pgData.totalLen;
-                if(this.roundData.curIndex==totalSetLen){         //如果当前卡片已经没有了，就体现结束
-                  this.pgData.percentage='1/1';
-                  this.learnEnd.visibility=true;
-                  this.pgData.offset-=this.pgData.singlen;
-                }else {
-                  this.pgData.percentage='0/1';
-                  this.pgData.curIndex=0;
-                  this.pgData.cardsLen=1;
+                if(!this.learnEnd.visibility){
                   this.roundcards[0].visibility=true;
                 }
               }
-              setTimeout(() => {
-                this.loading = false;
-              }, 500);
+              setTimeout(()=>{
+                this.loading=false;
+              },500);
             })
             .catch(function (error) {
               console.log(error);
             });
         },
-        dismiss(isAnswerWrong,index){
-          this.roundcards[index].visibility=false;
-          let vid=this.roundcards[index].vid;
-
-          if(!isAnswerWrong){
-            this.updateWrite(vid,index);
-          }else {
-            let isContain=false;
-            for(let i=0;i<this.cards.length;i++){
-              if(this.cards[i]===this.roundcards[index]){
-                isContain=true;
-                break;
-              }
-            }
-            if(!isContain){
-              this.cards.push(this.roundcards[index]);       //如果回答错误,就把这个卡片push到总卡片中,并且不更新它的writed
-            }
-            this.showNext(index+1);
-          }
-        },
-        updateWrite(vid,index){
+        updateWrite(vid,euname,index){
           this.axios.post('/api/updateWrite', {
             params: {
-              vid:vid
+              vid:vid,
+              euname:euname
             }
           }).then((response)=>{
             let nextIndex = index + 1;
@@ -242,45 +265,99 @@
             console.log(error);
           });
         },
-        showNext(nextIndex){
-          if(nextIndex!=this.roundcards.length){      //这里是判断roundcards是否为空，注意，roundcards是除去了writed card的
-            setTimeout(() => {
-              this.roundcards[nextIndex].visibility=true;
-            }, 500);
-          }else {
-            if(this.cards.length==0){        //总卡片里面没有卡片，就代表整个结束
-              this.learnEnd.visibility=true;
-              this.pgData.offset-=this.pgData.singlen;
-              this.pgData.curIndex++;
-              this.pgData.percentage=this.pgData.curIndex+'/'+this.pgData.cardsLen;
-            }else {                          //有卡片，就将剩余卡片推给下一轮
-              this.pgData.curIndex=0;
-              this.roundEnd.visibility=true;
-              this.roundcards=[];
-              if(this.cards.length<8){
-                this.roundcards=this.cards;
-                this.cards=[];
-              }else {
-                for(let i=0;i<7;i++){
-                  this.roundcards.push(this.cards.shift());
-                }
-              }
+        updateRoundData(){
+          this.roundData.curIndex++;
+          this.setPGB(this.roundData,this.roundData.cardsLen,this.roundData.curIndex,false);
+        },
+        updatePGData(){
+          this.pgData.curIndex++;
+          this.setPGB(this.pgData,this.pgData.cardsLen,this.pgData.curIndex,true);
+        },
+        dismiss(canUpdate,index){
+          this.roundcards[index].visibility=false;
 
-              let el=document.getElementsByClassName('write-out-container');
-              el[0].focus();
+          if(canUpdate){
+            let vid=this.roundcards[index].vid;
+            let euname = this.getCookie("euname");
+            this.updateWrite(vid,euname,index);
+            this.writedLen+=1;
+            this.updatePGData();
+          }else {           //不能update，就判断cards里面是否已经包含这个roundcard
+            let isContain=false;
+            for(let i=0;i<this.cards.length;i++){
+              if(this.cards[i].vid==this.roundcards[index].vid){
+                isContain=true;
+                break;
+              }
+            }
+            if(!isContain){
+              this.cards.push(this.roundcards[index]);       //如果回答错误,就把这个卡片push到总卡片中,并且不更新它的writed
             }
           }
-          this.roundData.curIndex++;
-          this.roundData.offset-=this.roundData.singlen;
-          this.roundData.percentage=this.roundData.curIndex+'/'+this.roundData.cardsLen;
+
+          this.updateRoundData();
+          this.showNext(index+1);
+        },
+        showNext(nextIndex){
+          if(this.writedLen==this.pgData.cardsLen){
+            this.learnEnd.visibility=true;
+            return;
+          }
+
+          if(this.roundData.curIndex==this.roundData.cardsLen){           //表示这轮结束
+            this.roundEnd.visibility=true;
+          }else {
+            this.roundcards[nextIndex].visibility=true;
+          }
         },
         startNextRound(){
+          this.roundcards=[];
+          this.curRound++;
+          console.log(this.curRound);
           if(this.roundEnd.visibility){
             this.roundEnd.visibility=false;
+            if(this.roundLen==1||this.curRound==this.roundLen){     //只有一轮或是最后一轮就把cards全部给roundcards
+              let cardsLen=this.cards.length;
+              for(let i=0;i<cardsLen;i++){
+                this.roundcards.push(this.cards.shift());
+              }
+            }else {         //总轮数大于1并且是中间轮
+              let cardsLen=7-this.roundData.curIndex;
+              for(let i=0;i<cardsLen;i++){
+                this.roundcards.push(this.cards.shift());
+              }
+            }
+            this.setPGB(this.roundData,this.roundcards.length,0,false);
             this.roundcards[0].visibility=true;
           }
+        },
+
+        updateWrites(){
+          let curSet = JSON.parse(this.getCookie('curSet'));
+          let euname = this.getCookie("euname");
+          this.axios.post('/api/updateWrites', {
+            params: {
+              createtime:curSet.timeStamp,
+              euname:euname
+            }
+          }).then((response)=>{
+            this.learnEnd.visibility=false;
+            this.fetchData();
+          }).catch(function (error) {
+            console.log(error);
+          });
+        },
+        shuffle(){
+          this.fetchData(true);
+          console.log('gg');
         }
       },
+      props:{
+        themeName:{
+          type:String,
+          required:true
+        }
+      }
 
     }
 </script>
@@ -317,7 +394,6 @@
     position: absolute;
     left: 0;
     top: 0;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
     padding: 2rem;
     display: flex;
@@ -339,14 +415,11 @@
     height: fit-content;
     font-size: 1.5rem;
     padding: 1rem 1rem;
-    background-color: var(--seablue);
-    color: white;
     border-radius: 10px;
     margin-top: 50%;
   }
 
   .roundEnd-button:hover{
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     cursor: pointer;
   }
 
@@ -356,7 +429,6 @@
     position: absolute;
     left: 0;
     top: 0;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     border-radius: 10px;
     background-color: yellowgreen;
     padding: 2rem;
@@ -379,14 +451,11 @@
     height: fit-content;
     font-size: 1.5rem;
     padding: 1rem 1rem;
-    background-color: var(--seablue);
-    color: white;
     border-radius: 10px;
     margin-top: 50%;
   }
 
   .learnEnd-button:hover{
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     cursor: pointer;
   }
 
@@ -400,7 +469,6 @@
   }
 
   .pgb-container{
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     width: 100%;
     height: 60%;
     border-radius: 5px;
@@ -414,35 +482,31 @@
   .round-pgb-bg{
     fill: transparent;
     stroke-width: 6px;
-    stroke: lightgrey;
     stroke-linecap: round;
   }
 
   .round-pgb-path{
     fill: transparent;
     stroke-width: 6px;
-    stroke: var(--seablue);
     stroke-linecap: round;
     transition: all .5s ease-in;
   }
 
   .round-percentage{
+    font-size: 0.8rem;
     text-anchor: middle;
     dominant-baseline: middle;
-    fill: var(--seablue);
   }
 
   .progress-pgb-bg{
     fill: transparent;
     stroke-width: 6px;
-    stroke: lightgrey;
     stroke-linecap: round;
   }
 
   .progress-pgb-path{
     fill: transparent;
     stroke-width: 6px;
-    stroke: var(--seablue);
     stroke-linecap: round;
     transition: all .5s ease-in;
   }
@@ -455,12 +519,10 @@
   .fc-side-item{
     width: 100%;
     height: 3rem;
-    box-shadow: 0px 0px 10px 3px rgb(211, 211, 211);
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
-    color: var(--seablue);
     user-select: none;
     cursor: pointer;
   }

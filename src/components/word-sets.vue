@@ -161,6 +161,7 @@
   .set-filter{
     width: 30rem;
     line-height: 2rem;
+    font-family: "HandWritting1","PingFang XI","PingFang3";
     background-color: transparent;
     outline: none;
     border: 0px;

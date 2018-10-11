@@ -26,14 +26,13 @@ export default {
       isDefaultPage:true,
       Loading:true,
       username:"",
-      showLT:false
+      showLT:false           //show left toolbar
     }
   },
   created(){
     let euname=this.getCookie("euname");        //存入cookie中的还是经过escape后的，避免中文乱码
     let password=this.getCookie("password");
     let currentPath=this.$router.currentRoute.fullPath;
-    console.log(currentPath);
     if(currentPath=='/'){
       this.showLT=true;
     }
@@ -115,7 +114,7 @@ export default {
     height: 100%;
     background-color: #f3f3f3;
     overflow: hidden;
-    font-family: "HuaYI","HandWritting1";
+    font-family: "HandWritting1","PingFang SC";
     font-size: 1.3rem;
   }
   body,div,p{
@@ -169,10 +168,6 @@ export default {
     align-items: center;
     color: var(--seablue);
     font-size: 2rem;
-  }
-  @font-face {
-    font-family: HuaYI;
-    src: url("./assets/font/HYQuBaoF2.ttf") format("opentype");
   }
 
   @font-face {

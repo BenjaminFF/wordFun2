@@ -1,66 +1,94 @@
 module.exports={
   default:{
     mainContainer:{
-      bg:'#F0F4F6',
+      bg:'#FDFFFC'
+    },
+    sidebarT:{
+      sidebarBG:'#70C1B3',
+      textColor:'#FDFFFC',
+      textActiveColor:'#1A936F'
+    },
+    setListT:{
+      itemBGs:['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'],
+      itemTextColor:'white',
+      itemActiveColor:'#1A936F',
       dialogBG:'#F0F4F6',
       dialogColor:'#1A936F'
     },
-    sidebarT:{
-      sideBarBG:'#70C1B3',
-      textColor:'#F0F4F6',
-      textActiveColor:'#1A936F',
-    },
-    setListT:{
-      itemBG:'#7CC18B',
-      itemTextColor:'#EDF2F4',
-      itemActiveColor:'#1A936F',
+    writeT:{
+      itemBGs:['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'],
+      textColor:'white',
+      hintColor:'white',
+      pgbBG:'rgba(46,196,182,0.3)',
+      circleBG:'#FDFFFC',
+      circleStroke:'#26A195',
+      sideItemBG:'rgba(46,196,182,0.3)',
+      sideItemColor:'#26A195',
+      dialogBG:'#F0F4F6',
+      dialogColor:'#1A936F'
     },
     flashCardsT:{
-      flashcardBG:'#61A191',
-      textColor:'#EDF2F4',
-      pgbBG:'#84DCC6',
-      circleBG:'#EDF2F4',
-      circleStroke:'#61A191',
-      sideItemBG:'#61A191',
-      sideItemColor:'#EDF2F4',
+      itemBGs:['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'],
+      textColor:'white',
+      pgbBG:'rgba(46,196,182,0.3)',
+      circleBG:'#FDFFFC',
+      circleStroke:'#26A195',
+      sideItemBG:'rgba(46,196,182,0.3)',
+      sideItemColor:'#26A195',
       iconColor:'#AFB5BF',
-      iconActiveColor:'#61A191'
+      iconActiveColor:'#61A191',
+      dialogBG:'#F0F4F6',
+      dialogColor:'#1A936F'
     },
     matrixsT:{
-      matrixBG:'#70C1B3',
-      pgbBG:'#84DCC6',
-      circleBG:'#EDF2F4',
-      circleStroke:'#61A191',
-      sideItemBG:'#61A191',
-      sideItemColor:'#EDF2F4',
+      itemBGs:['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'],
+      pgbBG:'rgba(46,196,182,0.3)',
+      textColor:'white',
+      circleBG:'#FDFFFC',
+      circleStroke:'#26A195',
+      sideItemBG:'rgba(46,196,182,0.3)',
+      sideItemColor:'#26A195',
       iconColor:'#AFB5BF',
       iconActiveColor:'#61A191',
       cellStyle:{
-        color:'#61A191',
-        BG:'#EDF2F4',
-        activeColor:'#EDF2F4',
-        activeBG:'#61A191'
-      }
+        color:'#355834',
+        BG:'white',
+        activeColor:'white',
+        activeBG:'#355834'
+      },
+      dialogBG:'#F0F4F6',
+      dialogColor:'#1A936F'
     }
   },
   dark:{
     mainContainer:{
       bg:'#3A506B',
+    },
+    sidebarT:{
+      sidebarBG:'#0B132B',
+      textColor:'#5BC0BE',
+      textActiveColor:'#6FFFE9',
+    },
+    setListT:{
+      itemBGs:['#0B132B'],
+      itemTextColor:'#6FFFE9',
       dialogBG:'#3A506B',
       dialogColor:'#6FFFE9'
     },
-    sidebarT:{
-      sideBarBG:'#0B132B',
+    writeT:{
+      itemBGs:['#0B132B'],
       textColor:'#5BC0BE',
-      textActiveColor:'#6FFFE9',
-      textActiveBG:'transparent'          //active text color
-    },
-    setListT:{
-      itemBG:'#1C2541',
-      itemTextColor:'#6FFFE9'
+      hintColor:'#5BC0BE',
+      pgbBG:'#0B132B',
+      circleBG:'#5BC0BE',
+      circleStroke:'#6FFFE9',
+      sideItemBG:'#0B132B',
+      sideItemColor:'#5BC0BE',
+      dialogBG:'#3A506B',
+      dialogColor:'#6FFFE9'
     },
     flashCardsT:{
-      flashcardBG:'#0B132B',
+      itemBGs:['#0B132B'],
       textColor:'#5BC0BE',
       pgbBG:'#0B132B',
       circleBG:'#5BC0BE',
@@ -68,10 +96,12 @@ module.exports={
       sideItemBG:'#0B132B',
       sideItemColor:'#5BC0BE',
       iconColor:'#5BC0BE',
-      iconActiveColor:'#6FFFE9'
+      iconActiveColor:'#6FFFE9',
+      dialogBG:'#3A506B',
+      dialogColor:'#6FFFE9'
     },
     matrixsT:{
-      matrixBG:'#0B132B',
+      itemBGs:['#0B132B'],
       textColor:'#5BC0BE',
       pgbBG:'#0B132B',
       circleBG:'#5BC0BE',
@@ -85,7 +115,9 @@ module.exports={
         BG:'#5BC0BE',
         activeColor:'#0B132B',
         activeBG:'#6FFFE9'
-      }
+      },
+      dialogBG:'#3A506B',
+      dialogColor:'#6FFFE9'
     }
   }
 }

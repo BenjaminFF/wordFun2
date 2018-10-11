@@ -50,7 +50,7 @@ module.exports = {
   },
   setLearn:{
     sideBar:{back:'返回',setList:'单词集列表'
-      ,write:'拼写',flashCards:'幻灯片',matrix:'单词矩阵',help:'使用帮助'},
+      ,write:'拼写',flashCards:'幻灯片',matrix:'单词矩阵',theme:'主题'},
     flashCards:{play:'播放',shuffle:'重新排序',
       hideDef:'隐藏释义',showDef:'显示释义',
       keyBoard:['左滑','右滑',

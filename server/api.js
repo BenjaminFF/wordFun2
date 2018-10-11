@@ -293,6 +293,37 @@ router.get('/api/getCards',(req,res)=>{
   });
 });
 
+router.get('/api/getmCards',(req,res)=>{
+  let username=req.query.username;
+  let createTime=req.query.createTime;
+  let getCardsSql='select * from vocabulary where author=? and createtime=?';
+  pool.query(getCardsSql,[username,createTime],(err,result)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    let cards=[];
+    for(let i=0;i<result.length;i++){
+      let term=result[i].term;
+      let definition=result[i].definition;
+      let mmatrixed=result[i].mmatrixed;
+      let mwrited=result[i].mwrited;
+      let mflashed=result[i].mflashed;
+      let card={
+        vid:result[i].vid,
+        term:term,
+        definition:definition,
+        mmatrixed:mmatrixed,
+        mwrited:mwrited,
+        mflashed:mflashed,
+      }
+      cards.push(card);
+    }
+    let data=JSON.stringify(cards);
+    res.send(data);
+  });
+});        //get mobile cards,里面的writed等记录不同
+
 router.post('/api/deleteSet',(req,res)=>{
   let createTime=req.body.params.createTime;
   let username=req.body.params.username;
@@ -388,8 +419,9 @@ router.post('/api/updatewordset',(req,res)=>{           //先将vocabulary里面
 
 router.post('/api/updatematrix',(req,res)=>{
   let vid=req.body.params.vid;
+  let euname=req.body.params.euname;
 
-  pool.query('update vocabulary set matrixed=1 where vid=?',[vid],(err)=>{
+  pool.query('update vocabulary set matrixed=1 where vid=? and author=?',[vid,euname],(err)=>{
     if(err){
       res.send('err');
       throw err;
@@ -413,8 +445,9 @@ router.post('/api/updatematrixs',(req,res)=>{
 
 router.post('/api/updateWrite',(req,res)=>{
   let vid=req.body.params.vid;
+  let euname=req.body.params.euname;
 
-  pool.query('update vocabulary set writed=1 where vid=?',[vid],(err)=>{
+  pool.query('update vocabulary set writed=1 where vid=? and author=?',[vid,euname],(err)=>{
     if(err){
       res.send('err');
       throw err;
@@ -434,6 +467,15 @@ router.post('/api/updateWrites',(req,res)=>{
     }
     res.send('success');
   });
+});
+
+router.post('/api/updatemflashs',(req,res)=>{
+  let mflashs=JSON.parse(req.body);
+  for (let i = 0; i < mflashs.length; i++) {
+    let mflashed=mflashs[i].mflashed;
+    console.log(mflashed);
+  }
+  res.send("update flashs success");
 });
 
 module.exports = router;

@@ -20,7 +20,7 @@
           }
       },
       created(){
-          this.backgroundColor=this.randomColor(0.8);
+          this.backgroundColor=this.randomColor(1);
       },
       methods:{
         deleteItem(){

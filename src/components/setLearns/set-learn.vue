@@ -7,21 +7,32 @@
         {{$t('setLearn.sideBar.back')}}
       </div>
         <div class="barItems-container">
-          <div class="bar-item" v-for="item in barItems" @click="itemClick(item)" @mouseleave="leaveItem(item)"
-               :style="{color:item.color}" @mouseenter="hoverItem(item)">
+          <div class="bar-item" v-for="item in barItems" @click="itemClick(item)"
+               :style="{color:item.color}"  @mouseenter="hoverItem(item)" @mouseleave="leaveItem(item)">
             <icon :name="item.icon" class="item-icon"></icon>
             {{item.title}}
           </div>
         </div>
-        <div class="help-item" :style="{color:helpItem.color}" @mouseleave="helpItem.color=sideBarT.textColor"
+        <div class="theme-item" :style="{color:helpItem.color}" @mouseleave="helpItem.color=sideBarT.textColor" @click="themeChoose.visibility=true"
              @mouseenter="helpItem.color=sideBarT.textActiveColor">
-          <icon name="help" class="help-item-icon"></icon>
-          {{$t('setLearn.sideBar.help')}}
+          <icon name="theme" class="theme-item-icon"></icon>
+          {{$t('setLearn.sideBar.theme')}}
         </div>
       </div>
       <div class="learn-container" :style="{backgroundColor:mainBG}">
-        <component v-bind:is="curComponent"></component>
+        <component v-bind:is="curItem.comp" :themeName="themeName" v-if="hackReset"></component>
       </div>
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+        <div class="theme-choose" v-if="themeChoose.visibility" @click="themeChoose.visibility=false">
+        <div class="theme-choose-item" v-for="theme in themeChoose.themes" @click="updateTheme(theme.name)">
+          <div style="width: 100%;height: 50%;text-align: center;color: white">{{theme.name}}</div>
+          <div style="width: 100%;height: 100%;display: flex;">
+            <div v-for="color in theme.colors" style="flex: 1 0 0"
+                 :style="{backgroundColor:color}"></div>
+          </div>
+        </div>
+      </div>
+      </transition>
     </div>
 </template>
 
@@ -37,7 +48,7 @@
       data(){
           return{
             barItems:[],
-            curComponent:"",
+            curItem:{},
             sidebarBG:'',
             textColor:'',
             textBG:'',
@@ -48,27 +59,58 @@
             },
             helpItem:{
               color:''
-            }
+            },
+            themeChoose:{
+              visibility:false,
+              themes:[]
+            },
+            themeName:"",
+            hackReset:true
           }
       },
       created(){
-          this.sideBarT=theme.default.sidebarT;
-          this.mainBG=theme.default.mainContainer.bg;
-          let sidebarT=this.sideBarT;
-          this.barItems=[
-            {icon:'list',title:this.$t('setLearn.sideBar.setList'),selected:true,comp:setListContainer,color:sidebarT.textColor},
-            {icon:'write',title:this.$t('setLearn.sideBar.write'),selected:false,comp:writeContainer,color:sidebarT.textColor},
-            {icon:'flashcards',title:this.$t('setLearn.sideBar.flashCards'),selected:false,comp:flashcardsContainer,color:sidebarT.textColor},
-            {icon:'matrix',title:this.$t('setLearn.sideBar.matrix'),selected:false,comp:matrixContainer,color:sidebarT.textColor}
-          ]
-        this.curComponent=setListContainer;
-        this.sidebarBG=this.sideBarT.sideBarBG;
-        this.barItems[0].color=this.sideBarT.textActiveColor;
-
-        this.returnItem.color=this.sideBarT.textColor;
-        this.helpItem.color=this.sideBarT.textColor;
+         this.initLearn();
       },
       methods:{
+        initLearn(){
+          this.hackReset=true;
+          this.themeChoose.visibility=false;
+          this.themeChoose.themes=[
+            {name:'default',colors:['#FDFFFC','#70C1B3','#1A936F','#247BA0']},
+            {name:'dark',colors:['#3A506B','#0B132B','#5BC0BE','#6FFFE9']},
+          ]
+
+          let themeName = window.localStorage.getItem('themeName')||'default';
+
+          this.themeName=themeName;
+          this.sideBarT=theme[themeName].sidebarT;
+          this.mainBG=theme[themeName].mainContainer.bg;
+
+          this.returnItem.color=this.sideBarT.textColor;
+          this.helpItem.color=this.sideBarT.textColor;
+          console.log('gg');
+          let sidebarT=this.sideBarT;
+          this.barItems=[
+            {icon:'list',name:'setList',title:this.$t('setLearn.sideBar.setList'),selected:false,comp:setListContainer,color:sidebarT.textColor},
+            {icon:'write',name:'write',title:this.$t('setLearn.sideBar.write'),selected:false,comp:writeContainer,color:sidebarT.textColor},
+            {icon:'flashcards',name:'flashcards',title:this.$t('setLearn.sideBar.flashCards'),selected:false,comp:flashcardsContainer,color:sidebarT.textColor},
+            {icon:'matrix',name:'matrix',title:this.$t('setLearn.sideBar.matrix'),selected:false,comp:matrixContainer,color:sidebarT.textColor}
+          ]
+          let curBarName=window.localStorage.getItem('curBarName')||'setList';
+          console.log(curBarName);
+          this.curItem=this.getItemByName(curBarName,this.barItems);
+          this.curItem.selected=true;
+          this.curItem.color=this.sideBarT.textActiveColor;
+
+          this.sidebarBG=this.sideBarT.sidebarBG;
+        },
+        getItemByName(name,items){
+          for(let i=0;i<items.length;i++){
+            if(items[i].name==name){
+              return items[i];
+            }
+          }
+        },
         backClick(){
           this.$router.push('/wordsets');
         },
@@ -76,16 +118,18 @@
           if(item.selected){
             return;
           }
+
           for(let i=0;i<this.barItems.length;i++){
             if(this.barItems[i].selected){
               this.barItems[i].selected=false;
               this.barItems[i].color=this.sideBarT.textColor;
-              break;
             }
           }
+
           item.selected=true;
           item.color=this.sideBarT.textActiveColor;
-          this.curComponent=item.comp;
+          this.curItem=item;
+          window.localStorage.setItem('curBarName',this.curItem.name);
         },
         hoverItem(item){
           item.color=this.sideBarT.textActiveColor;
@@ -94,6 +138,17 @@
           if(!item.selected){
             item.color=this.sideBarT.textColor;
           }
+        },
+        updateTheme(themeName){
+          this.themeName=themeName;
+          window.localStorage.setItem('themeName', themeName);
+
+          this.initLearn();
+
+          this.hackReset=false;
+          this.$nextTick(()=>{
+            this.hackReset=true;
+          });
         }
       }
     }
@@ -101,6 +156,7 @@
 
 <style scoped>
   .set-learn{
+    background-color: white;
      position: fixed;
      width: 100%;
      height: 100%;
@@ -152,7 +208,7 @@
     margin-top: 0.2rem;
   }
 
-  .help-item{
+  .theme-item{
     width: 100%;
     height: 4rem;
     position: absolute;
@@ -161,21 +217,42 @@
     display: flex;
     font-size: 1.2rem;
     bottom: 3rem;
+    cursor: pointer;
   }
 
-  .help-item-icon{
+  .theme-item-icon{
     width: 1.2rem;
     height: 1.2rem;
     margin-right: 0.3rem;
     cursor: pointer;
   }
 
-  .help-item:hover{
-    cursor: pointer;
-  }
   .item-icon{
     width: 1.5rem;
     height: 1.5rem;
     margin-right: 1rem;
+  }
+
+  .theme-choose{
+    position: fixed;
+    background-color: rgba(0, 0, 0, 0.61);
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .theme-choose-item{
+    width: 15rem;
+    height: 4rem;
+    display: flex;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    flex-direction: column;
   }
 </style>

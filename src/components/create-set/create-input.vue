@@ -67,7 +67,7 @@
       },
       created(){
           this.pStyle={
-            backgroundColor:this.randomColor(0.6),
+            backgroundColor:this.randomColor(1),
           }
           if(this.hasInitValue){             //如果input里面有初始值，就让term和def的hint为空
             this.termHint="";

@@ -1,23 +1,23 @@
 <template>
   <div class="container" :style="{color:theme.itemTextColor}">
-    <div class="header" :style="{backgroundColor:theme.itemBG}">
-      <div class="title">{{title}}</div>
-      <div class="subtitle">{{subtitle}}</div>
+    <div class="header" :style="{backgroundColor:header.bg}">
+      <div class="title">{{header.title}}</div>
+      <div class="subtitle">{{header.subtitle}}</div>
     </div>
     <div class="listItems-container">
       <div class="listItems-inner-container">
         <transition-group enter-active-class="animated fadeIn">
-          <list-item v-for="(card,index) in cards" class="list-item" :key="index" v-if="!loading" :style="{backgroundColor:theme.itemBG}"
+          <list-item v-for="(card,index) in cards" class="list-item" :key="index" v-if="!loading" :style="{backgroundColor:card.bg}"
                      :card-id="index+1" :termText="card.term" :defText="card.definition"></list-item>
         </transition-group>
       </div>
     </div>
     <div class="tool-container">
-      <icon name="tool" class="tool" @click.native="showTools" :style="{backgroundColor:theme.itemBG}"></icon>
-      <icon name="edit" class="tool-edit" @click.native="editToCreateSet" :style="{top:toolStyle.editTop,backgroundColor:theme.itemBG}"></icon>
-      <icon name="share" class="tool-share" :style="{top:toolStyle.shareTop,backgroundColor:theme.itemBG}"></icon>
+      <icon name="tool" class="tool" @click.native="showTools" :style="{backgroundColor:toolStyle.bg}"></icon>
+      <icon name="edit" class="tool-edit" @click.native="editToCreateSet" :style="{top:toolStyle.editTop,backgroundColor:toolStyle.bg}"></icon>
+      <icon name="share" class="tool-share" :style="{top:toolStyle.shareTop,backgroundColor:toolStyle.bg}"></icon>
     </div>
-    <wait-dialog v-if="loading" :text="'S'" :color="dialog.color" :style="{backgroundColor:dialog.bg}"></wait-dialog>
+    <wait-dialog v-if="loading" :text="'S'" :color="theme.dialogColor" :style="{backgroundColor:theme.dialogBG}"></wait-dialog>
   </div>
 </template>
 
@@ -37,21 +37,20 @@
               editTop:0,
               shareTop:0,
               folded:true,
-              backGround:"",
+              bg:''
             },
-            title:"",
-            subtitle:"",
+            header:{
+              title:"",
+              subtitle:"",
+              bg:''
+            },
             theme:{},
-            dialog:{
-              bg:'',
-              color:''
-            }
           }
       },
       created(){
-          this.theme=theme.default.setListT;
-          this.dialog.bg=theme.default.mainContainer.dialogBG;
-          this.dialog.color=theme.dark.mainContainer.dialogColor;
+          this.theme=theme[this.themeName].setListT;
+          this.toolStyle.bg=this.getColor(this.theme.itemBGs);
+          this.header.bg=this.getColor(this.theme.itemBGs);
           this.fetchData();
       },
       methods:{
@@ -59,8 +58,8 @@
           this.loading=true;
           let euname=this.getCookie("euname");
           let curSet=JSON.parse(this.getCookie('curSet'));
-          this.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
-          this.subtitle=this.limitLength(curSet.subtitle,40,true);
+          this.header.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
+          this.header.subtitle=this.limitLength(curSet.subtitle,40,true);
           let createTime=curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
@@ -73,9 +72,16 @@
               for(let i=0;i<response.data.length;i++){
                 let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
                 let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
+                let bg=this.getColor(this.theme.itemBGs);
+                if(i!=0&&this.theme.itemBGs.length!=1){
+                  while (bg==cards[i-1].bg){
+                    bg=this.getColor(this.theme.itemBGs);
+                  }
+                }
                 let card={
                   term:term,
-                  definition:definition
+                  definition:definition,
+                  bg:bg
                 }
                 cards.push(card);
               }
@@ -109,7 +115,13 @@
           setCreateState:'wordset/setCreateState'
         }),
       },
-      components: {SetItem, ListItem,WaitDialog}
+      components: {SetItem, ListItem,WaitDialog},
+      props:{
+        themeName:{
+          type:String,
+          required:true
+        }
+      }
     }
 </script>
 

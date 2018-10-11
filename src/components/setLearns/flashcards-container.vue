@@ -4,7 +4,7 @@
     <div class="cards-container" v-if="!loading">
       <flashcard v-for="(card,index) in cards" :maxdef="card.maxdef" :termText="card.term" :defText="card.definition"
          :style="{left:card.offset+'%'}" :key="index" :visibility="card.visibility" :textColor="theme.textColor"
-                 :hideDef="hideDef" :backGround="theme.flashcardBG" ref="flashcards"></flashcard>
+                 :hideDef="hideDef" :backGround="card.bg" ref="flashcards"></flashcard>
       <icon name="left" class="slideLeft" @click.native="slideLeft('left')" v-if="leftVisibility" :style="{color:lIconColor}"
             @mouseenter.native="lIconColor=theme.iconActiveColor" @mouseleave.native="lIconColor=theme.iconColor"></icon>
       <icon name="right" class="slideRight" @click.native="slideRight('right')" v-if="rightVisibility" :style="{color:rIconColor}"
@@ -26,7 +26,7 @@
           {{$t('setLearn.flashCards.play')}}
         </div>
         <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
-          <icon name="shuffle" class="fc-play-icon"></icon>
+          <icon name="relearn" class="fc-play-icon"></icon>
           {{$t('setLearn.flashCards.shuffle')}}
         </div>
         <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="defOption">
@@ -35,7 +35,7 @@
         </div>
       </div>
       </div>
-    <wait-dialog v-if="loading" :text="'F'" :color="'var(--seablue)'"></wait-dialog>
+    <wait-dialog v-if="loading" :text="'F'" :color="theme.dialogColor" :style="{backgroundColor:theme.dialogBG}"></wait-dialog>
     <transition leave-active-class="animated fadeOut" enter-active-class="animated fadeIn">
       <div class="keyBoard-instruction" @click="showKBInstruct=false" v-if="showKBInstruct">
         <div class="KBI-container">
@@ -86,11 +86,11 @@
             theme:{},
             lIconColor:'',
             rIconColor:'',
-            kIconColor:''
+            kIconColor:'',
           }
       },
       created(){
-          this.theme=theme.default.flashCardsT;
+          this.theme=theme[this.themeName].flashCardsT;
           this.lIconColor=this.rIconColor=this.kIconColor=this.theme.iconColor;
 
           this.fetchData();
@@ -145,11 +145,18 @@
           })
             .then((response)=>{
               let cards=[];
+
+              let lastCard={};
               let offset=0;      //positon left
               for(let i=0;i<response.data.length;i++){
                   let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
                   let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
-                  let bg=this.randomColor(1);
+                  let bg=this.getColor(this.theme.itemBGs);
+                  if(this.theme.itemBGs.length!=1&&this.cards.length!=0){
+                  while (bg==cards[i-1].bg){
+                    bg=this.getColor(this.theme.itemBGs);
+                    }
+                  }
 
                   let maxdef = definition;
                   if (this.checkLength(definition) >= 140) {
@@ -167,6 +174,7 @@
                 }
                 offset-=100;
                 cards.push(card);
+                lastCard=card;
               }
               this.cards=cards;
               this.pgbSingleLen=this.pgbTotalLen/this.cards.length;
@@ -239,7 +247,7 @@
                 clearInterval(this.play);
                 this.playIcon='play';
               }
-            },2000);
+            },3000);
           }else if(this.playIcon=='pause'){
             this.playIcon='play';
             clearInterval(this.play);
@@ -270,6 +278,12 @@
             this.hideDef=false;
           }
         }
+      },
+      props:{
+          themeName:{
+            type:String,
+            required:true
+          }
       }
     }
 </script>

@@ -51,7 +51,7 @@ module.exports = {
   },
   setLearn:{
     sideBar:{back:'Back',setList:'Set List'
-      ,write:'Write',flashCards:'Flash Cards',matrix:'Matrix',help:'Instruction'},
+      ,write:'Write',flashCards:'Flash Cards',matrix:'Matrix',theme:'Theme'},
     flashCards:{play:'Play',shuffle:'Shuffle',
       hideDef:'HideDef',showDef:'ShowDef',
       keyBoard:['Previous','Next',

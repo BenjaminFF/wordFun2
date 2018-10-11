@@ -4,12 +4,12 @@
       <matrix :term="m.term" v-on:dismiss="dismiss(index)"  v-for="(m,index) in matrixs"
                      :key="index" v-if="m.showMatrix" :maxdef="m.maxdef"
                      :definition="m.definition" class="matrix" :cellStyle="theme.cellStyle"
-              :style="{backgroundColor:theme.matrixBG}" :textColor="theme.textColor"></matrix>
-      <div class="learn-end" v-if="isLearnEnd" :style="{backgroundColor:endBG}">
+              :style="{backgroundColor:m.bg}" :textColor="theme.textColor"></matrix>
+      <div class="learn-end" v-if="isLearnEnd" :style="{backgroundColor:endBG,color:theme.textColor}">
         <div class="header" v-html="$t('setLearn.matrix.endHeader')">
         </div>
         <div class="content">
-          <div class="button" @click="relearn">{{$t('setLearn.matrix.startOver')+'!'}}</div>
+          <div class="button" @click="relearn" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.matrix.startOver')+'!'}}</div>
         </div>
       </div>
     </div>
@@ -23,7 +23,7 @@
           </svg>
         </div>
         <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="relearn(false)">
-          <icon name="shuffle" class="fc-play-icon"></icon>
+          <icon name="relearn" class="fc-play-icon"></icon>
           {{$t('setLearn.matrix.startOver')}}
         </div>
         <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
@@ -32,7 +32,7 @@
         </div>
       </div>
     </div>
-    <wait-dialog v-if="loading" :text="'M'" :color="'var(--seablue)'"></wait-dialog>
+    <wait-dialog v-if="loading" :text="'M'" :color="theme.dialogColor" :style="{backgroundColor:theme.dialogBG}"></wait-dialog>
   </div>
 </template>
 
@@ -60,9 +60,8 @@
           }
       },
       created(){
-          this.theme=theme.default.matrixsT;
+          this.theme=theme[this.themeName].matrixsT;
           this.fetchData(false);
-          this.endBG=this.randomColor(0.1);
       },
       methods: {
         fetchData(isShuffle) {
@@ -82,6 +81,7 @@
           })
             .then((response) => {
               let matrixs = [];
+              let lastMatrix={};
 
               this.mLength=response.data.length;
               this.pgbSingleLen = this.pgbTotalLen / response.data.length;
@@ -99,6 +99,13 @@
                 let definition = decodeURIComponent(response.data[i].definition).replace(/\n/g, "<br>");
                 let vid=response.data[i].vid;
                 let maxdef = definition;
+                let bg=this.getColor(this.theme.itemBGs);
+                if(this.theme.itemBGs.length!=1&&matrixs.length!=0){
+                  while (bg==lastMatrix.bg){
+                    bg=this.getColor(this.theme.itemBGs);
+                  }
+                }
+
                 if (this.checkLength(definition) >= 100) {
                   let chineseLen=this.checkChinese(definition);
                   definition = definition.substring(0, 100-Math.round(chineseLen/2)) + '...';
@@ -109,10 +116,13 @@
                   definition: definition,
                   maxdef: maxdef,
                   showMatrix: false,
-                  matrixed: response.data[i].matrixed
+                  matrixed: response.data[i].matrixed,
+                  bg:bg
                 }
                 matrixs.push(matrix);
+                lastMatrix=matrix;
               }
+              this.endBG=this.getColor(this.theme.itemBGs);
               if(matrixs.length!=0){
                 if(isShuffle){
                   this.matrixs=_.shuffle(matrixs);
@@ -134,8 +144,9 @@
         dismiss(index) {
           this.matrixs[index].showMatrix = false;
           let vid=this.matrixs[index].vid;
+          let euname = this.getCookie("euname");
           console.log(vid);
-          this.updateMatrix(vid,index);
+          this.updateMatrix(vid,euname,index);
         },
         showNext(index) {
           if (index != this.matrixs.length) {
@@ -154,10 +165,11 @@
             this.pgbText = this.curIndex + '/' + this.mLength;
           }
         },
-        updateMatrix(vid,index){
+        updateMatrix(vid,euname,index){
           this.axios.post('/api/updatematrix', {
             params: {
-              vid:vid
+              vid:vid,
+              euname:euname
             }
           }).then((response)=>{
             let nextIndex = index + 1;
@@ -191,6 +203,12 @@
           let createTime = curSet.timeStamp;
           this.updateMatrixs(createTime,euname,isShuffle);
           this.isLearnEnd=false;
+        }
+      },
+      props:{
+        themeName:{
+          type:String,
+          required:true
         }
       }
     }
@@ -265,9 +283,8 @@
   .learn-end{
     position: absolute;
     left: 0;
-    background-color: rgb(207, 0, 128);
     width: 100%;
-    height: 85%;
+    height: 80%;
     border-radius: 10px;
   }
 
@@ -279,7 +296,6 @@
     height: 40%;
     font-size: 2rem;
     text-align: center;
-    color: var(--seablue);
   }
 
   .learn-end .content{
@@ -300,8 +316,6 @@
     align-items: center;
     font-size: 1.5rem;
     letter-spacing: 0.2rem;
-    color: white;
-    background-color: var(--seablue);
   }
 
   .learn-end .content .button:hover{
