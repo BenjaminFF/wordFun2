@@ -3,17 +3,20 @@
       <div class="inner-container" :style="{color:textColor}">
         <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
           <div class="both" v-if="!hideDef" :style="{backgroundColor:backGround}">
-            <div class="term" v-html="termText"></div>
+            <div class="term" v-html="termText" :style="{'border-bottom':'1px solid '+middleLineColor}" @click="showMaxTerm=true"></div>
             <div class="def" v-html="defText" @click="showMaxDef=true"></div>
           </div>
         </transition>
-          <div class="single" v-if="hideDef" @click="showMaxDef=(sDefDeg==360)">
+          <div class="single" v-if="hideDef" @click="showMaxDialog">
             <div class="term" v-html="termText" :style="{transform:'rotateX('+sTermDeg+'deg)',backgroundColor:backGround}"></div>
             <div class="def" v-html="defText" :style="{transform:'rotateX('+sDefDeg+'deg)',backgroundColor:backGround}"></div>
           </div>
       </div>
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut ">
-        <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
+        <div class="max-text-dialog" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
+      </transition>
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut ">
+        <div class="max-text-dialog" v-if="showMaxTerm" @click="showMaxTerm=false" v-html="maxterm"></div>
       </transition>
     </div>
 </template>
@@ -25,7 +28,8 @@
           return{
             sTermDeg:"",
             sDefDeg:"",
-            showMaxDef:false
+            showMaxDef:false,
+            showMaxTerm:false,
         }
       },
       created(){
@@ -37,6 +41,10 @@
             type:String,
             required:true
           },
+        maxterm:{
+          type:String,
+          required:true
+        },
           maxdef:{
           type:String,
           required:true
@@ -60,10 +68,14 @@
           textColor:{
             type:String,
             required:true
+          },
+          middleLineColor:{
+            type:String,
+            required:true
           }
       },
       methods:{
-          turnCard(){
+        turnCard(){
             console.log('turnCard');
             if(this.sTermDeg==0){
               this.sTermDeg=180;
@@ -72,7 +84,14 @@
               this.sTermDeg=0;
               this.sDefDeg=180;
             }
+        },
+        showMaxDialog(){
+          if(this.sDefDeg==360){
+            this.showMaxDef=true;
+          }else {
+            this.showMaxTerm=true;
           }
+        }
       }
     }
 </script>
@@ -113,7 +132,7 @@
     align-items: center;
     font-size: 1.8rem;
     word-break: break-word;
-    border-bottom: 1px solid white;
+    cursor: pointer;
   }
   .both .def{
     width: 100%;
@@ -173,7 +192,7 @@
     word-break: break-all;
   }
 
-  .maxdef{
+  .max-text-dialog{
     position: fixed;
     width: 100%;
     height: 100%;
@@ -187,7 +206,7 @@
     padding-right: 20rem;
     box-sizing: border-box;
     font-size: 2rem;
-    color: yellowgreen;
+    color: gold;
     user-select: none;
     word-break: break-all;
     z-index: 1000;

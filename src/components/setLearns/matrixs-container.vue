@@ -63,19 +63,23 @@
           this.theme=theme[this.themeName].matrixsT;
           this.fetchData(false);
       },
+      destroyed(){
+          console.log("matrixs-container destroyed");
+      },
       methods: {
         fetchData(isShuffle) {
           this.matrixs=[];
           this.curIndex=0;
           this.loading = true;
-          let euname = this.getCookie("euname");
+          let login_taken=this.getCookie("login_token");
+          let username=JSON.parse(login_taken).username;
           let curSet = JSON.parse(this.getCookie('curSet'));
           this.title = this.limitLength(curSet.title, 40, true);     //title字数过长，影响视觉
           this.subtitle = this.limitLength(curSet.subtitle, 40, true);
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
-              username: escape(euname),
+              username: username,
               createTime: createTime
             }
           })

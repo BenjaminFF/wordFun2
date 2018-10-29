@@ -2,9 +2,9 @@
   <div class="fc-container" tabindex="-1" @keyup.space="turnCurCard" @keyup.s="shuffle" @keyup.m="defOption"
       @keyup.p="playCards"  @keyup.left="slideLeft('left')" @keyup.right="slideRight('right')" @keydown="banTab($event)">
     <div class="cards-container" v-if="!loading">
-      <flashcard v-for="(card,index) in cards" :maxdef="card.maxdef" :termText="card.term" :defText="card.definition"
+      <flashcard v-for="(card,index) in cards" :maxdef="card.maxdef" :maxterm="card.maxterm" :termText="card.term" :defText="card.definition"
          :style="{left:card.offset+'%'}" :key="index" :visibility="card.visibility" :textColor="theme.textColor"
-                 :hideDef="hideDef" :backGround="card.bg" ref="flashcards"></flashcard>
+                 :hideDef="hideDef" :backGround="card.bg" ref="flashcards" :middle-line-color="theme.middleLineColor"></flashcard>
       <icon name="left" class="slideLeft" @click.native="slideLeft('left')" v-if="leftVisibility" :style="{color:lIconColor}"
             @mouseenter.native="lIconColor=theme.iconActiveColor" @mouseleave.native="lIconColor=theme.iconColor"></icon>
       <icon name="right" class="slideRight" @click.native="slideRight('right')" v-if="rightVisibility" :style="{color:rIconColor}"
@@ -120,6 +120,10 @@
           }
           this.KBIItems=items;
       },
+      destroyed(){
+        console.log("flashcards-container destroyed");
+        this.updateflashedtoServer();      //在离开flashcards的时候更新数据
+      },
       methods:{
         banTab(e){
           let keyCode=e.keyCode||e.which;
@@ -132,25 +136,30 @@
         },
         fetchData(){
           this.loading=true;
-          let euname=this.getCookie("euname");
+          this.curIndex=0;
+          let login_taken=this.getCookie("login_token");
+          let username=JSON.parse(login_taken).username;
           let curSet=JSON.parse(this.getCookie('curSet'));
           this.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
           this.subtitle=this.limitLength(curSet.subtitle,40,true);
           let createTime=curSet.timeStamp;
-          this.axios.get('/api/getCards', {
+          this.axios.get('/api/getCards', {        //获取卡片等数据不需要加密传输
             params: {
-              username:escape(euname),
+              username:username,
               createTime:createTime
             }
           })
             .then((response)=>{
+              console.log(response.data);
               let cards=[];
-
               let lastCard={};
               let offset=0;      //positon left
+              console.log(response.data);
               for(let i=0;i<response.data.length;i++){
                   let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
                   let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");
+                  let flashed=response.data[i].flashed;
+                  let vid=response.data[i].vid;
                   let bg=this.getColor(this.theme.itemBGs);
                   if(this.theme.itemBGs.length!=1&&this.cards.length!=0){
                   while (bg==cards[i-1].bg){
@@ -163,24 +172,55 @@
                     let chineseLen=this.checkChinese(definition);
                     definition = definition.substring(0, 140-Math.round(chineseLen/2)) + '...';
                   }
-
+                let maxterm=term;
+                if (this.checkLength(term) >= 140) {
+                  let chineseLen=this.checkChinese(term);
+                  term = term.substring(0, 140-Math.round(chineseLen/2)) + '...';
+                }
                 let card={
+                  vid:vid,
                   term:term,
                   definition:definition,
+                  maxterm:maxterm,
                   maxdef: maxdef,
-                  offset:offset,
+                  offset:0,
                   bg:bg,
+                  flashed:flashed,
                   visibility:'hidden'
                 }
-                offset-=100;
                 cards.push(card);
                 lastCard=card;
               }
-              this.cards=cards;
+              for(let i=0;i<cards.length;i++){       //先加入flashed的card
+                if(cards[i].flashed){
+                  this.cards.push(cards[i]);
+                  offset+=100;
+                  this.curIndex+=1;
+                }
+              }
+              for(let i=0;i<cards.length;i++){
+                if(!cards[i].flashed){
+                  this.cards.push(cards[i]);
+                }
+              }
+              for(let i=0;i<this.cards.length;i++){
+                this.cards[i].offset=offset;
+                offset-=100;
+              }
               this.pgbSingleLen=this.pgbTotalLen/this.cards.length;
-              this.dashOffset=this.pgbTotalLen-this.pgbSingleLen;
+              this.dashOffset=this.pgbTotalLen-this.pgbSingleLen*(this.curIndex+1);
               this.pgbText=this.curIndex+1+'/'+this.cards.length;
 
+              if(this.curIndex==this.cards.length-1){
+                this.rightVisibility=false;
+                this.leftVisibility=true;
+              }else if(this.curIndex==0){
+                this.leftVisibility=false;
+                this.rightVisibility=true;
+              }else {
+                this.leftVisibility=true;
+                this.rightVisibility=true;
+              }
               setTimeout(()=>{
                 this.loading=false;
               },500);
@@ -277,6 +317,38 @@
             this.defOptionStyle.text=this.$t('setLearn.flashCards.hideDef');
             this.hideDef=false;
           }
+        },
+        updateflashedtoServer(){      //上传记录到服务器，以便下次访问时可以进入到上次的状态。这种上传因为很频繁，就只能依赖https了
+          let flashes=[];
+          let cards=this.cards;
+          for(let i=0;i<cards.length;i++){
+            let data={};
+            if(i<this.curIndex){
+              data={
+                vid:cards[i].vid,
+                flashed:true
+              }
+            }else {
+              data={
+                vid:cards[i].vid,
+                flashed:false
+              }
+            }
+            flashes.push(data);
+          }
+          let login_token=this.getCookie("login_token");
+          let jsondata=JSON.stringify(flashes);
+          let username=JSON.parse(login_token).username;
+          this.axios.post("/api/updateflashs",{
+            params: {
+              username:username,
+              jsondata:jsondata
+            }
+          }).then((res)=>{
+            console.log(res);
+          }).catch((err)=>{
+            console.log(err);
+          })
         }
       },
       props:{

@@ -53,17 +53,21 @@
           this.header.bg=this.getColor(this.theme.itemBGs);
           this.fetchData();
       },
+      destroyed(){
+        console.log("setlist-container destroyed");
+      },
       methods:{
         fetchData(){
           this.loading=true;
-          let euname=this.getCookie("euname");
+          let login_taken=this.getCookie("login_token");
+          let username=JSON.parse(login_taken).username;
           let curSet=JSON.parse(this.getCookie('curSet'));
           this.header.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
           this.header.subtitle=this.limitLength(curSet.subtitle,40,true);
           let createTime=curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
-              username:escape(euname),
+              username:username,
               createTime:createTime
             }
           })

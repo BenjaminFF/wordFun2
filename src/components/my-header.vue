@@ -70,11 +70,9 @@
           }
         },
         logout() {
-          this.delCookie('euname');
-          this.delCookie('password');
+          this.delCookie('login_token');
           this.$router.push('/');
           window.location.reload(true);
-          console.log('gg');
         },
         ...mapMutations({
           setCreateState:'wordset/setCreateState'

@@ -123,6 +123,7 @@
     user-select: none;
     cursor: pointer;
     color: white;
+    position: relative;
   }
   .cell-space{
     position: absolute;

@@ -8,7 +8,6 @@
 </template>
 
 <script>
-
     export default {
         name: "list-item",
       components: {},
@@ -21,26 +20,39 @@
       },
       methods:{
         sayTerm(){
-          window.speechSynthesis.cancel();
+          //window.speechSynthesis.cancel();
+          if(responsiveVoice.isPlaying()){
+            responsiveVoice.cancel();
+          }
+          responsiveVoice.speak(this.termText);
           setTimeout(()=>{
-            let utterThis = new window.SpeechSynthesisUtterance(this.termText);
-            window.speechSynthesis.speak(utterThis);
+            /*let utterThis = new window.SpeechSynthesisUtterance(this.termText);
+            window.speechSynthesis.speak(utterThis);*/
+
           },1000);
         },
         sayDef(){
-          window.speechSynthesis.cancel();
+          //window.speechSynthesis.cancel();
+          if(responsiveVoice.isPlaying()){
+            responsiveVoice.cancel();
+          }
+          responsiveVoice.speak(this.defText);
           setTimeout(()=>{
-            let utterThis = new window.SpeechSynthesisUtterance(this.defText);
-            window.speechSynthesis.speak(utterThis);
+            /*let utterThis = new window.SpeechSynthesisUtterance(this.defText);
+            window.speechSynthesis.speak(utterThis);*/
           },500);
         },
         sayAll(){
-          window.speechSynthesis.cancel();
+          /*window.speechSynthesis.cancel();
           setTimeout(()=>{
             let text=this.termText+this.defText;
             let utterThis = new window.SpeechSynthesisUtterance(text);
             window.speechSynthesis.speak(utterThis);
-          },500);
+          },500);*/
+          if(responsiveVoice.isPlaying()){
+            responsiveVoice.cancel();
+          }
+          responsiveVoice.speak(this.termText+"     "+this.defText);
         }
       },
       props:{

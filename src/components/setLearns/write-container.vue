@@ -1,5 +1,5 @@
 <template>
-  <div class="write-out-container">
+  <div class="write-out-container" tabindex="-1" @keydown="banTab($event)" @keyup="pressKeyToContinue">
      <div class="content-container">
        <transition-group enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
          <write v-for="(card,index) in roundcards" class="write-container" v-if="card.visibility"
@@ -15,7 +15,7 @@
        <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
          <div class="learnEnd" v-if="learnEnd.visibility" :style="{backgroundColor:learnEnd.bg,color:theme.textColor}">
            <div class="learnEnd-header">{{$t('setLearn.write.learnEnd')}}</div>
-           <div class="learnEnd-button" @click="updateWrites" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.write.reLearn')}}</div>
+           <div class="learnEnd-button" @click="relearn" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.write.reLearn')}}</div>
          </div>
        </transition>
      </div>
@@ -36,11 +36,11 @@
           <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.progress')}}</text>
         </svg>
       </div>
-      <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="updateWrites">
+      <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="relearn">
       <icon name="relearn" class="fc-play-icon"></icon>
       {{$t('setLearn.matrix.startOver')}}
     </div>
-      <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
+      <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffleCards">
         <icon name="shuffle" class="fc-play-icon"></icon>
         {{$t('setLearn.matrix.shuffle')}}
       </div>
@@ -65,24 +65,35 @@
             roundcards:[],            //单轮卡片
             roundData:{},
             pgData:{},                //progressData
-            writedLen:'',
             roundEnd:{},
             learnEnd:{},
             roundLen:'',           //在initPGB里面被初始化
             curRound:'',
-            theme:{}
+            theme:{},
+            canPressAnyKey:false,
+            writedLen:""
           }
       },
       created(){
+          console.log("write-container created");
           this.theme=theme[this.themeName].writeT;
           this.$nextTick(()=>{
             let pgEL=document.querySelector('.progress-pgb-bg');
             this.roundData.totalLen=pgEL.getTotalLength();
             this.pgData.totalLen=pgEL.getTotalLength();
           })
-          this.fetchData(false);
+          this.fetchData();
+      },
+      destroyed(){
+          this.updatewritedToServer();
       },
       methods:{
+        banTab(e){
+          let keyCode=e.keyCode||e.which;
+          if(keyCode===9){
+            e.preventDefault();
+          }
+        },
         initWrite(){
           this.writedLen=0;
           this.roundcards=[];
@@ -90,7 +101,7 @@
           this.loading = true;
           this.roundData={
               offset:'',
-              singleLen:'',
+              singleLen:'',     //offset,singleLen和totalLen代表进度条的长度控制
               totalLen:'',
               curIndex:'',
               cardsLen:'',
@@ -114,22 +125,21 @@
             bg:bg
           }
         },
-        initCards(data,isShuffle){
+        initCards(data){
           let cards=[];
+          let roundcards=[];
 
           let lastCard={};
           for (let i = 0; i <data.length; i++) {
-            let writed=data[i].writed;
-
-            if(writed){
-              this.writedLen+=1;
-              continue;
-            }
-
             let term = decodeURIComponent(data[i].term).replace(/\n/g, "<br>");   //用\n替代<br>才能实现换行
             let definition = decodeURIComponent(data[i].definition).replace(/\n/g, "<br>");
             let maxdef = definition;
             let vid=data[i].vid;
+            let writed=data[i].writed;
+
+            if(writed){
+              this.writedLen+=1;
+            }
 
             let bg=this.getColor(this.theme.itemBGs);
             if(this.theme.itemBGs.length!=1&&this.cards.length!=0){
@@ -156,10 +166,51 @@
             }
             cards.push(card);
           }
-          if(isShuffle){
-            this.cards=_.shuffle(cards);
+
+          this.cards=cards;
+
+          if(this.writedLen==data.length){
+            this.learnEnd.visibility=true;
+            return;
+          }
+
+          for(let i=0;i<this.cards.length;i++){
+            if(!this.cards[i].writed){
+              roundcards.push(this.cards[i]);
+            }
+            if(roundcards.length>=7){
+              break;
+            }
+          }
+          this.roundcards=roundcards;
+
+          if(this.writedLen==data.length){
+            this.roundEnd.visibility=true;
           }else {
-            this.cards=cards;
+            this.roundcards[0].visibility=true;
+          }
+        },
+        shuffleCards(){
+          //this.roundData.curIndex代表当前可见卡片的index，包括当前卡片和以后的卡片需要shuffle,并且只剩一个卡片不用shuffle
+          if(!this.roundEnd.visibility&&!this.learnEnd.visibility&&!(this.roundData.curIndex==this.roundcards.length-1)){
+            this.roundcards[this.roundData.curIndex].visibility=false;
+            let cards=[];
+            let length=this.roundcards.length;
+            for(let i=this.roundData.curIndex;i<length;i++){
+              cards.push(this.roundcards.pop());
+            }
+            let shuffle_cards=[];
+            if(!(this.roundData.curIndex==this.roundcards.length-2)){   //不只剩余两个的话就shuffle，只剩两个就直接交换
+              shuffle_cards=_.shuffle(cards);
+            }else {
+              shuffle_cards=cards;
+            }
+            for(let i=0;i<shuffle_cards.length;i++){
+              this.roundcards.push(shuffle_cards[i]);
+            }
+            setTimeout(()=>{
+              this.roundcards[this.roundData.curIndex].visibility=true;
+            },1000);
           }
         },
         setPGB(pgb,cardsLen,curIndex,isPercentage){
@@ -179,71 +230,31 @@
           let pgEL=document.querySelector('.progress-pgb-bg');
           this.roundData.totalLen=pgEL.getTotalLength();
           this.pgData.totalLen=pgEL.getTotalLength();
-
-          if(this.writedLen==totalSetLen) {     //表示全部writed
-            this.learnEnd.visibility = true;
-          }
-
           this.setPGB(this.pgData,totalSetLen,this.writedLen,true);
-          let roundLen=parseInt(totalSetLen/7);
-          if(parseInt(totalSetLen/7)!=totalSetLen/7){
-            roundLen+=1;
-          }
-
-          this.roundLen=roundLen;
-          if(roundLen==1){            //只有一轮,不必考虑roundEnd
-            this.setPGB(this.roundData,totalSetLen,this.writedLen,false);
-          }else if(roundLen>=2){
-            let curRound=parseInt(this.writedLen/7);
-            if(parseInt(this.writedLen/7)!=this.writedLen/7||this.writedLen==0){
-              curRound+=1;
-            }
-            this.curRound=curRound;
-
-            if(curRound==roundLen){         //最后一轮,不必考虑roundEnd
-              let roundCardsLen=totalSetLen%7;
-              let curRoundIndex=roundCardsLen-(totalSetLen-this.writedLen);
-              this.setPGB(this.roundData,totalSetLen%7,curRoundIndex,false);
-            }else {     //中间轮，要考虑roundEnd
-              if(this.writedLen%7==0&&this.writedLen!=0) {
-                this.roundEnd.visibility = true;
-                this.setPGB(this.roundData,7,7,false);
-              }else {
-                this.setPGB(this.roundData,7,this.writedLen%7,false);
-              }
-            }
+          let leftedcardslen=totalSetLen-this.writedLen;
+          if(leftedcardslen==0){
+            this.setPGB(this.roundData,7,7,false);
+          }else if(leftedcardslen<7){
+            this.setPGB(this.roundData,leftedcardslen,0,false);
+          }else {
+            this.setPGB(this.roundData,7,0,false);
           }
         },
-        fetchData(isShuffle) {
+        fetchData() {
           this.initWrite();
-          let euname = this.getCookie("euname");
+          let login_taken=this.getCookie("login_token");
+          let username=JSON.parse(login_taken).username;
           let curSet = JSON.parse(this.getCookie('curSet'));
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
-              username: escape(euname),
+              username: username,
               createTime: createTime
             }
           })
             .then((response) => {
-              this.initCards(response.data,isShuffle);
+              this.initCards(response.data);
               this.initPGB(response.data.length);
-              if(!this.roundEnd.visibility){
-                if(this.roundLen==1||this.curRound==this.roundLen){     //只有一轮或是最后一轮就把cards全部给roundcards
-                  let cardsLen=this.cards.length;
-                  for(let i=0;i<cardsLen;i++){
-                    this.roundcards.push(this.cards.shift());
-                  }
-                }else {         //总轮数大于1并且是中间轮
-                  let cardsLen=7-this.roundData.curIndex;
-                  for(let i=0;i<cardsLen;i++){
-                    this.roundcards.push(this.cards.shift());
-                  }
-                }
-                if(!this.learnEnd.visibility){
-                  this.roundcards[0].visibility=true;
-                }
-              }
               setTimeout(()=>{
                 this.loading=false;
               },500);
@@ -251,19 +262,6 @@
             .catch(function (error) {
               console.log(error);
             });
-        },
-        updateWrite(vid,euname,index){
-          this.axios.post('/api/updateWrite', {
-            params: {
-              vid:vid,
-              euname:euname
-            }
-          }).then((response)=>{
-            let nextIndex = index + 1;
-            this.showNext(nextIndex);
-          }).catch(function (error) {
-            console.log(error);
-          });
         },
         updateRoundData(){
           this.roundData.curIndex++;
@@ -276,80 +274,111 @@
         dismiss(canUpdate,index){
           this.roundcards[index].visibility=false;
 
-          if(canUpdate){
-            let vid=this.roundcards[index].vid;
-            let euname = this.getCookie("euname");
-            this.updateWrite(vid,euname,index);
+          if(canUpdate){       //canUpdate代表第一次就回答正确,就刷新cards里面的writed
+            this.roundcards[index].writed=true;
             this.writedLen+=1;
             this.updatePGData();
-          }else {           //不能update，就判断cards里面是否已经包含这个roundcard
-            let isContain=false;
-            for(let i=0;i<this.cards.length;i++){
-              if(this.cards[i].vid==this.roundcards[index].vid){
-                isContain=true;
-                break;
-              }
-            }
-            if(!isContain){
-              this.cards.push(this.roundcards[index]);       //如果回答错误,就把这个卡片push到总卡片中,并且不更新它的writed
-            }
           }
-
           this.updateRoundData();
           this.showNext(index+1);
         },
         showNext(nextIndex){
-          if(this.writedLen==this.pgData.cardsLen){
+          if(this.writedLen==this.pgData.cardsLen){   //表示全部单词过完
             this.learnEnd.visibility=true;
             return;
           }
 
           if(this.roundData.curIndex==this.roundData.cardsLen){           //表示这轮结束
             this.roundEnd.visibility=true;
+            let fc=document.getElementsByClassName('write-out-container');
+            fc[0].focus();
+            var that=this;
+            setTimeout(()=>{
+              that.canPressAnyKey=true;
+            },500);
           }else {
-            this.roundcards[nextIndex].visibility=true;
+            setTimeout(()=>{
+              this.roundcards[nextIndex].visibility=true;
+            },500);
+          }
+        },
+        pressKeyToContinue(){
+          if(this.canPressAnyKey){
+            this.startNextRound();
+            let fc=document.getElementsByClassName('write-out-container');
+            fc[0].blur();
+            this.canPressAnyKey=false;
           }
         },
         startNextRound(){
-          this.roundcards=[];
-          this.curRound++;
-          console.log(this.curRound);
+          let roundcards=[];
           if(this.roundEnd.visibility){
             this.roundEnd.visibility=false;
-            if(this.roundLen==1||this.curRound==this.roundLen){     //只有一轮或是最后一轮就把cards全部给roundcards
-              let cardsLen=this.cards.length;
-              for(let i=0;i<cardsLen;i++){
-                this.roundcards.push(this.cards.shift());
+            for(let i=0;i<this.cards.length;i++){
+              if(!this.cards[i].writed){
+                roundcards.push(this.cards[i]);
               }
-            }else {         //总轮数大于1并且是中间轮
-              let cardsLen=7-this.roundData.curIndex;
-              for(let i=0;i<cardsLen;i++){
-                this.roundcards.push(this.cards.shift());
+              if(roundcards.length>=7){
+                break;
               }
             }
-            this.setPGB(this.roundData,this.roundcards.length,0,false);
-            this.roundcards[0].visibility=true;
+            this.roundcards=roundcards;
+            this.setPGB(this.roundData,roundcards.length,0,false);
+            setTimeout(()=>{
+              this.roundcards[0].visibility=true;
+            },500);
           }
-        },
-
-        updateWrites(){
-          let curSet = JSON.parse(this.getCookie('curSet'));
-          let euname = this.getCookie("euname");
-          this.axios.post('/api/updateWrites', {
-            params: {
-              createtime:curSet.timeStamp,
-              euname:euname
-            }
-          }).then((response)=>{
-            this.learnEnd.visibility=false;
-            this.fetchData();
-          }).catch(function (error) {
-            console.log(error);
-          });
         },
         shuffle(){
           this.fetchData(true);
-          console.log('gg');
+        },
+        updatewritedToServer(){
+          let writes=[];
+          let cards=this.cards;
+          for(let i=0;i<cards.length;i++){
+            let data={
+              vid:cards[i].vid,
+              writed:cards[i].writed
+            }
+            writes.push(data);
+          }
+          let login_token=this.getCookie("login_token");
+          let jsondata=JSON.stringify(writes);
+          let username=JSON.parse(login_token).username;
+          this.axios.post("/api/updatewrites",{
+            params: {
+              username:username,
+              jsondata:jsondata
+            }
+          }).then((res)=>{
+            console.log(res);
+          }).catch((err)=>{
+            console.log(err);
+          })
+        },
+        relearn(){
+          let cards=this.cards;
+          let writes=[];
+          for(let i=0;i<cards.length;i++){
+            let data={
+              vid:cards[i].vid,
+              writed:false
+            }
+            writes.push(data);
+          }
+          let login_token=this.getCookie("login_token");
+          let jsondata=JSON.stringify(writes);
+          let username=JSON.parse(login_token).username;
+          this.axios.post("/api/updatewrites",{
+            params: {
+              username:username,
+              jsondata:jsondata
+            }
+          }).then((response)=>{
+            this.fetchData();
+          }).catch((err)=>{
+            console.log(err);
+          })
         }
       },
       props:{

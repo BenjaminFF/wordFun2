@@ -9,6 +9,7 @@
                @click="checkLetter(cell)" :key="index" :style="{backgroundColor:cell.BG,color:cell.color}">
             {{cell.letter}}
             <icon name="space" class="cell-space" v-if="cell.isSpace"></icon>
+            <div class="subscript" v-if="cell.isActive" v-html="cell.subScript"></div>
           </div>
         </div>
       </div>
@@ -83,7 +84,8 @@
               isActive:false,
               isSpace:false,
               color:cellStyle.color,
-              BG:cellStyle.BG
+              BG:cellStyle.BG,
+              subScript:""
             }
             if(letters[i].charCodeAt(0)==32){
               cell.isSpace=true;
@@ -104,9 +106,12 @@
             this.curIndex++;
             cell.color=this.cellStyle.activeColor;
             cell.BG=this.cellStyle.activeBG;
+            cell.subScript=this.curIndex;
           }
           if(this.curIndex==this.term.length){
-            this.$emit('dismiss');
+            setTimeout(()=>{
+              this.$emit('dismiss');
+            },500);
           }
         },
         autoFill(){
@@ -118,6 +123,7 @@
               cell.color=this.cellStyle.activeColor;
               cell.BG=this.cellStyle.activeBG;
               this.curIndex++;
+              cell.subScript=this.curIndex;
               break;
             }
           }
@@ -125,7 +131,7 @@
           if(this.curIndex==this.term.length){
             setTimeout(()=>{
               this.$emit('dismiss');
-            },200);
+            },500);
           }
         }
       }
@@ -179,6 +185,7 @@
     grid-template-rows: repeat(var(--column),var(--size));
   }
   .cell{
+    position: relative;
     width: auto;
     height: auto;
     margin: 7px;
@@ -231,5 +238,12 @@
   .idea-icon:hover{
     cursor: pointer;
     color: yellow;
+  }
+
+  .subscript{
+    position: absolute;
+    right: 0.2rem;
+    bottom: 0.2rem;
+    font-size: 0.6rem;
   }
 </style>

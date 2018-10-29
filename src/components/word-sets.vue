@@ -50,10 +50,11 @@
         },
         fetchData(){
           this.setinited=false;
-          let euname=this.getCookie("euname");
+          let login_taken=this.getCookie("login_token");
+          let username=JSON.parse(login_taken).username;
           this.axios.get('/api/getwordset', {
             params: {
-              username:escape(euname)
+              username:username
             }
           })
             .then((response)=>{

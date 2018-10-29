@@ -65,7 +65,8 @@
               themes:[]
             },
             themeName:"",
-            hackReset:true
+            hackReset:true,
+            createTime:""
           }
       },
       created(){
@@ -80,7 +81,10 @@
             {name:'dark',colors:['#3A506B','#0B132B','#5BC0BE','#6FFFE9']},
           ]
 
-          let themeName = window.localStorage.getItem('themeName')||'default';
+          let curSet = JSON.parse(this.getCookie('curSet'));
+          this.createTime=curSet.timeStamp;
+
+          let themeName = window.localStorage.getItem(this.createTime+'themeName')||'default';
 
           this.themeName=themeName;
           this.sideBarT=theme[themeName].sidebarT;
@@ -88,7 +92,6 @@
 
           this.returnItem.color=this.sideBarT.textColor;
           this.helpItem.color=this.sideBarT.textColor;
-          console.log('gg');
           let sidebarT=this.sideBarT;
           this.barItems=[
             {icon:'list',name:'setList',title:this.$t('setLearn.sideBar.setList'),selected:false,comp:setListContainer,color:sidebarT.textColor},
@@ -96,8 +99,7 @@
             {icon:'flashcards',name:'flashcards',title:this.$t('setLearn.sideBar.flashCards'),selected:false,comp:flashcardsContainer,color:sidebarT.textColor},
             {icon:'matrix',name:'matrix',title:this.$t('setLearn.sideBar.matrix'),selected:false,comp:matrixContainer,color:sidebarT.textColor}
           ]
-          let curBarName=window.localStorage.getItem('curBarName')||'setList';
-          console.log(curBarName);
+          let curBarName=window.localStorage.getItem(this.createTime+'curBarName')||'setList';
           this.curItem=this.getItemByName(curBarName,this.barItems);
           this.curItem.selected=true;
           this.curItem.color=this.sideBarT.textActiveColor;
@@ -129,7 +131,7 @@
           item.selected=true;
           item.color=this.sideBarT.textActiveColor;
           this.curItem=item;
-          window.localStorage.setItem('curBarName',this.curItem.name);
+          window.localStorage.setItem(this.createTime+'curBarName',this.curItem.name);
         },
         hoverItem(item){
           item.color=this.sideBarT.textActiveColor;
@@ -141,7 +143,7 @@
         },
         updateTheme(themeName){
           this.themeName=themeName;
-          window.localStorage.setItem('themeName', themeName);
+          window.localStorage.setItem(this.createTime+'themeName', themeName);
 
           this.initLearn();
 

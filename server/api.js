@@ -2,7 +2,9 @@ const express=require('express');
 const router=express.Router();
 const pool=require('./mysql_pool');
 const nodersa=require('node-rsa');
+const mysql=require('mysql');
 const fs=require('fs');
+const redis=require("redis");
 
 function queryData(value,res,column){
     var sql='select * from user where '+column+'=\''+value+'\'';
@@ -53,47 +55,6 @@ function insertdata(username,email,password,res){
       return;
     }else {
       res.send('success');
-    }
-  });
-}
-
-function queryeup(eu,pw,res){
-  var eusql='select * from user where username =\''+eu+'\' or email=\''+eu+'\'';
-  pool.query(eusql,function (err, result) {
-    if(err){
-      console.log('[SELECT ERROR] - '+err.message)
-      res.send('error');
-      return;
-    }else {
-      if(result[0]==undefined){
-        let json={
-          result:'empty'
-        }
-        let data=JSON.stringify(json);
-        res.send(data);
-        return;
-      }else {
-        console.log(result[0].username);
-        var data = fs.readFileSync('wprivatekey.pem');
-        var key=new nodersa(data);
-        var password=key.decrypt(unescape(result[0].password),'utf8');
-        var decryptpw=key.decrypt(unescape(pw),'utf8');
-        if(password==decryptpw){
-          let json={
-            result:true,
-            username:result[0].username
-          }
-          let data=JSON.stringify(json);
-          res.send(data);
-        }else {
-          let json={
-            result:false,
-          }
-          let data=JSON.stringify(json);
-          res.send(data);
-        }
-        return;
-      }
     }
   });
 }
@@ -153,9 +114,119 @@ router.post('/api/signup',function (req,res) {
 });
 
 router.post('/api/login',function (req,res) {
-  let username=unescape(req.body.params.eu);
-  let password=unescape(req.body.params.pw);
-  queryeup(escape(username),escape(password),res);
+  let curTime=new Date().getTime();
+  let wprivatekey=fs.readFileSync('wprivatekey.pem');
+  var key=new nodersa(wprivatekey);
+  let data=JSON.parse(key.decrypt(req.body.params.encryptdata,'utf8'));
+  if(curTime-data.curTime<60*1000){       //一次正常的http请求不会超过60s
+    let mClient=redis.createClient();
+    mClient.smembers("login nonce",function(err,replies){
+      if(err) throw err;
+      for(let i=0;i<replies.length;i++){
+        if(data.nonce==replies[i]){
+          res.send("illegal request");
+          return;
+        }
+      }
+      if(replies.length>=60*1000){        //假设一分钟内有60000条请求
+        mClient.del("login nonce");
+      }
+      mClient.sadd("login nonce",data.nonce);
+      //到这步就排除了重放攻击，因为一分钟之内即使把加密数据劫持了之后，再直接传过来，nonce就已经重复
+      let token=data.eu+data.nonce;
+      queryeup(decodeURIComponent(data.eu),data.pw,res,mClient,data.nonce);
+    });
+  }else {
+    res.send("illegal request");
+  }
+});
+
+function queryeup(eu,pw,res,mClient,nonce){
+  var eusql='select * from user where username =? or email=?';
+  pool.query(eusql,[eu,eu],function (err, result) {
+    if(err){
+      console.log('[SELECT ERROR] - '+err.message)
+      res.send("query error");
+    }else {
+      if(result[0]==undefined){
+        let json={
+          result:'empty'
+        }
+        res.send(JSON.stringify(json));
+        return;
+      }else {
+        var data = fs.readFileSync('wprivatekey.pem');
+        var key=new nodersa(data);
+        var password=key.decrypt(result[0].password,'utf8');
+        if(password==pw){      //如果密码正确，则保存token(跟随客户端一起传过来的，客户端下要保存在cookie中)，以便下次直接登陆
+          let token={
+            username:result[0].username,
+            token:nonce
+          }
+          mClient.sadd("valid login token",JSON.stringify(token));
+          let json={
+            result:true,
+            username:result[0].username
+          }
+          let data=JSON.stringify(json);
+          res.send(data);
+        }else {
+          let json={
+            result:false,
+          }
+          let data=JSON.stringify(json);
+          res.send(data);
+        }
+      }
+    }
+    mClient.quit();
+  });
+}
+
+router.post('/api/validate_token',(req,res)=>{
+  let curTime=new Date().getTime();
+  let wprivatekey=fs.readFileSync('wprivatekey.pem');
+  var key=new nodersa(wprivatekey);
+  let reqdata=JSON.parse(key.decrypt(req.body.params.encryptdata,'utf8'));
+  if(reqdata.curTime-curTime<=60*1000){
+    let mClient=redis.createClient();
+    mClient.smembers("validate_token nonce",function(err,replies){
+      if(err) throw err;
+      for(let i=0;i<replies.length;i++){
+        if(replies[i]==reqdata.nonce){
+          res.send("illegal request");
+          mClient.quit();
+          return;
+        }
+      }
+      mClient.sadd("validate_token nonce",reqdata.nonce);
+      if(replies.length>=60*1000){
+        mClient.del("validate_token nonce");
+      }
+      mClient.smembers("valid login token",(err,replies)=>{
+        if(err) throw err;
+        for(let i=0;i<replies.length;i++){
+          console.log("reqdata.login_token: "+reqdata.login_token);
+          console.log("valid login token: "+replies[i]);
+          if(replies[i]==reqdata.login_token){
+            let resdata={
+              result:true
+            }
+            res.send(JSON.stringify(resdata));
+            mClient.quit();
+            return;
+          }
+        }
+        let resdata={
+          result:false
+        }
+        res.send(JSON.stringify(resdata));
+        mClient.quit();
+      });
+    });
+  }else {
+    res.send("illegal request");
+  }
 });
 
 router.get('/api/getfoldersandsets',function (req,res) {
@@ -284,7 +355,8 @@ router.get('/api/getCards',(req,res)=>{
         term:term,
         definition:definition,
         matrixed:matrixed,
-        writed:writed
+        writed:writed,
+        flashed:result[i].flashed
       }
       cards.push(card);
     }
@@ -443,39 +515,70 @@ router.post('/api/updatematrixs',(req,res)=>{
   });
 });
 
-router.post('/api/updateWrite',(req,res)=>{
-  let vid=req.body.params.vid;
-  let euname=req.body.params.euname;
-
-  pool.query('update vocabulary set writed=1 where vid=? and author=?',[vid,euname],(err)=>{
-    if(err){
-      res.send('err');
-      throw err;
+function multiUpdate(data,author,columnName,res){
+  let multiupdatesql="update vocabulary set "+columnName+"=case ";
+  let i=0;
+  var wheresql='where vid in (';
+  data.forEach((item,index)=>{
+    multiupdatesql+=mysql.format('when vid=? and author=? then ? ',[item.vid,author,item[columnName]]);
+    if(index!=data.length-1){
+      wheresql+=mysql.format('?,',[item.vid]);
+    }else {
+      wheresql+=mysql.format('?) ',[item.vid]);
     }
-    res.send('success');
   });
+  multiupdatesql+='END ';
+  wheresql+=mysql.format('and author=?',[author]);
+  multiupdatesql+=wheresql;
+
+  pool.query(multiupdatesql,function (error) {
+    if (error) {
+      res.send('err');
+      throw error;
+    }
+    res.send('multi update success');
+  });
+}
+
+router.post('/api/updateflashs',(req,res)=>{
+  let flashes=JSON.parse(req.body.params.jsondata);
+  let author=req.body.params.username;
+  multiUpdate(flashes,author,"flashed",res);
 });
 
-router.post('/api/updateWrites',(req,res)=>{
-  let createtime=req.body.params.createtime;
-
-  let euname=req.body.params.euname;
-  pool.query('update vocabulary set writed=0 where createtime=? and author=?',[createtime,euname],(err)=>{
-    if(err){
-      res.send('err');
-      throw err;
-    }
-    res.send('success');
-  });
+router.post('/api/updatewrites',(req,res)=>{
+  let writes=JSON.parse(req.body.params.jsondata);
+  let author=req.body.params.username;
+  multiUpdate(writes,author,"writed",res);
 });
 
 router.post('/api/updatemflashs',(req,res)=>{
-  let mflashs=JSON.parse(req.body);
-  for (let i = 0; i < mflashs.length; i++) {
-    let mflashed=mflashs[i].mflashed;
-    console.log(mflashed);
-  }
-  res.send("update flashs success");
+  let mflashes=req.body;
+  var multiupdatesql='update vocabulary set mflashed=case ';
+  var i=0;
+  var wheresql='where vid in (';
+  mflashes.forEach((item,index)=>{
+    multiupdatesql+=mysql.format('when vid=? and author=? then ? ',[item.vid,item.author,item.mflashed]);
+    if(index!=mflashes.length-1){
+      wheresql+=mysql.format('?,',item.vid);
+    }else {
+      wheresql+=mysql.format('?) ',item.vid);
+    }
+  });
+  let author=mflashes[0].author;
+  multiupdatesql+='END ';
+  wheresql+=mysql.format('and author=?',[author]);
+  multiupdatesql+=wheresql;
+  pool.query(multiupdatesql,function (error) {
+    if (error) {
+      res.send('err');
+      throw error;
+    }
+
+    res.send('multi update success');
+  });
 });
+
+
 
 module.exports = router;

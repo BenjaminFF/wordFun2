@@ -38,7 +38,8 @@ module.exports={
       iconColor:'#AFB5BF',
       iconActiveColor:'#61A191',
       dialogBG:'#F0F4F6',
-      dialogColor:'#1A936F'
+      dialogColor:'#1A936F',
+      middleLineColor:"#FDFFFC"
     },
     matrixsT:{
       itemBGs:['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'],
@@ -98,7 +99,8 @@ module.exports={
       iconColor:'#5BC0BE',
       iconActiveColor:'#6FFFE9',
       dialogBG:'#3A506B',
-      dialogColor:'#6FFFE9'
+      dialogColor:'#6FFFE9',
+      middleLineColor:"#5BC0BE"
     },
     matrixsT:{
       itemBGs:['#0B132B'],

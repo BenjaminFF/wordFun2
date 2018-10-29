@@ -17,7 +17,8 @@
 import MyHeader from "./components/my-header";
 import DefaultPage from "./components/default-page";
 import UserPage from "./components/user-page";
-import { mapState,mapMutations } from 'vuex'
+import { mapState,mapMutations } from 'vuex';
+import nodersa from "node-rsa"
 export default {
   name: 'App',
   data(){
@@ -30,8 +31,7 @@ export default {
     }
   },
   created(){
-    let euname=this.getCookie("euname");        //存入cookie中的还是经过escape后的，避免中文乱码
-    let password=this.getCookie("password");
+    let login_token=this.getCookie("login_token");
     let currentPath=this.$router.currentRoute.fullPath;
     if(currentPath=='/'){
       this.showLT=true;
@@ -41,24 +41,38 @@ export default {
     }else {
       this.setCreateState(false);
     }
-    if(euname!=""&&password!=""){
-      this.axios.post('/api/login', {
-        params: {
-          eu:euname,
-          pw:password
+    if(login_token!=""){
+      this.axios.get("/static/wpublickey.pem").then((response)=>{
+        let key=new nodersa(response.data);
+        let curTime=new Date().getTime();
+        let nonce=this.getRandomStr(5)+curTime;
+        let reqdata={
+          login_token:login_token,
+          curTime:curTime,
+          nonce:nonce
         }
-      }).then((response)=> {
-        if(response.data.result){
-          this.curComponent=UserPage;
-          this.isDefaultPage=false;
-          this.username=euname;
-          this.initFoldersAndSets(euname);
-        }
+        let jsondata=JSON.stringify(reqdata);
+        let encryptdata=key.encrypt(jsondata,'base64');
+        this.axios.post("/api/validate_token",{
+          params: {
+            encryptdata:encryptdata
+          },
+          timeout:10000,
+        }).then((response)=>{
+          console.log(response.data.result);
+          if(response.data.result){
+            let resdata=JSON.parse(login_token);
+            this.isDefaultPage=false;
+            this.curComponent=UserPage;
+            this.username=resdata.username;
+          }
+          this.Loading=false;
+        }).catch((error)=>{
+          console.log(error);
+        })
       });
     }else {
-      setTimeout( ()=> {
-        this.Loading=false;
-      },1000);
+      this.Loading=false;
     }
   },
   components: {UserPage, DefaultPage, MyHeader},
@@ -67,7 +81,7 @@ export default {
       let that=this;
       this.axios.get('/api/getfoldersandsets', {
         params: {
-          username:escape(euname)
+          username:euname
         }
       })
         .then((response)=>{
@@ -81,6 +95,13 @@ export default {
         .catch(function (error) {
           console.log(error);
         });
+    },
+    getRandomStr(length){
+      let str="";
+      for(let i=0;i<length;i++){
+        str+=String.fromCharCode(Math.abs(Math.random()*26)+97);
+      }
+      return str;
     },
     ...mapMutations({
       setFolders:'wordset/setFolders',

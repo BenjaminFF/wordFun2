@@ -53,8 +53,7 @@
               }
             }
           },
-          login:function () {
-            console.log('gg');
+        login:function () {
             let that=this;
             let elementList=document.querySelectorAll(".input");
             if(this.euInfo.value==""){
@@ -72,39 +71,51 @@
               },2000);
               elementList[1].focus();
             }else{
-              escape(that.euInfo.value);
               this.axios.get('/static/wpublickey.pem').then(function (response) {
-                var key=new nodersa(response.data);
-                let encryptpw=key.encrypt(that.pwInfo.value,'base64');
+                let key=new nodersa(response.data);
+                let curTime=new Date().getTime();
+                let nonce=that.getRandomStr(5)+curTime+that.getRandomStr(5);
+                let reqdata={
+                  eu:encodeURIComponent(that.euInfo.value),
+                  pw:that.pwInfo.value,
+                  curTime:curTime,
+                  nonce:nonce
+                }
+                let jsonData=JSON.stringify(reqdata);
+                let encryptdata=key.encrypt(jsonData,'base64');
                 let vm=that;
                 vm.axios.post('/api/login', {
                   params: {
-                    eu:that.euInfo.value,
-                    pw:escape(encryptpw)
-                  }
+                    encryptdata:encryptdata
+                  },
+                  timeout:10000,
                 })
                   .then(function (response) {
-                    let data=response.data;
-                    if(data.result=='empty'){
+                    let resdata=response.data;
+                    if(resdata.result===undefined){
+                      return;
+                    }
+                    if(resdata.result=='empty'){      //用户不存在
                       that.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
                       that.euInfo.hint.color="red";
                       console.log("euempty");
                       setTimeout(function () {
                         that.euInfo.hint.text="";
                       },2000);
-                    }else if(!data.result){
+                    }else if(!resdata.result){      //用户密码错误
                       that.pwInfo.hint.text=that.$t('LogIn.pwHint[1]');
                       that.pwInfo.hint.color="red";
                       console.log("falsepw");
                       setTimeout(function () {
                         that.pwInfo.hint.text="";
                       },2000);
-                    }else if(data.result){
+                    }else if(resdata.result){
                       console.info('success');
-                      let username=unescape(data.username);
-                      console.log(username);
-                      that.setCookie('euname',username,30);
-                      that.setCookie('password',encryptpw,30);
+                      let login_token={
+                        username:resdata.username,
+                        token:reqdata.nonce
+                      }
+                      that.setCookie("login_token",JSON.stringify(login_token),30);
                       window.location.reload(true);
                     }
                   })
@@ -114,7 +125,14 @@
               });
 
             }
-          },
+        },
+        getRandomStr(length){
+            let str="";
+            for(let i=0;i<length;i++){
+              str+=String.fromCharCode(Math.abs(Math.random()*26)+97);
+            }
+            return str;
+        },
         euListener(event){
             this.euInfo.value=event.target.innerHTML;
         },

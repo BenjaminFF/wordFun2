@@ -18,7 +18,6 @@ app.use(bodyparser.urlencoded({ extended: false }));
 
 app.use(express.static(path.resolve(__dirname,'../dist')));
 
-app.use(history());
 
 app.use(api);
 
