@@ -5,7 +5,9 @@
       <div contenteditable="true" class="input" :style="inputStyle" @focus="Focus" @blur="Blur" @paste="onPaste($event)"
            v-on="inputListeners" :class="{security:security}"
       ></div>
-      <icon name="tick" :style="imgStyle" class="tick" v-if="validate"></icon>
+      <icon name="tick" class="tick" :style="imgStyle" v-if="validate"></icon>
+      <div class="captcha" :style="imgStyle" v-if="showCaptcha" @click="clickCaptcha" v-html="captchaInfo.captchaData">
+      </div>
       <div class="ani-bb" :style="bbStyle"></div>
 
     <div class="hint" v-bind:style="hintStyle">{{hint.text}}</div>
@@ -13,6 +15,7 @@
 </template>
 
 <script>
+  import {mapState} from 'vuex';
     export default {
         name: "ani-input",
       data(){
@@ -91,7 +94,10 @@
               }
             }
           )
-        }
+        },
+        ...mapState({
+          captchaInfo:state=>state.captcha.captchaInfo
+        }),
       },
       methods:{
         onPaste(e){
@@ -142,6 +148,9 @@
         },
         Blur(){
           this.bbStyle.width=0;
+        },
+        clickCaptcha(){
+          console.log(this.captchaInfo.captchaData);
         }
       },
       props:{
@@ -172,6 +181,12 @@
             type:Boolean,
           default(){
               return false;
+          }
+        },
+        showCaptcha:{
+          type:Boolean,
+          default(){
+            return false;
           }
         },
         security:{
@@ -234,6 +249,13 @@
     right: 0;
     color: dodgerblue;
     user-select: none;
+  }
+  .captcha{
+    position: absolute;
+    right: 5rem;
+    user-select: none;
+    width: fit-content;
+    height: fit-content;
   }
   .security{
     -webkit-text-security:disc;

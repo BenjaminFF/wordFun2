@@ -10,7 +10,7 @@
             <ani-input :font-size="1.3" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true" v-on:keyup.enter="signup"
                        v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="banInput($event,pwInfo,30)"
             ></ani-input>
-            <my-button :font-size="1.2" class="button" @click.native="signup">{{$t('SignUp.basic[3]')}}</my-button>
+            <my-button :font-size="1.2" class="button" @click.native="signup">{{signupInfo.text}}</my-button>
           </div>
             <icon name="cross" class="rtimg" @click.native="dismiss($event)"></icon>
         </div>
@@ -29,7 +29,8 @@
             nameInfo:{},
             emailInfo:{},
             pwInfo:{},
-            isShow:this.showSU
+            isShow:this.showSU,
+            signupInfo:{}
           }
       },
       created(){
@@ -42,7 +43,7 @@
       },
       methods:{
         init(){
-                  this.nameInfo={
+          this.nameInfo={
                     value:"",
                     Validated:false,
                     hint:{
@@ -50,8 +51,8 @@
                       color:'red',
                     },
                     isVerifying:false
-                  }
-                  this.emailInfo={
+          }
+          this.emailInfo={
                 value:"",
                 Validated:false,
                 hint:{
@@ -60,7 +61,7 @@
               },
               isVerifying:false
             }
-            this.pwInfo={
+          this.pwInfo={
                 value:"",
                 Validated:false,
                 hint:{
@@ -69,7 +70,11 @@
               },
               isVerifying:false
             }
-          },
+          this.signupInfo={
+            text:this.$t("SignUp.basic[3]"),
+            isSignUp:false
+          }
+        },
         banInput(event,inputInfo,length){
             if(this.checkLength(event.target.innerHTML)>length){
               // Backspace, del, 左右方向键
@@ -79,7 +84,7 @@
               }
             }
           },
-        /*假定用户1s完成输入，双手离开键盘，然后判断用户名*,1s之内只判断一次*/
+        /*假定用户1s完成输入，双手离开键盘，然后判断用户名,1s之内只判断一次*/
         nameListener(event){
             var that=this;
             if(event.target.textContent!=undefined){
@@ -87,10 +92,10 @@
             }else {
               that.nameInfo.value=event.target.innerText;
             }
-            console.log(that.nameInfo.value);
             if(!this.nameInfo.isVerifying){
               setTimeout(function () {
-                that.verifyname(that.nameInfo.value);
+                console.log(that.nameInfo.value);
+                that.verifyname(that.nameInfo.value);     //that.nameInfo.value是1s后的value
                 that.nameInfo.isVerifying=false;
               },1000);
               that.nameInfo.isVerifying=true;
@@ -119,11 +124,11 @@
         /*用户名不能小于4；用户名只能包含字母，汉字，数组，下划线；用户名不能重复*/
         verifyname(value) {
           var that = this;
-          if (this.checkLength(value) < 4) {
+          if (value.length < 2) {
             that.nameInfo.hint.text=this.$t('SignUp.nameHint[1]');
             that.nameInfo.hint.color="red";
             that.nameInfo.Validated=false;
-          } else if(this.checkLength(value)>20){
+          } else if(value.length>15){
             that.nameInfo.hint.text=this.$t('SignUp.nameHint[5]');
             that.nameInfo.hint.color="red";
             that.nameInfo.Validated=false;
@@ -134,10 +139,9 @@
               that.nameInfo.hint.color = "red";
               that.nameInfo.Validated=false;
             } else {
-              console.log(escape(value));
               this.axios.get('/api/verifyname', {
                 params: {
-                  username: escape(value)
+                  username: encodeURIComponent(value)
                 }
               })
                 .then(function (response) {
@@ -174,6 +178,7 @@
         },
         verifyemail(value){
           var that=this;
+          console.log(encodeURIComponent(value));
           if(!/^[a-zA-Z0-9_]+@[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)+$/.test(value)){
             that.emailInfo.hint.text=this.$t('SignUp.emailHint[0]');
             that.emailInfo.hint.color="orangered";
@@ -181,7 +186,7 @@
           }else {
             this.axios.get('/api/verifyemail', {
               params: {
-                email: escape(value)
+                email: encodeURIComponent(value)
               }
             })
               .then(function (response) {
@@ -238,47 +243,58 @@
           }
         },
         signup(){
-          var that=this;
-          var elementList=document.querySelectorAll(".input");
-          if(!this.nameInfo.Validated){
-            if(this.nameInfo.value==""){
-              this.nameInfo.hint.text=this.$t('SignUp.nameHint[4]');
-            }
-            this.nameInfo.hint.color="red";
-            elementList[0].focus();
-          }else if(!this.emailInfo.Validated){
-            if(this.emailInfo.value==""){
-              this.emailInfo.hint.text=this.$t('SignUp.emailHint[2]');
-            }
-            this.emailInfo.hint.color="orangered";
-            elementList[1].focus();
-          }else if(!this.pwInfo.Validated){
-            if(this.pwInfo.value==""){
-              this.pwInfo.hint.text=this.$t('SignUp.pwHint[2]');
-            }
-            this.pwInfo.hint.color="orangered";
-            elementList[2].focus();
-          }else {
-            this.axios.get('/static/wpublickey.pem').then(function (response) {
-              var key=new nodersa(response.data);
-              let encryptpw=key.encrypt(that.pwInfo.value,'base64');
-              var vm=that;
-              vm.axios.post('/api/signup', {
-                params: {
-                  username:escape(that.nameInfo.value),
-                  email:escape(that.emailInfo.value),
-                  password:escape(encryptpw)
+          if(!this.signupInfo.isSignUp){
+            var that=this;
+            var elementList=document.querySelectorAll(".input");
+            if(!this.nameInfo.Validated){
+              if(this.nameInfo.value==""){
+                this.nameInfo.hint.text=this.$t('SignUp.nameHint[4]');
+              }
+              this.nameInfo.hint.color="red";
+              elementList[0].focus();
+            }else if(!this.emailInfo.Validated){
+              if(this.emailInfo.value==""){
+                this.emailInfo.hint.text=this.$t('SignUp.emailHint[2]');
+              }
+              this.emailInfo.hint.color="orangered";
+              elementList[1].focus();
+            }else if(!this.pwInfo.Validated){
+              if(this.pwInfo.value==""){
+                this.pwInfo.hint.text=this.$t('SignUp.pwHint[2]');
+              }
+              this.pwInfo.hint.color="orangered";
+              elementList[2].focus();
+            }else {
+              that.signupInfo.isSignUp=true;
+              that.signupInfo.text+="...";
+              this.axios.get('/static/wpublickey.pem').then(function (response) {
+                var key=new nodersa(response.data);
+                let curTime=new Date().getTime();
+                let nonce=that.getRandomStr(10)+curTime+that.getRandomStr(10);
+                let data={
+                  username:encodeURIComponent(that.nameInfo.value),
+                  email:encodeURIComponent(that.emailInfo.value),
+                  password:encodeURIComponent(that.pwInfo.value),
+                  nonce:nonce,
+                  curTime:curTime
                 }
-              })
-                .then(function (response) {
-                  that.setCookie('euname',that.nameInfo.value,30);
-                  that.setCookie('password',encryptpw,30);
-                  window.location.reload(true);
+                let encryptdata=key.encrypt(JSON.stringify(data),'base64');
+                var vm=that;
+                vm.axios.post('/api/signup', {
+                  params: {
+                    encryptdata:encryptdata
+                  }
                 })
-                .catch(function (error) {
-                  console.log(error);
-                });
-            });
+                  .then(function (response) {
+                    console.log(response.data);
+                    that.signupInfo.isSignUp=false;
+                    that.signupInfo.text=that.$t("SignUp.basic[3]");
+                  })
+                  .catch(function (error) {
+                    console.log(error);
+                  });
+              });
+            }
           }
         },
         dismiss(event){

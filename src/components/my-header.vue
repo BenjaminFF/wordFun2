@@ -8,7 +8,7 @@
       </div>
       <div class="default" v-if="defaultPage">
         <p @click="showSU=true">{{$t('header.user[0]')}}</p>
-        <p @click="showLI=true">{{$t('header.user[1]')}}</p>
+        <p @click="showLogin">{{$t('header.user[1]')}}</p>
       </div>
       <div class="user" v-if="!defaultPage" @click="showUserFunc">{{username}}
         <icon name="down" class="user-icon" :class="{iconUp:isIconUp}"></icon>
@@ -30,6 +30,7 @@
     import LogIn from "./log-in";
     import {mapMutations,mapState} from 'vuex'
     import langStorage from '../lang'
+    import nodersa from "node-rsa"
     export default {
       name: "my-header",
       data() {
@@ -44,7 +45,7 @@
       },
       computed:{
         ...mapState({
-          isSetCreating:state=>state.wordset.isSetCreating
+          isSetCreating:state=>state.wordset.isSetCreating,
         }),
       },
       created() {
@@ -69,13 +70,42 @@
             this.isIconUp = false;
           }
         },
+        showLogin(){
+          this.axios.get("/api/captcha").then((response)=>{
+            this.setCaptchaInfo(response.data);
+            this.showLI=true;
+          }).catch((err)=>{
+            throw err;
+          });
+        },
         logout() {
-          this.delCookie('login_token');
-          this.$router.push('/');
-          window.location.reload(true);
+          this.axios.get('/static/wpublickey.pem').then((response)=>{
+            let key=new nodersa(response.data);
+            let login_token=this.getCookie("login_token");
+            let curTime=new Date().getTime();
+            let nonce=curTime+this.getRandomStr(10);
+            let reqdata={
+              login_token:login_token,
+              curTime:curTime,
+              nonce:nonce
+            }
+            let jsonData=JSON.stringify(reqdata);
+            let encryptdata=key.encrypt(jsonData,'base64');
+            this.axios.post('/api/deltoken',{
+              params:{
+                encryptdata:encryptdata
+              }
+            }).then((response)=>{
+              console.log(response.data);
+              this.delCookie('login_token');
+              this.$router.push('/');
+              window.location.reload(true);
+            })
+          })
         },
         ...mapMutations({
-          setCreateState:'wordset/setCreateState'
+          setCreateState:'wordset/setCreateState',
+          setCaptchaInfo:'captcha/setCaptchaInfo'
         }),
       },
       props:{

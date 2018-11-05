@@ -183,7 +183,7 @@
     height: 100%;
     left: 0;
     top: 0;
-    background-color: rgba(0, 0, 0, 0.71);
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -193,7 +193,7 @@
     font-size: 2rem;
     color: yellowgreen;
     user-select: none;
-    z-index: 100;
+    z-index: 1000;
     word-break: break-word;
   }
 

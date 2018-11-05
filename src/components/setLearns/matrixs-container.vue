@@ -1,32 +1,46 @@
 <template>
-  <div class="container">
-    <div class="matrixs-container" v-if="!loading">
-      <matrix :term="m.term" v-on:dismiss="dismiss(index)"  v-for="(m,index) in matrixs"
-                     :key="index" v-if="m.showMatrix" :maxdef="m.maxdef"
+  <div class="container" tabindex="-1" @keydown="banTab($event)" @keyup="pressKeyToContinue">
+    <div class="matrixs-container">
+      <matrix :term="m.term" v-on:dismiss="dismiss($event,index)"  v-for="(m,index) in roundcards"
+                     :key="index" v-if="m.visibility" :maxdef="m.maxdef"
                      :definition="m.definition" class="matrix" :cellStyle="theme.cellStyle"
               :style="{backgroundColor:m.bg}" :textColor="theme.textColor"></matrix>
-      <div class="learn-end" v-if="isLearnEnd" :style="{backgroundColor:endBG,color:theme.textColor}">
-        <div class="header" v-html="$t('setLearn.matrix.endHeader')">
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+        <div class="roundEnd" v-if="roundEnd.visibility" :style="{backgroundColor:roundEnd.bg,color:theme.textColor}">
+          <div class="roundEnd-header">很赞，再接再厉！</div>
+          <div class="roundEnd-button" @click="startNextRound" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.write.continue')}}</div>
         </div>
-        <div class="content">
-          <div class="button" @click="relearn" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.matrix.startOver')+'!'}}</div>
+      </transition>
+      <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
+        <div class="learnEnd" v-if="learnEnd.visibility" :style="{backgroundColor:learnEnd.bg,color:theme.textColor}">
+          <div class="learnEnd-header">{{$t('setLearn.write.learnEnd')}}</div>
+          <div class="learnEnd-button" @click="relearn" :style="{border:'2px solid '+theme.textColor}">{{$t('setLearn.write.reLearn')}}</div>
         </div>
-      </div>
+      </transition>
     </div>
-    <div class="sidebar"  v-if="!loading">
+    <div class="sidebar">
       <div class="sidebar-inner-container">
         <div class="pgb-container" :style="{backgroundColor:theme.pgbBG}">
-          <svg class="progressbar" viewBox="0 0 1500 1500">
-            <circle r="500" cx="750" cy="750" class="bg-circle" :style="{stroke:theme.circleBG}"></circle>
-            <path class="pgb-circle" d="M750 250A500 500 0 1 1 750 1250 A500 500 0 1 1 750 250" :style="{'stroke-dashoffset':dashOffset,stroke:theme.circleStroke}"></path>
-            <text x="750" y="750" class="pgbText" :style="{fill:theme.circleStroke}">{{pgbText}}</text>
+          <svg class="round-pgb" viewBox="0 0 160 80">
+            <path d="M30 50 A50 50 0 1 1 130 50" class="round-pgb-bg" :style="{stroke:theme.circleBG}"></path>
+            <path d="M30 50 A50 50 0 1 1 130 50" class="round-pgb-path"
+                  :style="{'stroke-dasharray':roundData.totalLen,'stroke-dashoffset':roundData.offset,stroke:theme.circleStroke}"></path>
+            <text x="80" y="50" class="round-percentage" :style="{fill:theme.sideItemColor}">{{roundData.text}}</text>
+            <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.round')}}</text>
+          </svg>
+          <svg class="progress-pgb" viewBox="0 0 160 80">
+            <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-bg" :style="{stroke:theme.circleBG}"></path>
+            <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-path"
+                  :style="{'stroke-dasharray':pgData.totalLen,'stroke-dashoffset':pgData.offset,stroke:theme.circleStroke}"></path>
+            <text x="80" y="50" class="round-percentage" :style="{fill:theme.sideItemColor}">{{pgData.text}}</text>
+            <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.progress')}}</text>
           </svg>
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="relearn(false)">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="relearn">
           <icon name="relearn" class="fc-play-icon"></icon>
           {{$t('setLearn.matrix.startOver')}}
         </div>
-        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffle">
+        <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="shuffleCards">
           <icon name="shuffle" class="fc-play-icon"></icon>
           {{$t('setLearn.matrix.shuffle')}}
         </div>
@@ -47,35 +61,159 @@
       data(){
           return{
             loading:true,
-            matrixs:[],
-            pgbTotalLen:3140,
-            pgbSingleLen:"",
-            dashOffset:"",
-            pgbText:"",
-            curIndex:"",
-            isLearnEnd:false,
-            endBG:'',
-            mLength:'',
-            theme:{}
+            cards:[],
+            roundcards:[],
+            matrixedLen:"",
+            theme:{},
+            roundEnd:{},
+            learnEnd:{},
+            roundData:{},
+            pgData:{},                //progressData
+            canPressAnyKey:false
           }
       },
       created(){
           this.theme=theme[this.themeName].matrixsT;
-          this.fetchData(false);
+          this.$nextTick(()=>{
+          let pgEL=document.querySelector('.progress-pgb-bg');
+          this.roundData.totalLen=pgEL.getTotalLength();
+          this.pgData.totalLen=pgEL.getTotalLength();
+          });
+          this.fetchData();
       },
       destroyed(){
           console.log("matrixs-container destroyed");
+          this.updatematrixedToServer();
       },
       methods: {
-        fetchData(isShuffle) {
-          this.matrixs=[];
-          this.curIndex=0;
+        banTab(e){
+          let keyCode=e.keyCode||e.which;
+          if(keyCode===9){
+            e.preventDefault();
+          }
+        },
+        initMatrixContainer(){
+          this.matrixedLen=0;
+          this.roundcards=[];
+          this.cards=[];
           this.loading = true;
+          this.roundData={
+            offset:'',
+            singleLen:'',     //offset,singleLen和totalLen代表进度条的长度控制
+            totalLen:'',
+            curIndex:'',
+            cardsLen:'',
+            text:''
+          },
+            this.pgData={                //progressData
+              offset:'',
+              singleLen:'',
+              totalLen:'',
+              curIndex:'',
+              cardsLen:'',
+              text:''
+            }
+          let bg=this.getColor(this.theme.itemBGs);
+          this.roundEnd={
+            visibility:false,
+            bg:bg
+          }
+          this.learnEnd={
+            visibility:false,
+            bg:bg
+          }
+        },
+        initCards(data){
+          let cards=[];
+          let roundcards=[];
+
+          for (let i = 0; i <data.length; i++) {
+            let term = decodeURIComponent(data[i].term).replace(/\n/g, "<br>");   //用\n替代<br>才能实现换行
+            let definition = decodeURIComponent(data[i].definition).replace(/\n/g, "<br>");
+            let maxdef = definition;
+            let vid=data[i].vid;
+            let matrixed=data[i].matrixed;
+
+            if(matrixed){
+              this.matrixedLen+=1;
+            }
+
+            let bg=this.getColor(this.theme.itemBGs);
+            if(this.theme.itemBGs.length!=1&&this.cards.length!=0){
+              while (bg==cards[i-1].bg){         //如果itemBGs有多个，确保相邻两个card颜色不重复
+                bg=this.getColor(this.theme.itemBGs);
+              }
+            }
+
+            if (this.checkLength(definition) >= 160) {
+              let chineseLen=this.checkChinese(definition);
+              if(chineseLen>=100){
+                chineseLen+=55;
+              }
+              definition = definition.substring(0, 160-Math.round(chineseLen/2)) + '...';
+            }
+            let card = {
+              vid:vid,
+              term: term,
+              definition: definition,
+              maxdef:maxdef,
+              matrixed:matrixed,
+              visibility:false,
+              bg:bg
+            }
+            cards.push(card);
+          }
+          this.cards=cards;
+
+          if(this.matrixedLen==data.length){
+            this.learnEnd.visibility=true;
+            return;
+          }
+
+          for(let i=0;i<this.cards.length;i++){
+            if(!this.cards[i].matrixed){
+              roundcards.push(this.cards[i]);
+            }
+            if(roundcards.length>=7){
+              break;
+            }
+          }
+
+          this.roundcards=roundcards;
+          this.roundcards[0].visibility=true;
+        },
+        setPGB(pgb,cardsLen,curIndex,isPercentage){
+          pgb.cardsLen=cardsLen;
+          pgb.singleLen=pgb.totalLen/cardsLen;
+
+          pgb.curIndex=curIndex;
+          pgb.offset=pgb.totalLen-curIndex*pgb.singleLen;
+
+          if(isPercentage){
+            pgb.text=Math.round(curIndex/cardsLen*100)+'%';
+          }else {
+            pgb.text=curIndex+'/'+cardsLen;
+          }
+        },
+        initPGB(totalSetLen){
+          let pgEL=document.querySelector('.progress-pgb-bg');
+          this.roundData.totalLen=pgEL.getTotalLength();
+          this.pgData.totalLen=pgEL.getTotalLength();
+          this.setPGB(this.pgData,totalSetLen,this.matrixedLen,true);
+          let leftedcardslen=totalSetLen-this.matrixedLen;
+          if(leftedcardslen==0){
+            this.setPGB(this.roundData,7,7,false);
+          }else if(leftedcardslen<7){
+            this.setPGB(this.roundData,leftedcardslen,0,false);
+          }else {
+            this.setPGB(this.roundData,7,0,false);
+          }
+        },
+        fetchData() {
+          this.initMatrixContainer();
           let login_taken=this.getCookie("login_token");
           let username=JSON.parse(login_taken).username;
           let curSet = JSON.parse(this.getCookie('curSet'));
-          this.title = this.limitLength(curSet.title, 40, true);     //title字数过长，影响视觉
-          this.subtitle = this.limitLength(curSet.subtitle, 40, true);
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
@@ -84,129 +222,157 @@
             }
           })
             .then((response) => {
-              let matrixs = [];
-              let lastMatrix={};
-
-              this.mLength=response.data.length;
-              this.pgbSingleLen = this.pgbTotalLen / response.data.length;
-              this.dashOffset = this.pgbTotalLen;
-              this.pgbText = this.curIndex + '/' + response.data.length;
-
-              for (let i = 0; i < response.data.length; i++) {
-                if(response.data[i].matrixed){
-                  this.curIndex+=1;
-                  this.dashOffset-=this.pgbSingleLen;
-                  this.pgbText = this.curIndex + '/' + response.data.length;
-                  continue;
-                }
-                let term = decodeURIComponent(response.data[i].term).replace(/\n/g, "<br>");   //用\n替代<br>才能实现换行
-                let definition = decodeURIComponent(response.data[i].definition).replace(/\n/g, "<br>");
-                let vid=response.data[i].vid;
-                let maxdef = definition;
-                let bg=this.getColor(this.theme.itemBGs);
-                if(this.theme.itemBGs.length!=1&&matrixs.length!=0){
-                  while (bg==lastMatrix.bg){
-                    bg=this.getColor(this.theme.itemBGs);
-                  }
-                }
-
-                if (this.checkLength(definition) >= 100) {
-                  let chineseLen=this.checkChinese(definition);
-                  definition = definition.substring(0, 100-Math.round(chineseLen/2)) + '...';
-                }
-                let matrix = {
-                  vid:vid,
-                  term: term,
-                  definition: definition,
-                  maxdef: maxdef,
-                  showMatrix: false,
-                  matrixed: response.data[i].matrixed,
-                  bg:bg
-                }
-                matrixs.push(matrix);
-                lastMatrix=matrix;
-              }
-              this.endBG=this.getColor(this.theme.itemBGs);
-              if(matrixs.length!=0){
-                if(isShuffle){
-                  this.matrixs=_.shuffle(matrixs);
-                }else {
-                  this.matrixs = matrixs;
-                }
-                this.matrixs[0].showMatrix = true;
-              }else {
-                this.isLearnEnd=true;
-              }
-              setTimeout(() => {
-                this.loading = false;
-              }, 500);
+              this.initCards(response.data);
+              this.initPGB(response.data.length);
+              console.log(this.roundcards);
+              setTimeout(()=>{
+                this.loading=false;
+              },500);
             })
             .catch(function (error) {
               console.log(error);
             });
         },
-        dismiss(index) {
-          this.matrixs[index].showMatrix = false;
-          let vid=this.matrixs[index].vid;
-          let euname = this.getCookie("euname");
-          console.log(vid);
-          this.updateMatrix(vid,euname,index);
+        updateRoundData(){
+          this.roundData.curIndex++;
+          this.setPGB(this.roundData,this.roundData.cardsLen,this.roundData.curIndex,false);
         },
-        showNext(index) {
-          if (index != this.matrixs.length) {
-            setTimeout(() => {
-              this.matrixs[index].showMatrix = true;
-            }, 500);
-            this.curIndex++;
-            this.dashOffset -= this.pgbSingleLen;
-            this.pgbText = this.curIndex + '/' + this.mLength;
+        updatePGData(){
+          this.pgData.curIndex++;
+          this.setPGB(this.pgData,this.pgData.cardsLen,this.pgData.curIndex,true);
+        },
+        dismiss(canUpdate,index){
+          this.roundcards[index].visibility=false;
+
+          if(canUpdate){       //canUpdate代表第一次就回答正确,就刷新cards里面的writed
+            this.roundcards[index].matrixed=true;
+            this.matrixedLen+=1;
+            this.updatePGData();
+          }
+          this.updateRoundData();
+          this.showNext(index+1);
+        },
+        showNext(nextIndex) {
+          if(this.matrixedLen==this.pgData.cardsLen){   //表示全部单词过完
+            this.learnEnd.visibility=true;
+            return;
+          }
+
+          if(this.roundData.curIndex==this.roundData.cardsLen){           //表示这轮结束
+            this.roundEnd.visibility=true;
+            let fc=document.getElementsByClassName('matrixs-container');
+            fc[0].focus();
+            var that=this;
+            setTimeout(()=>{
+              that.canPressAnyKey=true;
+            },500);
           }else {
-            setTimeout(() => {
-              this.isLearnEnd = true;
-            }, 500);
-            this.curIndex++;
-            this.dashOffset -= this.pgbSingleLen;
-            this.pgbText = this.curIndex + '/' + this.mLength;
+            setTimeout(()=>{
+              this.roundcards[nextIndex].visibility=true;
+            },500);
           }
         },
-        updateMatrix(vid,euname,index){
-          this.axios.post('/api/updatematrix', {
-            params: {
-              vid:vid,
-              euname:euname
-            }
-          }).then((response)=>{
-            let nextIndex = index + 1;
-            this.showNext(nextIndex);
-          }).catch(function (error) {
-            console.log(error);
-          });
-        },
-        updateMatrixs(createtime,euname,isShuffle){
-          this.axios.post('/api/updatematrixs', {
-            params: {
-              createtime:createtime,
-              euname:euname
-            }
-          }).then((response)=>{
-            this.fetchData(isShuffle);
-          }).catch(function (error) {
-            console.log(error);
-          });
-        },
-        shuffle(){
-          if(this.isLearnEnd){
-            this.relearn(true);
-          }else {
-            this.fetchData(true);
+        pressKeyToContinue(){
+          if(this.canPressAnyKey){
+            this.startNextRound();
+            let fc=document.getElementsByClassName('matrixs-container');
+            fc[0].blur();
+            this.canPressAnyKey=false;
           }
         },
-        relearn(isShuffle){
-          let euname = this.getCookie("euname");
-          let curSet = JSON.parse(this.getCookie('curSet'));
-          let createTime = curSet.timeStamp;
-          this.updateMatrixs(createTime,euname,isShuffle);
-          this.isLearnEnd=false;
+        startNextRound(){
+          let roundcards=[];
+          if(this.roundEnd.visibility){
+            this.roundEnd.visibility=false;
+            for(let i=0;i<this.cards.length;i++){
+              if(!this.cards[i].matrixed){
+                roundcards.push(this.cards[i]);
+              }
+              if(roundcards.length>=7){
+                break;
+              }
+            }
+            this.roundcards=roundcards;
+            this.setPGB(this.roundData,roundcards.length,0,false);
+            setTimeout(()=>{
+              this.roundcards[0].visibility=true;
+            },500);
+          }
+        },
+        shuffleCards(){
+          //this.roundData.curIndex代表当前可见卡片的index，包括当前卡片和以后的卡片需要shuffle,并且只剩一个卡片不用shuffle
+          if(!this.roundEnd.visibility&&!this.learnEnd.visibility&&!(this.roundData.curIndex==this.roundcards.length-1)){
+            this.roundcards[this.roundData.curIndex].visibility=false;
+            let cards=[];
+            let length=this.roundcards.length;
+            for(let i=this.roundData.curIndex;i<length;i++){
+              cards.push(this.roundcards.pop());
+            }
+            let shuffle_cards=[];
+            if(!(this.roundData.curIndex==this.roundcards.length-2)){   //不只剩余两个的话就shuffle，只剩两个就直接交换
+              shuffle_cards=_.shuffle(cards);
+            }else {
+              shuffle_cards=cards;
+            }
+            for(let i=0;i<shuffle_cards.length;i++){
+              this.roundcards.push(shuffle_cards[i]);
+            }
+            setTimeout(()=>{
+              this.roundcards[this.roundData.curIndex].visibility=true;
+            },1000);
+          }
+        },
+        updatematrixedToServer(){
+          let matrixs=[];
+          let cards=this.cards;
+          for(let i=0;i<cards.length;i++){
+            let data={
+              vid:cards[i].vid,
+              matrixed:cards[i].matrixed
+            }
+            matrixs.push(data);
+          }
+          let login_token=this.getCookie("login_token");
+          let jsondata=JSON.stringify(matrixs);
+          let username=JSON.parse(login_token).username;
+          this.axios.post("/api/updatematrixs",{
+            params: {
+              username:username,
+              jsondata:jsondata
+            }
+          }).then((res)=>{
+              console.log(res);
+          }).catch((err)=>{
+            console.log(err);
+          })
+        },
+        relearn(){
+          this.loading=true;
+          this.matrixedLen=0;
+          if(this.learnEnd.visibility){
+            this.learnEnd=false;
+          }else if(this.roundEnd.visibility){
+            this.roundEnd.visibility=false;
+          }else {
+            this.roundcards[this.roundData.curIndex].visibility=false;
+          }
+          for(let i=0;i<this.cards.length;i++){
+            this.cards[i].matrixed=false;
+          }
+          let roundcards=[];
+
+          for(let i=0;i<this.cards.length;i++){
+            roundcards.push(this.cards[i]);
+            if(roundcards.length>=7){
+              break;
+            }
+          }
+          this.roundcards=roundcards;
+          this.roundcards[0].visibility=true;
+          this.initPGB(this.cards.length);
+          setTimeout(()=>{
+            this.loading=false;
+          },1000);
         }
       },
       props:{
@@ -225,17 +391,100 @@
     display: flex;
     justify-content: space-evenly;
     position: relative;
+    align-items: center;
+    outline: none;
   }
   .matrixs-container{
     width: 50%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 80%;
     position: relative;
   }
+
+  .pgb-container{
+    width: 100%;
+    height: 60%;
+    border-radius: 10px;
+    user-select: none;
+  }
+
+  .matrix{
+    position: absolute;
+    left: 0;
+  }
+
+  .roundEnd{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 10px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--seablue);
+    box-sizing: border-box;
+  }
+
+  .roundEnd-header{
+    width: 100%;
+    height: fit-content;
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .roundEnd-button{
+    width: fit-content;
+    height: fit-content;
+    font-size: 1.5rem;
+    padding: 1rem 1rem;
+    border-radius: 10px;
+    margin-top: 50%;
+  }
+
+  .roundEnd-button:hover{
+    cursor: pointer;
+  }
+
+  .learnEnd{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 10px;
+    background-color: yellowgreen;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    color: var(--seablue);
+    box-sizing: border-box;
+  }
+
+  .learnEnd-header{
+    width: 100%;
+    height: fit-content;
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .learnEnd-button{
+    width: fit-content;
+    height: fit-content;
+    font-size: 1.5rem;
+    padding: 1rem 1rem;
+    border-radius: 10px;
+    margin-top: 50%;
+  }
+
+  .learnEnd-button:hover{
+    cursor: pointer;
+  }
+
   .sidebar{
-    width: 18%;
+    width: 20%;
     height: 100%;
     display: flex;
     align-items: center;
@@ -251,79 +500,50 @@
 
   .pgb-container{
     width: 100%;
-    height: 40%;
-    border-radius: 10px;
-    user-select: none;
+    height: 60%;
+    border-radius: 5px;
   }
 
-  .progressbar{
+  .round-pgb{
     width: 100%;
-    height: 100%;
+    height: 50%;
   }
 
-  .pgb-circle{
+  .round-pgb-bg{
     fill: transparent;
-    stroke-width: 80px;
-    stroke-dasharray: 3140;
-    transition: all 1s ease-in-out;
+    stroke-width: 6px;
     stroke-linecap: round;
   }
-  .pgbText{
-    fill: var(--seablue);
-    font-size: 200px;
+
+  .round-pgb-path{
+    fill: transparent;
+    stroke-width: 6px;
+    stroke-linecap: round;
+    transition: all .5s ease-in;
+  }
+
+  .round-percentage{
+    font-size: 0.8rem;
     text-anchor: middle;
     dominant-baseline: middle;
   }
-  .bg-circle{
+
+  .progress-pgb-bg{
     fill: transparent;
-    stroke-width: 80px;
+    stroke-width: 6px;
+    stroke-linecap: round;
   }
 
-  .matrix{
-    position: absolute;
-    left: 0;
+  .progress-pgb-path{
+    fill: transparent;
+    stroke-width: 6px;
+    stroke-linecap: round;
+    transition: all .5s ease-in;
   }
 
-  .learn-end{
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 80%;
-    border-radius: 10px;
-  }
-
-  .learn-end .header{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 40%;
-    font-size: 2rem;
-    text-align: center;
-  }
-
-  .learn-end .content{
+  .progress-pgb{
     width: 100%;
     height: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .learn-end .content .button{
-    user-select: none;
-    width: 10rem;
-    height: 4rem;
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    letter-spacing: 0.2rem;
-  }
-
-  .learn-end .content .button:hover{
-    cursor: pointer;
   }
 
   .fc-side-item{

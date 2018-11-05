@@ -59,7 +59,6 @@
       components: {WaitDialog, Write},
       data(){
           return{
-            sidebarBG:"",
             loading:'',
             cards:[],
             roundcards:[],            //单轮卡片
@@ -67,8 +66,6 @@
             pgData:{},                //progressData
             roundEnd:{},
             learnEnd:{},
-            roundLen:'',           //在initPGB里面被初始化
-            curRound:'',
             theme:{},
             canPressAnyKey:false,
             writedLen:""
@@ -81,7 +78,7 @@
             let pgEL=document.querySelector('.progress-pgb-bg');
             this.roundData.totalLen=pgEL.getTotalLength();
             this.pgData.totalLen=pgEL.getTotalLength();
-          })
+          });
           this.fetchData();
       },
       destroyed(){
@@ -94,7 +91,7 @@
             e.preventDefault();
           }
         },
-        initWrite(){
+        initWriteContainer(){
           this.writedLen=0;
           this.roundcards=[];
           this.cards=[];
@@ -129,7 +126,6 @@
           let cards=[];
           let roundcards=[];
 
-          let lastCard={};
           for (let i = 0; i <data.length; i++) {
             let term = decodeURIComponent(data[i].term).replace(/\n/g, "<br>");   //用\n替代<br>才能实现换行
             let definition = decodeURIComponent(data[i].definition).replace(/\n/g, "<br>");
@@ -183,12 +179,7 @@
             }
           }
           this.roundcards=roundcards;
-
-          if(this.writedLen==data.length){
-            this.roundEnd.visibility=true;
-          }else {
-            this.roundcards[0].visibility=true;
-          }
+          this.roundcards[0].visibility=true;
         },
         shuffleCards(){
           //this.roundData.curIndex代表当前可见卡片的index，包括当前卡片和以后的卡片需要shuffle,并且只剩一个卡片不用shuffle
@@ -241,7 +232,7 @@
           }
         },
         fetchData() {
-          this.initWrite();
+          this.initWriteContainer();
           let login_taken=this.getCookie("login_token");
           let username=JSON.parse(login_taken).username;
           let curSet = JSON.parse(this.getCookie('curSet'));
@@ -329,9 +320,6 @@
             },500);
           }
         },
-        shuffle(){
-          this.fetchData(true);
-        },
         updatewritedToServer(){
           let writes=[];
           let cards=this.cards;
@@ -357,28 +345,32 @@
           })
         },
         relearn(){
-          let cards=this.cards;
-          let writes=[];
-          for(let i=0;i<cards.length;i++){
-            let data={
-              vid:cards[i].vid,
-              writed:false
-            }
-            writes.push(data);
+          this.loading=true;
+          this.writedLen=0;
+          if(this.learnEnd.visibility){
+            this.learnEnd=false;
+          }else if(this.roundEnd.visibility){
+            this.roundEnd.visibility=false;
+          }else {
+            this.roundcards[this.roundData.curIndex].visibility=false;
           }
-          let login_token=this.getCookie("login_token");
-          let jsondata=JSON.stringify(writes);
-          let username=JSON.parse(login_token).username;
-          this.axios.post("/api/updatewrites",{
-            params: {
-              username:username,
-              jsondata:jsondata
+          for(let i=0;i<this.cards.length;i++){
+            this.cards[i].matrixed=false;
+          }
+          let roundcards=[];
+
+          for(let i=0;i<this.cards.length;i++){
+            roundcards.push(this.cards[i]);
+            if(roundcards.length>=7){
+              break;
             }
-          }).then((response)=>{
-            this.fetchData();
-          }).catch((err)=>{
-            console.log(err);
-          })
+          }
+          this.roundcards=roundcards;
+          this.roundcards[0].visibility=true;
+          this.initPGB(this.cards.length);
+          setTimeout(()=>{
+            this.loading=false;
+          },1000);
         }
       },
       props:{
@@ -401,6 +393,7 @@
     color: white;
     user-select: none;
     position: relative;
+    outline: none;
   }
   .content-container{
     width: 50%;

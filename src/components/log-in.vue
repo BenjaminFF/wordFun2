@@ -5,8 +5,10 @@
       <div class="container">
         <ani-input :title="$t('LogIn.basic[0]')" :fontSize="1.3" :hint="euInfo.hint" v-on:input="euListener" v-on:keyup.enter="login"></ani-input>
         <ani-input :title="$t('LogIn.basic[1]')" :fontSize="1.3" :hint="pwInfo.hint" v-on:input="pwListener" :security="true" v-on:keyup.enter="login"></ani-input>
+        <ani-input :title="$t('LogIn.basic[4]')" :fontSize="1.3" :hint="captchaStyleInfo.hint"
+                   v-on:input="captchaListener" v-on:keyup.enter="login" :show-captcha="true"></ani-input>
         <my-button :fontSize="1.2"
-                   class="button" v-on:click.native="login">{{$t('LogIn.basic[2]')}}</my-button>
+                   class="button" v-on:click.native="login">{{LoginText}}</my-button>
         <p class="fg">{{$t('LogIn.basic[3]')}}</p>
       </div>
       <icon name="cross" class="rtimg"  @click.native="dismiss($event)"></icon>
@@ -18,26 +20,33 @@
 <script>
     import AniInput from "./ani-input";
     import MyButton from "./my-button";
-    import nodersa from "node-rsa"
+    import nodersa from "node-rsa";
+    import {mapMutations,mapState} from 'vuex'
     export default {
         name: "log-in",
       components: {MyButton, AniInput},
       data(){
           return {
             isShow:this.showLI,
-            euInfo:{
-
-            },
-            pwInfo:{
-
-            }
+            euInfo:{},
+            pwInfo:{},
+            captchaStyleInfo:{},
+            isLogin:false,
+            LoginText:""
           }
       },
       created(){
         this.init();
       },
+      computed:{
+        ...mapState({
+          captchaResText:state=>state.captcha.captchaResText,
+          captchaInfo:state=>state.captcha.captchaInfo
+        }),
+      },
       methods:{
           init(){
+            this.LoginText=this.$t('LogIn.basic[2]');
             this.euInfo={
               value:"",
               hint:{
@@ -51,93 +60,127 @@
                 text:"",
                 color:'red',
               }
-            }
-          },
-        login:function () {
-            let that=this;
-            let elementList=document.querySelectorAll(".input");
-            if(this.euInfo.value==""){
-              this.euInfo.hint.text=this.$t('LogIn.ueHint[0]');
-              this.euInfo.hint.color="red";
-              setTimeout(function () {
-                that.euInfo.hint.text="";
-              },2000);
-              elementList[0].focus();
-            }else if(this.pwInfo.value==""){
-              this.pwInfo.hint.text=this.$t('LogIn.pwHint[0]');
-              this.pwInfo.hint.color="red";
-              setTimeout(function () {
-                that.pwInfo.hint.text="";
-              },2000);
-              elementList[1].focus();
-            }else{
-              this.axios.get('/static/wpublickey.pem').then(function (response) {
-                let key=new nodersa(response.data);
-                let curTime=new Date().getTime();
-                let nonce=that.getRandomStr(5)+curTime+that.getRandomStr(5);
-                let reqdata={
-                  eu:encodeURIComponent(that.euInfo.value),
-                  pw:that.pwInfo.value,
-                  curTime:curTime,
-                  nonce:nonce
+            },
+              this.captchaStyleInfo={
+                value:"",
+                hint:{
+                  text:"",
+                  color:'red',
                 }
-                let jsonData=JSON.stringify(reqdata);
-                let encryptdata=key.encrypt(jsonData,'base64');
-                let vm=that;
-                vm.axios.post('/api/login', {
-                  params: {
-                    encryptdata:encryptdata
-                  },
-                  timeout:10000,
-                })
-                  .then(function (response) {
-                    let resdata=response.data;
-                    if(resdata.result===undefined){
-                      return;
-                    }
-                    if(resdata.result=='empty'){      //用户不存在
-                      that.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
-                      that.euInfo.hint.color="red";
-                      console.log("euempty");
-                      setTimeout(function () {
-                        that.euInfo.hint.text="";
-                      },2000);
-                    }else if(!resdata.result){      //用户密码错误
-                      that.pwInfo.hint.text=that.$t('LogIn.pwHint[1]');
-                      that.pwInfo.hint.color="red";
-                      console.log("falsepw");
-                      setTimeout(function () {
-                        that.pwInfo.hint.text="";
-                      },2000);
-                    }else if(resdata.result){
-                      console.info('success');
-                      let login_token={
-                        username:resdata.username,
-                        token:reqdata.nonce
-                      }
-                      that.setCookie("login_token",JSON.stringify(login_token),30);
-                      window.location.reload(true);
-                    }
+              }
+          },
+        login() {
+            if(!this.isLogin){
+              let that=this;
+              let elementList=document.querySelectorAll(".input");
+              if(this.euInfo.value==""){
+                this.euInfo.hint.text=this.$t('LogIn.ueHint[0]');
+                this.euInfo.hint.color="red";
+                setTimeout(function () {
+                  that.euInfo.hint.text="";
+                },2000);
+                elementList[0].focus();
+              }else if(this.pwInfo.value==""){
+                this.pwInfo.hint.text=this.$t('LogIn.pwHint[0]');
+                this.pwInfo.hint.color="red";
+                setTimeout(function () {
+                  that.pwInfo.hint.text="";
+                },2000);
+                elementList[1].focus();
+              }else if(this.captchaStyleInfo.value==""){
+                this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[2]');
+                this.captchaStyleInfo.hint.color="red";
+                setTimeout(()=> {
+                  this.captchaStyleInfo.hint.text="";
+                },2000);
+                elementList[2].focus();
+              }else{
+                this.isLogin=true;
+                this.LoginText+="...";
+                this.axios.get('/static/wpublickey.pem').then((response)=>{
+                  let key=new nodersa(response.data);
+                  let curTime=new Date().getTime();
+                  let nonce=that.getRandomStr(10)+curTime+that.getRandomStr(10);
+                  let reqdata={
+                    eu:encodeURIComponent(that.euInfo.value),
+                    pw:encodeURIComponent(that.pwInfo.value),
+                    curTime:curTime,
+                    nonce:nonce,
+                    captchaKey:this.captchaInfo.captchaKey,
+                    captchaResText:this.captchaResText
+                  }
+                  let jsonData=JSON.stringify(reqdata);
+                  let encryptdata=key.encrypt(jsonData,'base64');
+                  let vm=that;
+                  vm.axios.post('/api/login', {
+                    params: {
+                      encryptdata:encryptdata
+                    },
+                    timeout:10000,
                   })
-                  .catch(function (error) {
-                    console.log(error);
-                  });
-              });
+                    .then((response) =>{
+                      setTimeout(()=>{
+                        this.isLogin=false;
+                        this.LoginText=this.$t('LogIn.basic[2]');
+                      },1000);
+                      let resdata=response.data;
+                      console.log(resdata);
+                      if(resdata.result===undefined){
+                        return;
+                      }
+                      if(resdata.result=="captcha expired"){
+                        this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[0]');
+                        this.captchaStyleInfo.hint.color="red";
+                        setTimeout(()=> {
+                          this.captchaStyleInfo.hint.text="";
+                        },2000);
+                      }else if(resdata.result=="incorrect captcha"){
+                        this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[1]');
+                        this.captchaStyleInfo.hint.color="red";
+                        setTimeout(()=> {
+                          this.captchaStyleInfo.hint.text="";
+                        },2000);
+                      }else if(resdata.result=='empty'){      //用户不存在
+                        that.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
+                        that.euInfo.hint.color="red";
+                        setTimeout(function () {
+                          that.euInfo.hint.text="";
+                        },2000);
+                      }else if(!resdata.result){      //用户密码错误
+                        that.pwInfo.hint.text=that.$t('LogIn.pwHint[1]');
+                        that.pwInfo.hint.color="red";
+                        console.log("falsepw");
+                        setTimeout(function () {
+                          that.pwInfo.hint.text="";
+                        },2000);
+                      }else if(resdata.result){
+                        console.info('success');
+                        let login_token={
+                          username:resdata.username,
+                          token:reqdata.nonce
+                        }
+                        that.setCookie("login_token",JSON.stringify(login_token),30);
+                        window.location.reload(true);
+                      }
+                    })
+                    .catch(function (error) {
+                      console.log(error);
+                    });
+                });
 
+              }
             }
-        },
-        getRandomStr(length){
-            let str="";
-            for(let i=0;i<length;i++){
-              str+=String.fromCharCode(Math.abs(Math.random()*26)+97);
-            }
-            return str;
         },
         euListener(event){
             this.euInfo.value=event.target.innerHTML;
         },
         pwListener(event){
           this.pwInfo.value=event.target.innerHTML;
+        },
+        captchaListener(event){
+            this.captchaStyleInfo.value=event.target.innerHTML;
+            this.setCaptchaResText(event.target.innerHTML);
+            console.log(this.captchaResText);
         },
         dismiss(event){
           var isIcon=event.target.nodeName=='path'||event.target.nodeName=='svg';
@@ -146,7 +189,11 @@
             this.$emit('dismiss');
             this.init();
           }
-        }
+        },
+        ...mapMutations({
+          setCaptchaInfo:'captcha/setCaptchaInfo',
+          setCaptchaResText:'captcha/setCaptchaResText',
+        }),
       },
       props:{
         showLI:{

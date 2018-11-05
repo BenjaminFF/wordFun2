@@ -71,4 +71,11 @@
         let randomIndex=parseInt(Math.random()*colorslen);
         return colorArray[randomIndex];
       }
+      Vue.prototype.getRandomStr=function(length) {
+        let str = "";
+        for (let i = 0; i < length; i++) {
+          str += String.fromCharCode(Math.abs(Math.random() * 26) + 97);
+        }
+        return str;
+      }
   }

@@ -5,22 +5,23 @@ module.exports = {
   defaultPage:{
     welcome:'LogIn to explore more joy, join us!'
   },
-  sidebar: ['Latest Learning','Your WordSet','Word Fun','Help Center'],
+  sidebar: ['Latest Learning','Your WordSet','CrossWord','Help Center'],
   header:{
     create:'CREATE',
     user:['SIGNUP','LOGIN'],
     userfunc:['your wordset',"upgrade","logout"]
   },
   LogIn:{
-    basic:['username/email','password','LOG IN','forget password?'],
+    basic:['username/email','password','LOG IN','forget password?',"captcha"],
     ueHint:['username/email cannot be empty','username/email not exist'],
-    pwHint:['password cannot be empty','password is not correct']
+    pwHint:['password cannot be empty','password is not correct'],
+    captchaHint:["captcha expired","captcha is incorrect,please try again","captcha cannot be empty"],
   },
   SignUp:{
     basic:['username','email','password',"SING UP"],
     nameHint:['username123','username must greater than 4',
       'username must only contain letter,number,underscore',
-      'username has already been signed','username cannot be empty','username cannot greater than 15'],
+      'username has already been signed','username cannot be empty','username cannot greater than 15 character'],
     emailHint:['invalid email address','email has already been signed','email cannot be empty'],
     pwHint:['password must greater than 6','password must contain number and character','password cannot be empty','password cannot contain chinese']
   },

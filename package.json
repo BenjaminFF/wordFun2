@@ -27,6 +27,7 @@
     "node-rsa": "^1.0.0",
     "redis": "^2.8.0",
     "say": "^0.15.0",
+    "svg-captcha": "^1.3.11",
     "vue": "^2.5.2",
     "vue-axios": "^2.1.1",
     "vue-gemini-scrollbar": "^2.0.0",

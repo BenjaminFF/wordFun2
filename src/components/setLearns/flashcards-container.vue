@@ -154,7 +154,6 @@
               let cards=[];
               let lastCard={};
               let offset=0;      //positon left
-              console.log(response.data);
               for(let i=0;i<response.data.length;i++){
                   let term=decodeURIComponent(response.data[i].term).replace(/\n/g,"<br>");   //用\n替代<br>才能实现换行
                   let definition=decodeURIComponent(response.data[i].definition).replace(/\n/g,"<br>");

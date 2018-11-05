@@ -32,6 +32,7 @@
           curIndex:0,
           size:0,
           showMaxDef:false,
+          canUpdate:false,
         }
       },
       props:{
@@ -57,6 +58,7 @@
         }
       },
       created(){
+          this.canUpdate=true;       //初始化为true，如果启动了提示，就为false
           this.initCells();
       },
       methods:{
@@ -93,13 +95,15 @@
             cells.push(cell);
           }
           this.cells=cells;
-          console.log(cells);
           this.initGrid();
         },
         initGrid(){
           this.row=Math.sqrt(this.cells.length);
         },
         checkLetter(cell){
+          if(this.curIndex==this.term.length||cell.isActive){      //已经选中就不能再选
+            return;
+          }
           let curLetter=this.term[this.curIndex].toLowerCase();
           if(curLetter==cell.letter){
             cell.isActive=true;
@@ -110,11 +114,17 @@
           }
           if(this.curIndex==this.term.length){
             setTimeout(()=>{
-              this.$emit('dismiss');
+              this.$emit('dismiss',this.canUpdate);
             },500);
           }
         },
         autoFill(){
+          if(this.curIndex==this.term.length){
+            return;
+          }
+          if(this.canUpdate){
+            this.canUpdate=false;
+          }
           let curLetter=this.term[this.curIndex].toLowerCase();
           for(let i=0;i<this.cells.length;i++){
             if(this.cells[i].letter==curLetter&&!this.cells[i].isActive){
@@ -130,7 +140,7 @@
 
           if(this.curIndex==this.term.length){
             setTimeout(()=>{
-              this.$emit('dismiss');
+              this.$emit('dismiss',this.canUpdate);
             },500);
           }
         }
@@ -144,7 +154,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 80%;
+    height: 100%;
     border-radius: 10px;
     box-sizing: border-box;
     padding: 2rem;
@@ -212,7 +222,7 @@
     height: 100%;
     left: 0;
     top: 0;
-    background-color: rgba(0, 0, 0, 0.71);
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
