@@ -233,8 +233,8 @@
         },
         fetchData() {
           this.initWriteContainer();
-          let login_taken=this.getCookie("login_token");
-          let username=JSON.parse(login_taken).username;
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
           let curSet = JSON.parse(this.getCookie('curSet'));
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
@@ -330,9 +330,9 @@
             }
             writes.push(data);
           }
-          let login_token=this.getCookie("login_token");
+          let login_Info=this.getCookie("login_Info");
           let jsondata=JSON.stringify(writes);
-          let username=JSON.parse(login_token).username;
+          let username=JSON.parse(login_Info).username;
           this.axios.post("/api/updatewrites",{
             params: {
               username:username,

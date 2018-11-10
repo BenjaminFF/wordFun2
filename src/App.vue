@@ -4,12 +4,10 @@
     <div class="main-content">
       <component :is="curComponent"></component>
     </div>
-    <transition leave-active-class="animated fadeOut">
     <div class="shadow" v-if="Loading">
-      <div class="loading" v-if="showLT"></div>
-      <div class="load_text" v-if="showLT">W</div>
+      <div class="loading"></div>
+      <div class="load_text">W</div>
     </div>
-  </transition>
   </div>
 </template>
 
@@ -27,27 +25,18 @@ export default {
       isDefaultPage:true,
       Loading:true,
       username:"",
-      showLT:false           //show left toolbar
     }
   },
   created(){
-    let login_token=this.getCookie("login_token");
+    let login_Info=this.getCookie("login_Info");
     let currentPath=this.$router.currentRoute.fullPath;
-    if(currentPath=='/'){
-      this.showLT=true;
-    }
-    if(currentPath=='/createcontainer'){
-      this.setCreateState(true);
-    }else {
-      this.setCreateState(false);
-    }
-    if(login_token!=""){
+    if(login_Info!=""){
       this.axios.get("/static/wpublickey.pem").then((response)=>{
         let key=new nodersa(response.data);
         let curTime=new Date().getTime();
         let nonce=this.getRandomStr(5)+curTime;
         let reqdata={
-          login_token:login_token,
+          login_Info:login_Info,
           curTime:curTime,
           nonce:nonce
         }
@@ -59,14 +48,13 @@ export default {
           },
           timeout:10000,
         }).then((response)=>{
-          console.log(response.data.result);
           if(response.data.result){
-            let resdata=JSON.parse(login_token);
-            this.isDefaultPage=false;
+            let data=JSON.parse(login_Info);
+            this.username=data.username;
+            this.Loading=false;
             this.curComponent=UserPage;
-            this.username=resdata.username;
+            this.isDefaultPage=false;
           }
-          this.Loading=false;
         }).catch((error)=>{
           console.log(error);
         })
@@ -77,25 +65,6 @@ export default {
   },
   components: {UserPage, DefaultPage, MyHeader},
   methods:{
-    initFoldersAndSets(euname){
-      let that=this;
-      this.axios.get('/api/getfoldersandsets', {
-        params: {
-          username:euname
-        }
-      })
-        .then((response)=>{
-          console.log(response.data.sets);
-          this.setFolders(response.data.folders);
-          this.setSlideFolders();
-          this.setWordSets(response.data.sets);
-          this.Loading=false;
-          console.log("App created");
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
     getRandomStr(length){
       let str="";
       for(let i=0;i<length;i++){
@@ -103,12 +72,6 @@ export default {
       }
       return str;
     },
-    ...mapMutations({
-      setFolders:'wordset/setFolders',
-      setSlideFolders:'wordset/setSlideFolders',
-      setCreateState:'wordset/setCreateState',
-      setWordSets:'wordset/setWordSets'
-    }),
   }
 }
 </script>

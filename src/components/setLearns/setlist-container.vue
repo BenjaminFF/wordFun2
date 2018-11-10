@@ -25,7 +25,7 @@
     import ListItem from "./list-item";
     import WaitDialog from "../wait-dialog";
     import {mapState,mapMutations} from 'vuex'
-    import SetItem from "../set-item";
+    import SetItem from "../sidebaritems/set-item";
     import theme from '../../assets/theme/TsetLearn';
     export default {
         name: "setlist-container",
@@ -59,8 +59,8 @@
       methods:{
         fetchData(){
           this.loading=true;
-          let login_taken=this.getCookie("login_token");
-          let username=JSON.parse(login_taken).username;
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
           let curSet=JSON.parse(this.getCookie('curSet'));
           this.header.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
           this.header.subtitle=this.limitLength(curSet.subtitle,40,true);

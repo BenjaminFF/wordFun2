@@ -71,10 +71,21 @@
         let randomIndex=parseInt(Math.random()*colorslen);
         return colorArray[randomIndex];
       }
-      Vue.prototype.getRandomStr=function(length) {
+      Vue.prototype.getRandomStr=function(strLength) {
         let str = "";
-        for (let i = 0; i < length; i++) {
-          str += String.fromCharCode(Math.abs(Math.random() * 26) + 97);
+        let randomCharArr=[];
+        for(let i=0;i<10;i++){
+          randomCharArr.push(String.fromCharCode(i+48));
+        }
+        for(let i=0;i<26;i++){
+          randomCharArr.push(String.fromCharCode(i+65));
+        }
+        for(let i=0;i<26;i++){
+          randomCharArr.push(String.fromCharCode(i+97));
+        }
+        for (let i = 0; i < strLength; i++) {
+          let index=parseInt(Math.random()*randomCharArr.length)
+          str +=randomCharArr[index];
         }
         return str;
       }

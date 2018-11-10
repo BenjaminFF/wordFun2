@@ -9,7 +9,6 @@
     export default {
         name: "help-center",
       created(){
-          this.setCreateState(false);
           this.selectCurLinkItem('/helpcenter');
       },
       methods:{

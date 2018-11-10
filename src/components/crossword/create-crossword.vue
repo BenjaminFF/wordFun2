@@ -43,7 +43,7 @@
             },delay);
             delay+=10;
           }*/
-          let arr=[44,45,55,54];
+          /*let arr=[44,45,55,54];
           let startIndex=53;
           for(let i=3;i<=9;i+=2){
             for(let j=0;j<i*4;j++){
@@ -67,6 +67,28 @@
               this.cells[arr[i]].visibility=true;
             },delay);
             delay+=20;
+          }*/
+          let arr=[];
+          for(let i=0;i<10;i++){
+            let startIndex=i;
+            for(let j=0;j<i*2+1;j++){
+              let item={
+                index:startIndex,
+                delay:delay
+              }
+              arr.push(item);
+              if(j<i){
+                startIndex+=10;
+              }else {
+                startIndex-=1;
+              }
+            }
+            delay+=50;
+          }
+          for(let i=0;i<100;i++){
+            setTimeout(()=>{
+              this.cells[arr[i].index].visibility=true;
+            },arr[i].delay);
           }
         }
       }
@@ -102,7 +124,7 @@
     height: 100%;
     border-radius: 3px;
     background-color: white;
-    animation: fadeIn 0.2s ease-in-out;
+    animation: fadeIn 0.4s ease-in-out;
   }
   @keyframes fadeIn {
     0%{

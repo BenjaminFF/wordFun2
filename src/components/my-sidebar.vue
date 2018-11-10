@@ -1,11 +1,9 @@
 <template>
-  <transition enter-active-class="animated slideInLeft">
   <div class="sidebar">
       <div class="item" v-for="item in linkItems">
         <router-link v-bind:to="item.link" :class="{active:item.selected}" class="itemtitle">{{$t("sidebar["+item.index+"]")}}</router-link>
       </div>
   </div>
-  </transition>
 </template>
 
 <script>

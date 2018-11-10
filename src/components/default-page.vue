@@ -1,62 +1,52 @@
 <template>
     <div class="default-page">
-      <div class="matrix-container">
-        <word-matrix :term="w.term" v-on:dismiss="dismiss(index)"  v-for="(w,index) in wordset"
-             :key="index" v-if="w.showMatrix" :definition="w.definition" class="matrix"></word-matrix>
+      <div class="default-page-container">
+        <div class="learn-container">
+          <div class="learn-item" v-for="(item,index) in learnItems">
+            <div class="learn-item-content" :style="{backgroundColor:item.bg}">
+              <icon :name="item.iconName" class="learn-item-icon"></icon>
+              <div class="learn-item-text">{{$t("defaultPage.learnItemsText["+index+"]")}}</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="welcome" v-if="showWelcome">{{$t('defaultPage.welcome')}}</div>
     </div>
 </template>
 
 <script>
-    import WordMatrix from "./word-matrix";
-    import {mapMutations} from 'vuex'
+    import {mapMutations} from 'vuex';
     export default {
         name: "default-page",
-      components: {WordMatrix},
+      components: {},
       data(){
           return{
-            wordset:[],
-            showWelcome:false
+            learnItems:[]
           }
       },
       created(){
+        this.initDefaultPage();
         this.setCreateState(true);           //默认界面隐藏create按钮
-        let w1={
-          term:'astrology',
-          definition:'theory of the influence of planets and stars on human events',
-          showMatrix:true
-        }
-        let w2={
-          term:'homeopathic',
-          definition:'medical treatment using naturally occuring curatives',
-          showMatrix:false
-        }
-        let w3={
-          term:'pseudo',
-          definition:'false, deceptive',
-          showMatrix:false
-        }
-        let wordset=[];
-        wordset.push(w1);
-        wordset.push(w2);
-        wordset.push(w3);
-        this.wordset=wordset;
       },
       methods:{
-          dismiss(index){
-            this.wordset[index].showMatrix=false;
-            let nextIndex=index+1;
-            setTimeout(()=>{
-              this.showNext(index+1);
-            },1000);
-          },
-        showNext(index){
-          if(index!=this.wordset.length){
-            this.wordset[index].showMatrix=true;
-          }else {
-            this.showWelcome=true;
+        initDefaultPage(){
+          let learnItems=[];
+          let iconNames=["list","matrix","flashcards","write"];
+          let itemBGs=['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'];
+          let learnItemsText=this.$t('defaultPage.learnItemsText');
+          for(let i=0;i<4;i++){
+            let bg=this.getColor(itemBGs);
+            if(i!=0){
+              while (bg==learnItems[i-1].bg){
+                bg=this.getColor(itemBGs);
+              }
+            }
+            let item={
+              iconName:iconNames[i],
+              bg:bg,
+            }
+            learnItems.push(item);
           }
+          this.learnItems=learnItems;
         },
         ...mapMutations({
           setCreateState:'wordset/setCreateState'
@@ -69,24 +59,55 @@
   .default-page{
     width: 100%;
     height: 100%;
+  }
+
+  .default-page-container{
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
   }
-  .matrix-container{
+
+  .learn-container{
+    display: grid;
+    grid-template-columns: repeat(2,18rem);
+    grid-template-rows: repeat(2,12rem);
+    position: absolute;
+  }
+
+  .learn-item{
+    width: auto;
+    height: auto;
+    margin: 10px;
+  }
+
+  .learn-item-content{
     width: 100%;
     height: 100%;
-    position: relative;
+    background-color: green;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    flex-direction: column;
+    cursor: pointer;
   }
-  .matrix{
-    position: absolute;
-    left: 0;
-    top: 0;
+
+  .learn-item-content:hover{
+    box-shadow: 1px 1px 15px #b9b9b9;
   }
-  .welcome{
-    position: absolute;
-    color: var(--vermilion);
+
+  .learn-item-icon{
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .learn-item-text{
+    margin-top: 1rem;
+    width: fit-content;
+    height: fit-content;
     font-size: 2rem;
-    user-select: none;
   }
 </style>

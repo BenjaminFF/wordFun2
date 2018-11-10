@@ -23,14 +23,13 @@
       <create-dialog v-if="showCD" v-bind:title.sync="title" :initTitle="initTitle" :initSubTitle="initSubTitle"
                      v-bind:subtitle.sync="subtitle"></create-dialog>
       <my-toast v-for="(toast,index) in toastlist" :text="toast.text" :key="index"></my-toast>
-      <wait-dialog :text="'C'" v-if="!loaded"></wait-dialog>
     </div>
 </template>
 
 <script>
     import CreateInput from "./create-input";
     import MyButton from "../my-button";
-    import FloatButton from "../float-button";
+    import FloatButton from "./float-button";
     import CreateDialog from "./create-dialog";
     import MyToast from "../my-toast";
     import $ from 'jquery'
@@ -391,7 +390,7 @@
   .create-set{
      width: 40rem;
      height: 25rem;
-    position: relative;
+     position: relative;
    }
   .out-container{
     width: 100%;

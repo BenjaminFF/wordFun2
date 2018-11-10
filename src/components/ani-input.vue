@@ -15,7 +15,7 @@
 </template>
 
 <script>
-  import {mapState} from 'vuex';
+  import {mapState,mapMutations} from 'vuex';
     export default {
         name: "ani-input",
       data(){
@@ -34,7 +34,8 @@
             },
             imgStyle:{
 
-            }
+            },
+            captchaChanging:false
           }
       },
       created:function(){
@@ -150,8 +151,19 @@
           this.bbStyle.width=0;
         },
         clickCaptcha(){
-          console.log(this.captchaInfo.captchaData);
-        }
+          if(!this.captchaChanging){
+            this.captchaChanging=true;
+            this.axios.get("/api/captcha").then((response)=>{
+              this.setCaptchaInfo(response.data);
+              this.captchaChanging=false;
+            }).catch((err)=>{
+              throw err;
+            });
+          }
+        },
+        ...mapMutations({
+          setCaptchaInfo:'captcha/setCaptchaInfo'
+        }),
       },
       props:{
           title:{
@@ -254,6 +266,7 @@
     position: absolute;
     right: 5rem;
     user-select: none;
+    cursor: pointer;
     width: fit-content;
     height: fit-content;
   }

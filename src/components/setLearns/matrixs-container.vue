@@ -211,8 +211,8 @@
         },
         fetchData() {
           this.initMatrixContainer();
-          let login_taken=this.getCookie("login_token");
-          let username=JSON.parse(login_taken).username;
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
           let curSet = JSON.parse(this.getCookie('curSet'));
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
@@ -332,9 +332,9 @@
             }
             matrixs.push(data);
           }
-          let login_token=this.getCookie("login_token");
+          let login_Info=this.getCookie("login_Info");
           let jsondata=JSON.stringify(matrixs);
-          let username=JSON.parse(login_token).username;
+          let username=JSON.parse(login_Info).username;
           this.axios.post("/api/updatematrixs",{
             params: {
               username:username,

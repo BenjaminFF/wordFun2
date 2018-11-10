@@ -5,8 +5,8 @@ const state={
 const mutations={
   initLinkitems(state){
     let items=[];
-    let link=['/latestlearn','/wordsets','/wordgame','/helpcenter'];
-    for(let i=0;i<4;i++){
+    let link=[/*'/latestlearn',*/'/wordsets','/wordgame','/helpcenter'];
+    for(let i=0;i<3;i++){
       let item={
         index:i,
         selected:false,
@@ -18,7 +18,7 @@ const mutations={
   },
   selectCurLinkItem(state,currentPath){
     if(currentPath=='/'){
-      currentPath='/latestlearn';
+      currentPath='/wordsets';
     }
     for(let i=0;i<state.linkItems.length;i++){
       state.linkItems[i].selected=false;

@@ -6,6 +6,7 @@ const mysql=require('mysql');
 const fs=require('fs');
 const redis=require("redis");
 const svgCaptcha = require('svg-captcha');
+const bcrypt = require('bcrypt');
 
 function queryData(value,res,column){
     var sql='select * from user where '+ column + '= ?';
@@ -69,14 +70,51 @@ router.get('/api/verifyemail',function (req,res) {
   escape(req.query.email);
   queryData(req.query.email,res,'email');
 });
+//先模拟以下，域名通过以后再完善发送邮箱
+router.post('/api/sendEmail',(req,res)=>{
+  let curTime=new Date().getTime();
+  let sendEmail_nonce=req.body.params.nonce;
+  let email=req.body.params.email;
+  if(curTime-req.body.params.curTime<60*1000){
+    let mClient=redis.createClient();
+    mClient.smembers("sendEmail_nonce",(err,replies)=>{
+      if(err) throw err;
+      let is_illegal=true;
+      for(let i=0;i<replies.length;i++){
+        if(sendEmail_nonce==replies[i]){
+          res.send("illegal request");
+          mClient.quit();
+          return;
+        }
+      }
+
+      mClient.sadd("sendEmail_nonce",sendEmail_nonce);
+      if(replies.length>30*1000){
+          mClient.del("sendEmail_nonce");
+      }
+      let key=email;
+      let randomCode=getRandomStr(6);
+      mClient.set(key,randomCode,"EX",60*60);        //1小时后过期
+      console.log(randomCode);
+      mClient.quit();
+      let data={
+          result:true
+      }
+      res.send(JSON.stringify(data));
+      //sendEmail...
+    });
+  }else {
+    res.send("illegal request");
+  }
+});
 
 //注册的用户名和邮箱是被encode过了的
 router.post('/api/signup',function (req,res) {
   let wprivatekey=fs.readFileSync('wprivatekey.pem');
   var key=new nodersa(wprivatekey);
-  let data=JSON.parse(key.decrypt(req.body.params.encryptdata,'utf8'));
+  let reqdata=JSON.parse(key.decrypt(req.body.params.encryptdata,'utf8'));
   let curTime=new Date().getTime();
-  if(curTime-data.curTime<60*1000){
+  if(curTime-reqdata.curTime<60*1000){
     let mClient=redis.createClient();
     mClient.smembers("signup nonce",(err,replies)=>{
       if(err){
@@ -84,17 +122,108 @@ router.post('/api/signup',function (req,res) {
         throw err;
       }
 
-      if(replies.length>=60*1000){
-
+      for(let i=0;i<replies.length;i++){
+        if(reqdata.nonce==replies[i]){
+          res.send("illegal request");
+          mClient.quit();
+          return;
+        }
       }
+      mClient.sadd("signup nonce",reqdata.nonce);
+      if(replies.length>=30*1000){
+        mClient.del("signup nonce");
+      }
+
+      mClient.get(reqdata.email,(err,reply)=>{
+        if(reply==null||reply.toUpperCase()!=reqdata.rCode.toUpperCase()){
+          let data={
+            result:false
+          }
+          res.send(JSON.stringify(data));
+          mClient.quit();
+        }else {
+          signup_insertData(reqdata,res);
+        }
+      });
     });
   }
 });
 
-function getRandomStr(length) {
+function signup_insertData(reqdata,res) {
+  let saltRounds=10;
+  bcrypt.hash(reqdata.password,saltRounds,(err,hash)=>{
+    if(err){
+      res.send("bcrypt err");
+      throw err;
+    }
+    pool.getConnection((err,connection)=>{
+      if(err){
+        res.send("pool connection err");
+        throw err;
+      }
+
+      connection.beginTransaction((err)=>{
+        if(err){
+          res.send("pool connection err");
+          throw err;
+        }
+        let user={
+          username:reqdata.username,
+          email:reqdata.email,
+          password:hash
+        }
+        connection.query("insert into user set ?",user,(err)=>{
+          if (err) {
+            res.send('pool connection err');
+            return connection.rollback(function (error, results, fields) {
+              throw error;
+            });
+          }
+
+          connection.query("insert into folder (title,author) values (? , ?)",
+            ["all",reqdata.username],(err)=>{
+              if (err) {
+                res.send('pool connection err');
+                return connection.rollback(function (error, results, fields) {
+                  throw error;
+                });
+              }
+
+              connection.commit(function (err) {
+                if (err) {
+                  res.send('pool connection err');
+                  return connection.rollback(function (err) {
+                    throw err;
+                  });
+                }
+                let data={
+                  result:true
+                }
+                res.send(JSON.stringify(data));
+                connection.release();
+              });
+          })
+        });
+      });
+    });
+  });
+}
+
+function getRandomStr(strLength) {
   let str = "";
-  for (let i = 0; i < length; i++) {
-    str += String.fromCharCode(Math.abs(Math.random() * 26) + 97);
+  let randomCharArr=[];
+  for(let i=0;i<10;i++){
+    randomCharArr.push(String.fromCharCode(i+48));
+  }
+  for(let i=0;i<26;i++){
+    randomCharArr.push(String.fromCharCode(i+65));
+  }
+  for(let i=0;i<26;i++){
+    randomCharArr.push(String.fromCharCode(i+97));
+  }
+  for (let i = 0; i < strLength; i++) {
+    let index=parseInt(Math.random()*randomCharArr.length)
+    str +=randomCharArr[index];
   }
   return str;
 }
@@ -182,31 +311,29 @@ function queryeup(eu,pw,res,mClient,nonce){
           result:'empty'
         }
         res.send(JSON.stringify(json));
+        mClient.quit();
         return;
       }else {
-        var data = fs.readFileSync('wprivatekey.pem');
-        var key=new nodersa(data);
-        var password=key.decrypt(result[0].password,'utf8');
-        if(password==pw){      //如果密码正确，则保存token(跟随客户端一起传过来的，客户端下要保存在cookie中)，以便下次直接登陆
-          let key=nonce.substring(0,5)+result[0].username+nonce.substring(nonce.length-5,nonce.length);   //key要唯一
-          mClient.set(key,nonce);
-          mClient.expire(key,60*60*24*30);
-          let json={
-            result:true,
-            username:result[0].username
+        bcrypt.compare(pw,result[0].password,(err,compare_result)=>{
+          if(compare_result==true){      //如果密码正确，则保存token(跟随客户端一起传过来的，客户端下要保存在cookie中)，以便下次直接登陆
+            mClient.set(nonce,nonce,"EX",60*60*24*15);
+            let json={
+              result:true,
+              username:result[0].username
+            }
+            let data=JSON.stringify(json);
+            res.send(data);
+          }else {
+            let json={
+              result:false,
+            }
+            let data=JSON.stringify(json);
+            res.send(data);
           }
-          let data=JSON.stringify(json);
-          res.send(data);
-        }else {
-          let json={
-            result:false,
-          }
-          let data=JSON.stringify(json);
-          res.send(data);
-        }
+          mClient.quit();
+        })
       }
     }
-    mClient.quit();
   });
 }
 
@@ -231,16 +358,14 @@ router.post('/api/validate_token',(req,res)=>{
       if(replies.length>=30*1000){
         mClient.del("validate_token nonce");
       }
-      let login_token=JSON.parse(reqdata.login_token);
-      let token=login_token.token;
-      let key=token.substring(0,5)+login_token.username+token.substring(token.length-5,token.length);
-      mClient.get(key,(err,reply)=>{
+      let login_Info=JSON.parse(reqdata.login_Info);
+      mClient.get(login_Info.token,(err,reply)=>{
+        console.log(reply);
         if(reply==null){
           res.send("invalid key");
           mClient.quit();
           return;
         }
-
         console.log(reply);
         let data={
           result:true
@@ -280,14 +405,14 @@ router.post('/api/deltoken',(req,res)=>{
         }
       }
 
+      mClient.sadd("deltoken nonce",reqdata.nonce);
+
       if(replies.length>30*1000){
         mClient.del("deltoken nonce");
       }
 
-      let login_token=JSON.parse(reqdata.login_token);
-      let token=login_token.token;
-      let key=token.substring(0,5)+login_token.username+token.substring(token.length-5,token.length);
-      mClient.del(key);
+      let login_Info=JSON.parse(reqdata.login_Info);
+      mClient.del(login_Info.token);
       mClient.quit();
       res.send("del token succeed");
     });

@@ -2,7 +2,7 @@
     <div class="header">
       <p class="title"><a href="/">WordFun</a></p>
       <div class="addws"
-                   @click="createSet" v-if="!isSetCreating">
+                   @click="showCreateSet">
         <icon name="addws" class="addwsicon"></icon>
         {{$t('header.create')}}
       </div>
@@ -19,7 +19,7 @@
         </div>
       </div>
       <div class="switchLang" @click="changeLocale">{{$t('language.name')}}</div>
-      <sign-up :showSU="showSU" v-on:dismiss="showSU=false"></sign-up>
+      <sign-up :showSU="showSU" v-on:dismiss="showSU=false" v-on:dismissAEDopensingup="dismissAEDopensingup"></sign-up>
       <log-in :showLI="showLI" v-on:dismiss="showLI=false"></log-in>
     </div>
 </template>
@@ -43,11 +43,6 @@
           link:'/createcontainer'
         }
       },
-      computed:{
-        ...mapState({
-          isSetCreating:state=>state.wordset.isSetCreating,
-        }),
-      },
       created() {
       },
       methods: {
@@ -57,11 +52,6 @@
           // LangStorage.setLang(this.$i18n.locale) //后面会用做切换和将用户习惯存储到本地浏览器
           langStorage.setLang(this.$i18n.locale) // 保存用户习惯
         },
-        createSet(){
-          this.setCreateState(true);
-          this.setCookie('createSetMode','create',1);
-          this.$router.push('createcontainer');
-        },
         showUserFunc() {
           this.showUF = !this.showUF;
           if (this.showUF) {
@@ -70,7 +60,7 @@
             this.isIconUp = false;
           }
         },
-        showLogin(){
+        showLogin(){                  //打开login dialog时刷新验证码
           this.axios.get("/api/captcha").then((response)=>{
             this.setCaptchaInfo(response.data);
             this.showLI=true;
@@ -81,11 +71,11 @@
         logout() {
           this.axios.get('/static/wpublickey.pem').then((response)=>{
             let key=new nodersa(response.data);
-            let login_token=this.getCookie("login_token");
+            let login_Info=this.getCookie("login_Info");
             let curTime=new Date().getTime();
             let nonce=curTime+this.getRandomStr(10);
             let reqdata={
-              login_token:login_token,
+              login_Info:login_Info,
               curTime:curTime,
               nonce:nonce
             }
@@ -97,15 +87,27 @@
               }
             }).then((response)=>{
               console.log(response.data);
-              this.delCookie('login_token');
+              this.delCookie('login_Info');
               this.$router.push('/');
               window.location.reload(true);
             })
           })
         },
+        dismissAEDopensingup(){
+          this.showSU=false;
+          this.axios.get("/api/captcha").then((response)=>{
+            setTimeout(()=>{
+              this.setCaptchaInfo(response.data);
+              this.showLI=true;
+            },200);
+          }).catch((err)=>{
+            throw err;
+          });
+        },
         ...mapMutations({
           setCreateState:'wordset/setCreateState',
-          setCaptchaInfo:'captcha/setCaptchaInfo'
+          setCaptchaInfo:'captcha/setCaptchaInfo',
+          showCreateSet:'wordset/showCreateSet'
         }),
       },
       props:{

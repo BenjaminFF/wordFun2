@@ -2,11 +2,9 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import axios from 'axios'
 import vueaixos from 'vue-axios'
-import latestlearn from '@/components/latest-learn'
-import wordgame from '@/components/word-game'
-import wordsets from '@/components/word-sets'
-import helpcenter from '@/components/help-center'
-import createcontainer from '@/components/create-set/create-container'
+import helpcenter from '@/components/sidebaritems/help-center'
+import wordgame from '@/components/sidebaritems/word-game'
+import wordsets from '@/components/sidebaritems/word-sets'
 import setLearn from '@/components/setLearns/set-learn';
 
 Vue.use(Router)
@@ -18,13 +16,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'latestlearn',
-      component: latestlearn
-    },
-    {
-      path: '/latestlearn',
-      name: 'latestlearn',
-      component: latestlearn
+      name: 'wordsets',
+      component: wordsets
     },
     {
       path: '/wordgame',
@@ -40,11 +33,6 @@ export default new Router({
       path: '/helpcenter',
       name: 'helpcenter',
       component: helpcenter
-    },
-    {
-      path: '/createcontainer',
-      name: 'createcontainer',
-      component: createcontainer
     },
     {
       path: '/setLearn',

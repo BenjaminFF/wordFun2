@@ -3,9 +3,10 @@ module.exports = {
     name: 'E'
   },
   defaultPage:{
-    welcome:'LogIn to explore more joy, join us!'
+    welcome:'LogIn to explore more joy, join us!',
+    learnItemsText:["Set List","Matrix","Flashcards","Write"]
   },
-  sidebar: ['Latest Learning','Your WordSet','CrossWord','Help Center'],
+  sidebar: [/*'Latest Learning',*/ 'Your WordSet','CrossWord','Help Center'],
   header:{
     create:'CREATE',
     user:['SIGNUP','LOGIN'],
@@ -18,12 +19,14 @@ module.exports = {
     captchaHint:["captcha expired","captcha is incorrect,please try again","captcha cannot be empty"],
   },
   SignUp:{
-    basic:['username','email','password',"SING UP"],
-    nameHint:['username123','username must greater than 4',
-      'username must only contain letter,number,underscore',
+    basic:['username','email','password',"Next","Registration Code","sign up","sign up succeed!"],
+    notifyText:"your Registration Code has been sent to your email",
+    nameHint:['username123','username must greater than 2 character',
+      'username can\'t contain special character',
       'username has already been signed','username cannot be empty','username cannot greater than 15 character'],
     emailHint:['invalid email address','email has already been signed','email cannot be empty'],
-    pwHint:['password must greater than 6','password must contain number and character','password cannot be empty','password cannot contain chinese']
+    pwHint:['password must greater than 6','password must contain number and character','password cannot be empty','password cannot contain chinese'],
+    rCodeHint:['Registration Code cannot be empty!','Registration Code is incorrect']
   },
   addText:"+Add Card",
   createDialog:{

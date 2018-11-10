@@ -71,20 +71,19 @@
           },
         login() {
             if(!this.isLogin){
-              let that=this;
               let elementList=document.querySelectorAll(".input");
               if(this.euInfo.value==""){
                 this.euInfo.hint.text=this.$t('LogIn.ueHint[0]');
                 this.euInfo.hint.color="red";
-                setTimeout(function () {
-                  that.euInfo.hint.text="";
+                setTimeout(()=> {
+                  this.euInfo.hint.text="";
                 },2000);
                 elementList[0].focus();
               }else if(this.pwInfo.value==""){
                 this.pwInfo.hint.text=this.$t('LogIn.pwHint[0]');
                 this.pwInfo.hint.color="red";
-                setTimeout(function () {
-                  that.pwInfo.hint.text="";
+                setTimeout(()=> {
+                  this.pwInfo.hint.text="";
                 },2000);
                 elementList[1].focus();
               }else if(this.captchaStyleInfo.value==""){
@@ -100,10 +99,10 @@
                 this.axios.get('/static/wpublickey.pem').then((response)=>{
                   let key=new nodersa(response.data);
                   let curTime=new Date().getTime();
-                  let nonce=that.getRandomStr(10)+curTime+that.getRandomStr(10);
+                  let nonce=this.getRandomStr(20)+curTime+this.getRandomStr(20);
                   let reqdata={
-                    eu:encodeURIComponent(that.euInfo.value),
-                    pw:encodeURIComponent(that.pwInfo.value),
+                    eu:encodeURIComponent(this.euInfo.value),
+                    pw:encodeURIComponent(this.pwInfo.value),
                     curTime:curTime,
                     nonce:nonce,
                     captchaKey:this.captchaInfo.captchaKey,
@@ -111,8 +110,7 @@
                   }
                   let jsonData=JSON.stringify(reqdata);
                   let encryptdata=key.encrypt(jsonData,'base64');
-                  let vm=that;
-                  vm.axios.post('/api/login', {
+                  this.axios.post('/api/login', {
                     params: {
                       encryptdata:encryptdata
                     },
@@ -125,9 +123,6 @@
                       },1000);
                       let resdata=response.data;
                       console.log(resdata);
-                      if(resdata.result===undefined){
-                        return;
-                      }
                       if(resdata.result=="captcha expired"){
                         this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[0]');
                         this.captchaStyleInfo.hint.color="red";
@@ -141,25 +136,25 @@
                           this.captchaStyleInfo.hint.text="";
                         },2000);
                       }else if(resdata.result=='empty'){      //用户不存在
-                        that.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
-                        that.euInfo.hint.color="red";
-                        setTimeout(function () {
-                          that.euInfo.hint.text="";
+                        this.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
+                        this.euInfo.hint.color="red";
+                        setTimeout(()=> {
+                          this.euInfo.hint.text="";
                         },2000);
                       }else if(!resdata.result){      //用户密码错误
-                        that.pwInfo.hint.text=that.$t('LogIn.pwHint[1]');
-                        that.pwInfo.hint.color="red";
+                        this.pwInfo.hint.text=this.$t('LogIn.pwHint[1]');
+                        this.pwInfo.hint.color="red";
                         console.log("falsepw");
-                        setTimeout(function () {
-                          that.pwInfo.hint.text="";
+                        setTimeout(()=> {
+                          this.pwInfo.hint.text="";
                         },2000);
                       }else if(resdata.result){
                         console.info('success');
-                        let login_token={
-                          username:resdata.username,
+                        let login_Info={
+                          username:resdata.username,    //返回过来的用户名，以免解析成邮箱
                           token:reqdata.nonce
                         }
-                        that.setCookie("login_token",JSON.stringify(login_token),30);
+                        this.setCookie("login_Info",JSON.stringify(login_Info),30);
                         window.location.reload(true);
                       }
                     })
@@ -232,11 +227,12 @@
     width: 30rem;
     height: 95%;
     background-color: white;
-    box-shadow: 1px 1px 10px gray;
+    box-shadow: 1px 1px 10px #c3c3c3;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
+    border-radius: 10px;
   }
   .container{
     width: 80%;
@@ -245,6 +241,7 @@
   }
   .button{
     margin-top: 2rem;
+    border-radius: 5px;
   }
   .fg{
     text-align: center;

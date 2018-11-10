@@ -137,8 +137,8 @@
         fetchData(){
           this.loading=true;
           this.curIndex=0;
-          let login_taken=this.getCookie("login_token");
-          let username=JSON.parse(login_taken).username;
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
           let curSet=JSON.parse(this.getCookie('curSet'));
           this.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
           this.subtitle=this.limitLength(curSet.subtitle,40,true);
@@ -335,9 +335,9 @@
             }
             flashes.push(data);
           }
-          let login_token=this.getCookie("login_token");
+          let login_Info=this.getCookie("login_Info");
           let jsondata=JSON.stringify(flashes);
-          let username=JSON.parse(login_token).username;
+          let username=JSON.parse(login_Info).username;
           this.axios.post("/api/updateflashs",{
             params: {
               username:username,

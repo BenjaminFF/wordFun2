@@ -1,7 +1,9 @@
 <template>
+  <transition enter-active-class="animated slideInDown" v-on:after-enter="createSetVisible=true">
     <div class="create-container">
-        <create-set></create-set>
+      <create-set v-if="createSetVisible"></create-set>
     </div>
+  </transition>
 </template>
 
 <script>
@@ -12,16 +14,14 @@
       components: {CreateSet},
       data(){
           return{
-            loaded:false
+            createSetVisible:false
           }
       },
       created(){
-        this.setCreateState(true);
+
       },
       methods:{
-        ...mapMutations({
-          setCreateState:'wordset/setCreateState',
-        }),
+
       }
     }
 </script>
@@ -32,39 +32,11 @@
     height: 100%;
     display: flex;
     justify-content: center;
-  }
-  .loading{
-    position: absolute;
-    top: 5rem;
-    width: 6rem;
-    height: 6rem;
-    box-sizing: border-box;
-    border-radius: 50%;
-    border: 2px solid var(--vermilion);
-    clip: rect(0,6rem,3rem,0rem);
-    transform-origin: center;
-    animation: rotate 1.5s infinite linear;
-  }
-  .shadow{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    left: 0;
-    display: flex;
-    justify-content: center;
-  }
-  .load_text{
-    position: absolute;
-    top: 5rem;
-    width: 6rem;
-    height: 6rem;
-    box-sizing: border-box;
-    border: 2px solid rgba(211, 211, 211, 0.4);
-    display: flex;
-    border-radius: 50%;
-    justify-content: center;
     align-items: center;
-    color: var(--vermilion);
-    font-size: 2rem;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10000;
+    background-color: white;
   }
 </style>

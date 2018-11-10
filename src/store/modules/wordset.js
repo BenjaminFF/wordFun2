@@ -3,51 +3,23 @@ const state={
   showCD:false,                      //show create dialog
   folders:[],
   slideFolders:[],
-  isSetCreating:false,                 //正在创建单词集，sidebar的显示和隐藏决定于它
   isPushing:false,                    //主要用于create-dialog中的进度条，判断单词集push的状态
-  wordsets:[],
   vocabulary:[],
   ddState:false,                  //delete dialog state
+  createSetInfo:{
+    containerVisibility:false
+  }
 }
 
 const mutations={
   alterddState(state,isShow){
     state.ddState=isShow;
   },
-  setPushState(state,pushState){
-    state.isPushing=pushState;
+  showCreateSet(state){
+    state.createSetInfo.containerVisibility=true;
   },
-  setCreateState(state,isCreating){
-    state.isSetCreating=isCreating;
-  },
-  setFolders(state,folders){
-    state.folders=folders;
-  },
-  setWordSets(state,sets){
-    state.wordsets=sets;
-  },
-  unshiftWordsets(state,item){
-    state.wordsets.unshift(item);
-  },
-  setVocabulary(state,vocabulary){
-    state.vocabulary=vocabulary;
-  },
-  setSlideFolders(state){
-    let offset=parseInt(state.folders.length/2)*(-100);
-    for(let i=0;i<state.folders.length;i++){
-      let text=state.folders[i];
-      if(funcs.checkLength(text)>=26){
-        let end=26-parseInt(funcs.getChineseCount(text,26)/2);
-        text=text.substring(0,end)+"...";
-      }
-      let item={
-        offset:offset,
-        text:text,
-        transform:'translateX('+offset+'%)'
-      }
-      state.slideFolders.push(item);
-      offset+=100;
-    }
+  dismissCreateSet(state){
+    state.createSetInfo.containerVisibility=false;
   },
   slideRight(state){
     let LItem=state.slideFolders.pop();

@@ -7,8 +7,8 @@
 
 <script>
   import {mapMutations} from 'vuex'
-  import MyButton from "./my-button";
-  import CreateCrossword from "./crossword/create-crossword";
+  import MyButton from "../my-button";
+  import CreateCrossword from "../crossword/create-crossword";
     export default {
         name: "word-game",
       components: {CreateCrossword, MyButton},
@@ -18,13 +18,11 @@
           }
       },
       created(){
-        this.setCreateState(false);
         this.selectCurLinkItem('/wordgame');
-        console.log("wordgame")
+        console.log("wordgame");
       },
       methods:{
         ...mapMutations({
-          setCreateState:'wordset/setCreateState',
           selectCurLinkItem:'routerdata/selectCurLinkItem'
         }),
       }

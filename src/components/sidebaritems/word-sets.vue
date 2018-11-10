@@ -11,7 +11,7 @@
                     v-for="(item,index) in items" :item="item" :key="index"></set-item>
         </transition-group>
           <transition enter-active-class="animated bounceInLeft">
-            <div class="add-set" v-if="isEmpty" @click="createSet">{{$t('wordSets.create')}}</div>
+            <div class="add-set" v-if="isEmpty" @click="showCreateSet">{{$t('wordSets.create')}}</div>
           </transition>
         </div>
         <delete-dialog v-if="ddState" v-on:updateData="fetchData"></delete-dialog>
@@ -22,8 +22,8 @@
 <script>
   import {mapMutations,mapState} from 'vuex'
   import SetItem from "./set-item";
-  import WaitDialog from "./wait-dialog";
-  import DeleteDialog from "./delete-dialog";
+  import WaitDialog from "../wait-dialog";
+  import DeleteDialog from "../delete-dialog";
     export default {
         name: "word-set",
       components: {DeleteDialog, WaitDialog, SetItem},
@@ -36,7 +36,6 @@
           }
       },
       created(){
-        this.setCreateState(false);
         this.selectCurLinkItem('/wordsets');
         console.log('wordsets created');
         this.isEmpty=false;
@@ -44,21 +43,18 @@
       },
       methods:{
         createSet(){
-          this.setCreateState(true);
-          this.$router.push('createcontainer');
-          this.setCookie('createSetMode','create',1);
+
         },
         fetchData(){
           this.setinited=false;
-          let login_taken=this.getCookie("login_token");
-          let username=JSON.parse(login_taken).username;
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
           this.axios.get('/api/getwordset', {
             params: {
               username:username
             }
           })
             .then((response)=>{
-              this.setWordSets(response.data.sets);
               this.items=this.getDealedSets(response.data.sets);
               if(this.items.length==0){
                 this.isEmpty=true;
@@ -123,15 +119,12 @@
           return items;
         },
         setItemClick(item){
-          this.setCurSet(item);
           this.setCookie('curSet',JSON.stringify(item),1);          //curSet存到cookie中，因为刷新后在set-learn中获取不到state.curSet
           this.$router.push('setLearn');
         },
         ...mapMutations({
-          setCreateState:'wordset/setCreateState',
           selectCurLinkItem:'routerdata/selectCurLinkItem',
-          setWordSets:'wordset/setWordSets',
-          setCurSet:'wordset/setCurSet'
+          showCreateSet:'wordset/showCreateSet'
         }),
       },
       computed:{

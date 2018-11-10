@@ -1,23 +1,25 @@
 <template>
     <div class="userpage">
-      <my-sidebar class="sidebar" v-if="!isSetCreating"></my-sidebar>
+      <my-sidebar class="sidebar"></my-sidebar>
       <div class="container">
         <router-view></router-view>
       </div>
+      <create-container v-if="createSetInfo. containerVisibility"></create-container>
     </div>
 </template>
 
 <script>
     import MySidebar from "./my-sidebar";
     import {mapState} from 'vuex'
+    import CreateContainer from "./create-set/create-container";
     export default {
         name: "user-page",
-      components: {MySidebar},
+      components: {CreateContainer, MySidebar},
       computed:{
         ...mapState({
-          isSetCreating:state=>state.wordset.isSetCreating
+          createSetInfo:state=>state.wordset.createSetInfo
         }),
-      },
+      }
     }
 </script>
 
