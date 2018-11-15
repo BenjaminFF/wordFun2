@@ -1,8 +1,8 @@
 <template>
     <div class="header">
       <p class="title"><a href="/">WordFun</a></p>
-      <div class="addws"
-                   @click="showCreateSet">
+      <div class="addws" v-if="!defaultPage"
+                   @click="createSet">
         <icon name="addws" class="addwsicon"></icon>
         {{$t('header.create')}}
       </div>
@@ -40,10 +40,10 @@
           showUF: false,
           rotateDeg: 0,
           isIconUp: false,
-          link:'/createcontainer'
         }
       },
       created() {
+
       },
       methods: {
         changeLocale() {
@@ -60,6 +60,10 @@
             this.isIconUp = false;
           }
         },
+        createSet(){
+          this.setCookie("createSetMode","create");
+          this.showCreateSet();
+        },
         showLogin(){                  //打开login dialog时刷新验证码
           this.axios.get("/api/captcha").then((response)=>{
             this.setCaptchaInfo(response.data);
@@ -69,29 +73,19 @@
           });
         },
         logout() {
-          this.axios.get('/static/wpublickey.pem').then((response)=>{
-            let key=new nodersa(response.data);
-            let login_Info=this.getCookie("login_Info");
-            let curTime=new Date().getTime();
-            let nonce=curTime+this.getRandomStr(10);
-            let reqdata={
-              login_Info:login_Info,
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
+          this.axios.post('/api/logout',{
+            params:{
               curTime:curTime,
               nonce:nonce
             }
-            let jsonData=JSON.stringify(reqdata);
-            let encryptdata=key.encrypt(jsonData,'base64');
-            this.axios.post('/api/deltoken',{
-              params:{
-                encryptdata:encryptdata
-              }
-            }).then((response)=>{
-              console.log(response.data);
-              this.delCookie('login_Info');
-              this.$router.push('/');
-              window.location.reload(true);
-            })
-          })
+          }).then((response)=>{
+            console.log(response.data);
+            this.delCookie('login_Info');
+            this.$router.push('/');
+            window.location.reload(true);
+          });
         },
         dismissAEDopensingup(){
           this.showSU=false;

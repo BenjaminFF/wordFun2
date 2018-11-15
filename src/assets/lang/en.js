@@ -6,7 +6,8 @@ module.exports = {
     welcome:'LogIn to explore more joy, join us!',
     learnItemsText:["Set List","Matrix","Flashcards","Write"]
   },
-  sidebar: [/*'Latest Learning',*/ 'Your WordSet','CrossWord','Help Center'],
+  sidebar: [/*'Latest Learning',*/ 'Your WordSet','CrossWord','Help Center','Folders','Create Folder'],
+  createFolder:['Create New Folder','title','intro',"CREATE","there's already have such a folder.","folder's title cannot be empty"],
   header:{
     create:'CREATE',
     user:['SIGNUP','LOGIN'],
@@ -32,7 +33,7 @@ module.exports = {
   createDialog:{
     header:"A New Set",
     title:"Title",
-    subTitle:"SubTitle",
+    subTitle:"description",
     folder:"Folder",
     folderHint:"only one folder!",
     titleEmpty:'There is no Title!',
@@ -41,7 +42,7 @@ module.exports = {
   createSet:{
     termEmpty:' term is empty,please fill it up!',
     defEmpty:' definition is empty,please fill it up!',
-    setLength:'A Set at least contains 2 cards!',
+    setLength:'A Set at least contains 3 cards!',
     termHint:'term...',
     definitionHint:'definition...',
   },

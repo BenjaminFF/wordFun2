@@ -4,7 +4,7 @@
       <div class="container">
         <router-view></router-view>
       </div>
-      <create-container v-if="createSetInfo. containerVisibility"></create-container>
+      <create-container v-if="createSetInfo.containerVisibility"></create-container>
     </div>
 </template>
 

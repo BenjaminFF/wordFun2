@@ -3,39 +3,45 @@
     <div class="dialog animated bounceInDown">
       <div class="text">{{$t('deleteDialog.text')}}</div>
       <div class="buttons">
-        <div class="cancel-button" @click="alterddState(false)">{{$t('deleteDialog.cancel')}}</div>
+        <div class="cancel-button" @click="setddState(false)">{{$t('deleteDialog.cancel')}}</div>
         <div class="delete-button" @click="deleteCurSet">{{$t('deleteDialog.delete')}}</div>
       </div>
-      <icon name="cross" class="cross" @click.native="alterddState(false)"></icon>
+      <icon name="cross" class="cross" @click.native="setddState(false)"></icon>
     </div>
   </div>
 </template>
 
 <script>
   import {mapMutations,mapState} from 'vuex'
+  import nodersa from 'node-rsa'
     export default {
         name: "delete-dialog",
       methods:{
         deleteCurSet(){
+          console.log("deleteCurSet");
           let createTime=this.getCookie('deleteInfo');
-          console.log(createTime);
-          let euname=this.getCookie("euname");
-          this.axios.post('/api/deleteSet',{
-            params:{
-              createTime:createTime,
-              username:escape(euname)
-            }
-          }).then((response)=>{
-            console.log(response.data);
-            this.alterddState(false);
-            this.$emit('updateData',createTime);
+          let login_Info=JSON.parse(this.getCookie("login_Info"));
+          let username=login_Info.username;
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
+            this.axios.post('/api/deleteSet',{
+              params:{
+                curTime:curTime,
+                nonce:nonce,
+                createTime:createTime,
+                username:username
+              }
+            }).then((response)=>{
+              console.log(response.data);
+              this.setddState(false);
+              this.$emit('updateData',createTime);
 
-          }).catch(function (error) {
-            console.log(error);
-          });
+            }).catch(function (error) {
+              console.log(error);
+            });
         },
         ...mapMutations({
-          alterddState:'wordset/alterddState'
+          setddState:'wordset/setddState'
         }),
       },
       computed:{

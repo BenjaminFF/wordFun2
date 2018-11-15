@@ -4,6 +4,7 @@ const utils = require('./utils')
 const config = require('../config')
 const vueLoaderConfig = require('./vue-loader.conf')
 
+
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
@@ -29,6 +30,7 @@ module.exports = {
       '@': resolve('src'),
     }
   },
+
   module: {
     rules: [
       {
@@ -69,8 +71,6 @@ module.exports = {
         test:/\.svg$/,
         loader: 'svg-sprite-loader'
       },
-      { test: /jquery-mousewheel/, loader: "imports?define=>false&this=>window" },
-      { test: /malihu-custom-scrollbar-plugin/, loader: "imports?define=>false&this=>window" }
     ],
   },
   node: {

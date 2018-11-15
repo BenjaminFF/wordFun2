@@ -58,7 +58,11 @@ module.exports={
         activeBG:'#355834'
       },
       dialogBG:'#F0F4F6',
-      dialogColor:'#1A936F'
+      dialogColor:'#1A936F',
+      bulb:{
+        normal:'#FDFFFC',
+        active:'#faff1c'
+      }
     }
   },
   dark:{
@@ -119,7 +123,11 @@ module.exports={
         activeBG:'#6FFFE9'
       },
       dialogBG:'#3A506B',
-      dialogColor:'#6FFFE9'
+      dialogColor:'#6FFFE9',
+      bulb:{
+        normal:'#5BC0BE',
+        active:'#6FFFE9'
+      }
     }
   }
 }

@@ -152,9 +152,8 @@
                         console.info('success');
                         let login_Info={
                           username:resdata.username,    //返回过来的用户名，以免解析成邮箱
-                          token:reqdata.nonce
                         }
-                        this.setCookie("login_Info",JSON.stringify(login_Info),30);
+                        this.setCookie("login_Info",JSON.stringify(login_Info),15);
                         window.location.reload(true);
                       }
                     })

@@ -11,7 +11,7 @@
                     v-for="(item,index) in items" :item="item" :key="index"></set-item>
         </transition-group>
           <transition enter-active-class="animated bounceInLeft">
-            <div class="add-set" v-if="isEmpty" @click="showCreateSet">{{$t('wordSets.create')}}</div>
+            <div class="add-set" v-if="isEmpty" @click="createSet">{{$t('wordSets.create')}}</div>
           </transition>
         </div>
         <delete-dialog v-if="ddState" v-on:updateData="fetchData"></delete-dialog>
@@ -20,10 +20,10 @@
 </template>
 
 <script>
-  import {mapMutations,mapState} from 'vuex'
+  import {mapMutations,mapState,mapGetters} from 'vuex'
   import SetItem from "./set-item";
   import WaitDialog from "../wait-dialog";
-  import DeleteDialog from "../delete-dialog";
+  import DeleteDialog from "./delete-dialog";
     export default {
         name: "word-set",
       components: {DeleteDialog, WaitDialog, SetItem},
@@ -32,7 +32,8 @@
             items:[],
             setinited:false,
             filterText:"",
-            isEmpty:'false'
+            isEmpty:'false',
+            sets:[]
           }
       },
       created(){
@@ -43,41 +44,44 @@
       },
       methods:{
         createSet(){
-
+          this.setCookie("createSetMode","create");
+          this.showCreateSet();
         },
         fetchData(){
           this.setinited=false;
           let login_Info=this.getCookie("login_Info");
           let username=JSON.parse(login_Info).username;
-          this.axios.get('/api/getwordset', {
+          this.axios.get('/api/getwordsets', {
             params: {
               username:username
             }
           })
             .then((response)=>{
-              this.items=this.getDealedSets(response.data.sets);
+              this.sets=this.items=this.getDealedSets(response.data.sets);
               if(this.items.length==0){
                 this.isEmpty=true;
+              }else {
+                this.isEmpty=false;
               }
               setTimeout(()=>{
+                this.setSFoldersState(true);
                 this.setinited=true;
               },500);
-            })
-            .catch(function (error) {
+            }).catch((error)=> {
               console.log(error);
             });
         },
         filterSets(event){
           let text=event.target.value;
           if(text==""||this.sets.length==0){
-            this.items=this.getDealedSets(this.sets);
+            this.items=this.sets;
             return;
           }
           let regex=new RegExp(text,'i');
           let newItems=[];
           for(let i=0;i<this.sets.length;i++){
             if(regex.test(decodeURIComponent(this.sets[i].title))){
-              newItems.push(this.getDealedSet(this.sets[i]));
+              newItems.push(this.sets[i]);
             }
           }
           newItems.sort(function (item1,item2) {
@@ -124,12 +128,23 @@
         },
         ...mapMutations({
           selectCurLinkItem:'routerdata/selectCurLinkItem',
-          showCreateSet:'wordset/showCreateSet'
+          showCreateSet:'wordset/showCreateSet',
+          setFlushState:'wordset/setFlushState',
+          setSFoldersState:'wordset/setSFoldersState'
         }),
+      },
+      watch:{
+        flushState(){
+          if(this.flushState){
+            this.fetchData();
+            this.setFlushState(false);
+            console.log(this.flushState);
+          }
+        }
       },
       computed:{
         ...mapState({
-          sets:state=>state.wordset.wordsets,
+          flushState:state=>state.wordset.flushState,
           ddState:state=>state.wordset.ddState
         }),
       }
@@ -141,17 +156,7 @@
     width: 100%;
     height: 100%;
   }
-  .out-container{
-    width: 32rem;
-    overflow: hidden;
-    position: relative;
-  }
-  .inner-container{
-    width: 105%;
-    height: 22rem;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
+
   .set-filter{
     width: 30rem;
     line-height: 2rem;
@@ -165,6 +170,27 @@
     color: var(--vermilion);
     margin-left: 0.5rem;
   }
+
+  .out-container{
+    width: 32rem;
+    overflow: hidden;
+    position: relative;
+  }
+  .inner-container{
+    width: 105%;
+    height: 22rem;
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
+
+  .set-tools{
+    margin: 0.5rem 0.5rem 1rem;
+    width: 30rem;
+    height: fit-content;
+    display: flex;
+    justify-content: space-between;
+  }
+
   .set-item{
     margin: 0.5rem 0.5rem 2rem;
   }

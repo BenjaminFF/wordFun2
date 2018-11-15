@@ -9,12 +9,14 @@
     export default {
         name: "help-center",
       created(){
+          this.setSFoldersState(false);
           this.selectCurLinkItem('/helpcenter');
       },
       methods:{
         ...mapMutations({
           setCreateState:'wordset/setCreateState',
           selectCurLinkItem:'routerdata/selectCurLinkItem',
+          setSFoldersState:'wordset/setSFoldersState'
         }),
       }
     }

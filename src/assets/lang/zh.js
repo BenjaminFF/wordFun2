@@ -6,7 +6,8 @@ module.exports = {
     welcome:'登陆探索更多学习乐趣，加入我们吧！',
     learnItemsText:["单词集列表","矩阵","幻灯片","书写"]
   },
-  sidebar: [/*'最近的学习',*/'你的单词集','填字游戏','帮助中心'],
+  sidebar: ['你的单词集','填字游戏','帮助中心','文件夹','创建文件夹'],
+  createFolder:['创建新的文件夹',"标题","描述","创 建","文件夹重名","文件名标题不能为空"],
   header:{
     create:"创建",
     user:['注册','登陆'],
@@ -31,16 +32,14 @@ module.exports = {
   createDialog:{
     header:"新的单词集!",
     title:"标题",
-    subTitle:"副标题",
-    folder:"文件夹",
-    folderHint:"你只有一个文件夹哦！",
+    subTitle:"描述",
     titleEmpty:'标题不能为空哦',
     editHeader:'修改单词集！'
   },
   createSet:{
     termEmpty:'行单词为空，请给它填上!',
     defEmpty:'行定义为空，请给它填上!',
-    setLength:'一个单词集至少包含2个卡片哦!',
+    setLength:'一个单词集至少包含3个卡片哦!',
     termHint:'定义...',
     definitionHint:'解释...',
   },

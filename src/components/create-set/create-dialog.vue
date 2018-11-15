@@ -1,21 +1,13 @@
 <template>
     <div class="model">
         <div class="dialog animated bounceInDown">
-          <div style="color: white;font-size: 1.5rem;margin-top: 0.8rem">{{headerText}}</div>
-          <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{$t('createDialog.title')}}</div>
+          <div style="color: white;font-size: 1.5rem;margin-top: 1rem">{{headerText}}</div>
+          <div style="color: white;font-size: 1.5rem;margin-top: 3rem">{{$t('createDialog.title')}}</div>
           <input class="edit title" v-on:input="titleUpdate($event)" :value="title"/>
-          <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">
+          <div style="color: white;font-size: 1.5rem;margin-top: 4rem">
             {{$t('createDialog.subTitle')}}</div>
-          <input class="edit subtitle" v-on:input="subtitleUpdate($event)" :value="subTitle"/>
-          <div style="color: white;font-size: 1.5rem;margin-top: 1.5rem">{{$t('createDialog.folder')}}</div>
-          <div class="folder">
-            <div v-for="item in slideFolders" class="folder-item"
-                 :style="{transform:item.transform}">{{item.text}}</div>
-            <icon name="left" class="left" @click.native="clickLeft"></icon>
-            <icon name="right" class="right" @click.native="clickRight"></icon>
-          </div>
+          <textarea class="edit subtitle" v-on:input="subtitleUpdate($event)" :value="subTitle"/>
           <icon name="cross" class="delete-icon" @click.native="dismiss($event,true)"></icon>
-          <div class="loading" v-if="isPushing"></div>
         </div>
     </div>
 </template>
@@ -34,7 +26,21 @@
             headerText:'',
           }
       },
+      props:{
+        initTitle:{
+          type:String,
+          default:''
+        },
+        initSubTitle:{
+          type:String,
+          default:''
+        }
+      },
       created(){
+          this.init();
+      },
+      methods:{
+        init(){
           if(this.initTitle!=""){        //表示为修改的单词集，而不是创建的单词集
             this.headerText=this.$t('createDialog.editHeader');
           }else {
@@ -42,18 +48,7 @@
           }
           this.title=this.initTitle;
           this.subTitle=this.initSubTitle;
-      },
-      props:{
-          initTitle:{
-            type:String,
-            default:''
-          },
-          initSubTitle:{
-          type:String,
-          default:''
-        }
-      },
-      methods:{
+        },
         banInput(event,length){
           if(this.checkLength(event.target.innerText)>length){
             // Backspace, del, 左右方向键
@@ -63,116 +58,22 @@
             }
           }
         },
-          titleUpdate(event){
+        titleUpdate(event){
             this.title=event.target.value;
             this.$emit('update:title',this.title);
           },
-          subtitleUpdate(event){
+        subtitleUpdate(event){
             this.subTitle=event.target.value;
           this.$emit('update:subtitle',this.subTitle);
           },
-          addTransition(el,transition,delay){
-          return el.animate(
-            transition,
-            {
-              duration:600,
-              easing: 'cubic-bezier(0,0,0.32,1)',
-            }
-          );
-        },
-          clickLeft(){
-            var vm=this;
-            if(this.slideFolders.length==1){
-              this.folderHint=this.$t('createDialog.folderHint');
-              setTimeout(function () {
-                vm.folderHint="";
-              },1500);
-              return;
-            }
-            this.slideLeft();
-            let that=this;
-            this.$nextTick(function () {
-              let el=document.querySelectorAll('.folder-item');
-              let o=el[0].getBoundingClientRect();
-              let invert=o.left-o.right;
-              let m=parseInt(el.length/2);
-              let start=0;
-              let end=invert;
-              for(let i=m-1;i<=m;i++){
-                var moveTransition=[
-                  { transform: 'translateX(' + start + 'px)' },        //以0为相对位置！！！
-                  { transform: 'translateX(' + end + 'px)' }
-                ]
-                that.addTransition(el[i],moveTransition);
-                start=-invert;
-                end=0;
-              }
-            });
-          },
-          clickRight(){
-            var vm=this;
-            if(this.slideFolders.length==1){
-              console.log("only you");
-              this.folderHint=this.$t('createDialog.folderHint');
-              setTimeout(function () {
-                vm.folderHint="";
-              },1500);
-              return;
-            }
-            this.slideRight();
-            let that=this;
-            this.$nextTick(function () {
-              let el=document.querySelectorAll('.folder-item');
-              console.log(el.length);
-              let o=el[0].getBoundingClientRect();
-              let invert=o.left-o.right;
-              let m=parseInt(el.length/2);
-              if(el.length==2){
-                let start=0;
-                let end=-invert;
-                for(let i=0;i<=1;i++){
-                  var moveTransition=[
-                    { transform: 'translateX(' + start + 'px)' },        //以0为相对位置！！！
-                    { transform: 'translateX(' + end + 'px)' }
-                  ]
-                  that.addTransition(el[i],moveTransition);
-                  start=invert;
-                  end=0;
-                }
-              }else {
-                let start=invert;
-                let end=0;
-                for(let i=m;i<=m+1;i++){
-                  var moveTransition=[
-                    { transform: 'translateX(' + start + 'px)' },        //以0为相对位置！！！
-                    { transform: 'translateX(' + end + 'px)' }
-                  ]
-                  that.addTransition(el[i],moveTransition);
-                  start=0;
-                  end=-invert;
-                }
-              }
-            });
-            console.log(this.slideFolders);
-          },
-          dismiss(event,isIcon){
-            if(event.target.className=="model"||isIcon){
-              this.closeCD();
+        dismiss(event,isIcon){
+          if(event.target.className=="model"||isIcon){
               this.init();
-            }
+              this.$emit('dismiss');
+          }
         },
-        ...mapMutations({
-          slideLeft:'wordset/slideLeft',
-          slideRight:'wordset/slideRight',
-          closeCD:'wordset/closeCD',
-        }),
       },
       computed:{
-        ...mapState({
-          slideFolders:state=>state.wordset.slideFolders,
-          showCD:state=>state.wordset.showCD,
-          isPushing:state=>state.wordset.isPushing
-        }),
         inputListener(){
           var vm=this;
           return Object.assign({},
@@ -203,8 +104,7 @@
   .dialog{
     width: 25rem;
     height: 80%;
-    background-color: white;
-    border-radius: 5px;
+    border-radius: 20px;
     background-color: var(--maximumblue);
     display: flex;
     align-items: center;
@@ -227,10 +127,13 @@
   .title{
     font-size: 1.5rem;
     padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
   }
   .subtitle{
     font-size: 1.2rem;
     padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    overflow: hidden;
   }
   .delete-icon{
     position: absolute;
@@ -247,6 +150,7 @@
     padding: 0rem 1rem;
     position: relative;
     overflow: hidden;
+    margin-top: 1rem;
   }
   .left{
     width: 1.8rem;
@@ -272,16 +176,5 @@
     text-align: center;
     color: white;
     left: 0;
-  }
-  .loading{
-    position: absolute;
-    width: 4rem;
-    height: 4rem;
-    box-sizing: border-box;
-    border: 2px solid white;
-    clip: rect(0,4rem,2rem,0rem);
-    transform-origin: center;
-    animation: rotate 1.5s infinite linear;
-    bottom: 2rem;
   }
 </style>

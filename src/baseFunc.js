@@ -71,6 +71,10 @@
         let randomIndex=parseInt(Math.random()*colorslen);
         return colorArray[randomIndex];
       }
+      Vue.prototype.getSpecialColor=function(){
+        let bgs=['#247BA0','#70C1B3','#B2DBBF','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#B5838D','#E5989B'];
+        return this.getColor(bgs);
+      },
       Vue.prototype.getRandomStr=function(strLength) {
         let str = "";
         let randomCharArr=[];

@@ -18,12 +18,14 @@
           }
       },
       created(){
+        this.setSFoldersState(false);
         this.selectCurLinkItem('/wordgame');
         console.log("wordgame");
       },
       methods:{
         ...mapMutations({
-          selectCurLinkItem:'routerdata/selectCurLinkItem'
+          selectCurLinkItem:'routerdata/selectCurLinkItem',
+          setSFoldersState:'wordset/setSFoldersState'
         }),
       }
     }

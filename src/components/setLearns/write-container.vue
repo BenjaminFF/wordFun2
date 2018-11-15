@@ -333,8 +333,12 @@
           let login_Info=this.getCookie("login_Info");
           let jsondata=JSON.stringify(writes);
           let username=JSON.parse(login_Info).username;
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
           this.axios.post("/api/updatewrites",{
             params: {
+              curTime:curTime,
+              nonce:nonce,
               username:username,
               jsondata:jsondata
             }

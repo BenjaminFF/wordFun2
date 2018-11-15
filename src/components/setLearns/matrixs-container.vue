@@ -4,7 +4,7 @@
       <matrix :term="m.term" v-on:dismiss="dismiss($event,index)"  v-for="(m,index) in roundcards"
                      :key="index" v-if="m.visibility" :maxdef="m.maxdef"
                      :definition="m.definition" class="matrix" :cellStyle="theme.cellStyle"
-              :style="{backgroundColor:m.bg}" :textColor="theme.textColor"></matrix>
+              :style="{backgroundColor:m.bg}" :textColor="theme.textColor" :bulbStyle="theme.bulb"></matrix>
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
         <div class="roundEnd" v-if="roundEnd.visibility" :style="{backgroundColor:roundEnd.bg,color:theme.textColor}">
           <div class="roundEnd-header">很赞，再接再厉！</div>
@@ -335,8 +335,12 @@
           let login_Info=this.getCookie("login_Info");
           let jsondata=JSON.stringify(matrixs);
           let username=JSON.parse(login_Info).username;
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
           this.axios.post("/api/updatematrixs",{
             params: {
+              curTime:curTime,
+              nonce:nonce,
               username:username,
               jsondata:jsondata
             }

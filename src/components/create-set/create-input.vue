@@ -67,7 +67,7 @@
       },
       created(){
           this.pStyle={
-            backgroundColor:this.randomColor(1),
+            backgroundColor:this.getSpecialColor(),
           }
           if(this.hasInitValue){             //如果input里面有初始值，就让term和def的hint为空
             this.termHint="";
@@ -179,7 +179,7 @@
     color: white;
   }
   .delete:hover{
-    color: var(--seablue);
+    color: black;
     cursor: pointer;
   }
 </style>

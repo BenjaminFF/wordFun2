@@ -5,15 +5,13 @@ import App from './App'
 import router from './router'
 import Icon from 'vue-svg-icon/Icon.vue'
 import VueI18n from 'vue-i18n'
-import vuescrollto from 'vue-scrollto'
 import store from './store'
 import basefunc from './baseFunc'
 import langStorage from './lang'
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 Vue.component('icon',Icon)
 Vue.use(VueI18n)
-Vue.use(vuescrollto)
 Vue.use(basefunc)
 
 /* eslint-disable no-new */

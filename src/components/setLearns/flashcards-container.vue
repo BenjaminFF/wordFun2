@@ -338,11 +338,15 @@
           let login_Info=this.getCookie("login_Info");
           let jsondata=JSON.stringify(flashes);
           let username=JSON.parse(login_Info).username;
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
           this.axios.post("/api/updateflashs",{
             params: {
+              curTime:curTime,
+              nonce:nonce,
               username:username,
               jsondata:jsondata
-            }
+            },
           }).then((res)=>{
             console.log(res);
           }).catch((err)=>{

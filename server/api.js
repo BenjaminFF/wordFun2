@@ -33,43 +33,111 @@ function queryData(value,res,column){
     });
 }
 
-function queryFolder(username,res) {
-  var sql='select * from folder where author=\''+username+"\'";
-  pool.query(sql,function (err,result) {
-    if(err){
-      console.log('[SELECT ERROR] - '+err.message)
-      res.send('err');
-      return;
+router.use((req,res,next)=> {                    //增删改set都需要有auth
+
+  let require_auth_urls=['/api/validate_auth','/api/pushSV','/api/deleteSet','/api/logout',
+  '/api/updateSV','/api/updateflashs','/api/updatematrixs','/api/updatewrites'];
+  let isAuthRequired=false;
+  for(let i=0;i<require_auth_urls.length;i++){
+    if(req.url==require_auth_urls[i]){
+      isAuthRequired=true;
+      break;
+    }
+  }
+  console.log(req.url+" isAuthRequired: "+isAuthRequired);
+
+  if(isAuthRequired){
+    let curTime=req.body.params.curTime;
+    let nonce=req.body.params.nonce;
+    let web_auth_key=req.cookies.web_auth_key;
+    let web_auth_value=req.cookies.web_auth_value;
+    if(curTime==undefined||nonce==undefined||web_auth_key==undefined||web_auth_value==undefined){
+      let data={
+        result:false,
+        info:'invalid params!'
+      }
+      res.send(JSON.stringify(data));
     }else {
-      if(result.length!=0){
-        res.send(result);
+      if(new Date().getTime()-curTime>=60*1000){
+        let data={
+          result:false,
+          info:'judged as reply attack because timeout!'
+        }
+        res.send(JSON.stringify(data));
         return;
       }
-    }
-  });
-}
 
-function insertdata(username,email,password,res){
-  var sql='insert into user(username,email,password) Values(\''+username+'\',\''+email+'\',\''
-         +password+'\')';
-  pool.query(sql,function (err, result) {
-    if(err){
-      console.log('[SELECT ERROR] - '+err.message)
-      return;
-    }else {
-      res.send('success');
+      let mClient=redis.createClient();
+      mClient.smembers("user_web_auth nonce",(err,replies)=>{
+        if(err){
+          let data={
+            result:false,
+            info:'unknown err'
+          }
+          res.send(JSON.stringify(data));
+          mClient.quit();
+          throw err;
+        }
+        for(let i=0;i<replies.length;i++){
+          if(nonce==replies[i]){
+            let data={
+              result:false,
+              info:'judged as reply attack because nonce repeat!'
+            }
+            res.send(JSON.stringify(data));
+            mClient.quit();
+            return;
+          }
+        }
+        mClient.sadd("user_web_auth nonce",nonce);
+        if(replies.length>=60*1000){        //假设一分钟最多有60000个请求
+          mClient.del("user_web_auth nonce");
+        }
+        //到这步排除重放攻击
+        mClient.get(web_auth_key,(err,reply)=>{
+          if(err){
+            let data={
+              result:false,
+              info:'unknown err'
+            }
+            res.send(JSON.stringify(data));
+            mClient.quit();
+            throw err;
+          }
+          if(reply==null){       //user_web_auth没有
+            let data={
+              result:false,
+              info:'web_auth is expired!'
+            }
+            res.send(JSON.stringify(data));
+          }else if(reply!=web_auth_value){
+            let data={
+              result:false,
+              info:'web_auth_value is incorrect!'
+            }
+            res.send(JSON.stringify(data));
+          }else {
+            next();
+          }
+          mClient.quit();
+        });
+      });
     }
-  });
-}
+  }else {
+    next();
+  }
+
+});
 
 router.get('/api/verifyname',function (req,res) {
   queryData(req.query.username,res,'username');
 });
 
 router.get('/api/verifyemail',function (req,res) {
-  escape(req.query.email);
+  encodeURIComponent(req.query.email);
   queryData(req.query.email,res,'email');
 });
+
 //先模拟以下，域名通过以后再完善发送邮箱
 router.post('/api/sendEmail',(req,res)=>{
   let curTime=new Date().getTime();
@@ -207,7 +275,7 @@ function signup_insertData(reqdata,res) {
       });
     });
   });
-}
+};
 
 function getRandomStr(strLength) {
   let str = "";
@@ -221,12 +289,15 @@ function getRandomStr(strLength) {
   for(let i=0;i<26;i++){
     randomCharArr.push(String.fromCharCode(i+97));
   }
+  for(let i=0;i<9;i++){
+    randomCharArr.push(i);
+  }
   for (let i = 0; i < strLength; i++) {
     let index=parseInt(Math.random()*randomCharArr.length)
     str +=randomCharArr[index];
   }
   return str;
-}
+};
 
 router.get('/api/captcha',(req,res)=>{
   var captcha = svgCaptcha.create({
@@ -244,6 +315,15 @@ router.get('/api/captcha',(req,res)=>{
   let mClient=redis.createClient();
   mClient.set(json.captchaKey,captcha.text,"EX",60*3);       //3分钟过期
   res.send(JSON.stringify(json));
+});
+
+router.post('/api/validate_auth',(req,res)=>{
+  //前面的验证中间件已经做了
+  let data={
+    result:true,
+    info:'validate_auth succeed!'
+  }
+  res.send(JSON.stringify(data));
 });
 
 router.post('/api/login',function (req,res) {
@@ -288,8 +368,7 @@ router.post('/api/login',function (req,res) {
             res.send(JSON.stringify(data));
             mClient.quit();
           }else {
-            let token=data.eu+data.nonce;
-            queryeup(decodeURIComponent(data.eu),data.pw,res,mClient,data.nonce);
+            queryeup(decodeURIComponent(data.eu),data.pw,res,mClient);
           }
         }
       });
@@ -299,7 +378,17 @@ router.post('/api/login',function (req,res) {
   }
 });
 
-function queryeup(eu,pw,res,mClient,nonce){
+router.post('/api/logout',(req,res)=>{
+  res.clearCookie("web_auth_key");
+  res.clearCookie("web_auth_value");
+  let web_auth_key=req.cookies.web_auth_key;
+  let mClient=redis.createClient();
+  mClient.del(web_auth_key);
+  mClient.quit();
+  res.send("delCookie succeed!");
+});
+
+function queryeup(eu,pw,res,mClient){
   var eusql='select * from user where username =? or email=?';
   pool.query(eusql,[eu,eu],function (err, result) {
     if(err){
@@ -315,8 +404,12 @@ function queryeup(eu,pw,res,mClient,nonce){
         return;
       }else {
         bcrypt.compare(pw,result[0].password,(err,compare_result)=>{
-          if(compare_result==true){      //如果密码正确，则保存token(跟随客户端一起传过来的，客户端下要保存在cookie中)，以便下次直接登陆
-            mClient.set(nonce,nonce,"EX",60*60*24*15);
+          if(compare_result==true){
+            let web_auth_key=result[0].username+getRandomStr(20);
+            let web_auth_value=getRandomStr(128);
+            res.cookie("web_auth_key",web_auth_key,{maxAge:60*1000*60*24*15,httpOnly:true});
+            res.cookie("web_auth_value",web_auth_value,{maxAge:60*1000*60*24*15,httpOnly:true});
+            mClient.set(web_auth_key,web_auth_value,"EX",60*60*24*15);    //15天过期
             let json={
               result:true,
               username:result[0].username
@@ -335,91 +428,132 @@ function queryeup(eu,pw,res,mClient,nonce){
       }
     }
   });
+};
+
+function EqualSet(arr,obj){            //createtime等，set就相等。一个set可以属于多个folder
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].createtime === obj.createtime) {
+      return true;
+    }
+  }
+  return false;
 }
 
-router.post('/api/validate_token',(req,res)=>{
-  let curTime=new Date().getTime();
-  let wprivatekey=fs.readFileSync('wprivatekey.pem');
-  var key=new nodersa(wprivatekey);
-  let reqdata=JSON.parse(key.decrypt(req.body.params.encryptdata,'utf8'));
-  if(reqdata.curTime-curTime<=60*1000){
-    let mClient=redis.createClient();
-    mClient.smembers("validate_token nonce",function(err,replies){
-      if(err) throw err;
-      for(let i=0;i<replies.length;i++){
-        if(replies[i]==reqdata.nonce){
-          res.send("illegal request");
-          mClient.quit();
-          return;
-        }
+router.get('/api/getwordsets',function (req,res) {
+  pool.query('select * from wordset where author=?',req.query.username,function (err, result) {
+    if (err) throw err;
+    let sets=[];
+    for(let i=0;i<result.length;i++){
+      if(!EqualSet(sets,result[i])){
+        sets.push(result[i]);
       }
-      mClient.sadd("validate_token nonce",reqdata.nonce);
-      //到了这步，就排除重放攻击
-      if(replies.length>=30*1000){
-        mClient.del("validate_token nonce");
-      }
-      let login_Info=JSON.parse(reqdata.login_Info);
-      mClient.get(login_Info.token,(err,reply)=>{
-        console.log(reply);
-        if(reply==null){
-          res.send("invalid key");
-          mClient.quit();
-          return;
-        }
-        console.log(reply);
-        let data={
-          result:true
-        }
-        res.send(JSON.stringify(data));
-        mClient.quit();
-      });
-    });
-  }else {
-    res.send("illegal request");
-  }
+    };
+    let obj={
+      sets:sets
+    }
+    let data=JSON.stringify(obj);
+    res.send(data);
+  });
 });
 
-router.post('/api/deltoken',(req,res)=>{
-  let curTime=new Date().getTime();
-  let wprivatekey=fs.readFileSync('wprivatekey.pem');
-  var key=new nodersa(wprivatekey);
-  let reqdata=JSON.parse(key.decrypt(req.body.params.encryptdata,'utf8'));
-  if(reqdata.nonce===undefined||reqdata.login_token===undefined||reqdata.curTime===undefined){
-    res.send("illegal request!");
-    return;
-  }
-  if(curTime-reqdata.curTime<60*1000){
-    let mClient=redis.createClient();
-    mClient.smembers("deltoken nonce",(err,replies)=>{
-      if(err){
-        res.send("err");
-        mClient.quit();
-        throw err;
+router.get('/api/getmCards',(req,res)=>{
+  let username=req.query.username;
+  let createTime=req.query.createTime;
+  let getCardsSql='select * from vocabulary where author=? and createtime=?';
+  pool.query(getCardsSql,[username,createTime],(err,result)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    let cards=[];
+    for(let i=0;i<result.length;i++){
+      let term=result[i].term;
+      let definition=result[i].definition;
+      let mmatrixed=result[i].mmatrixed;
+      let mwrited=result[i].mwrited;
+      let mflashed=result[i].mflashed;
+      let card={
+        vid:result[i].vid,
+        term:term,
+        definition:definition,
+        mmatrixed:mmatrixed,
+        mwrited:mwrited,
+        mflashed:mflashed,
       }
+      cards.push(card);
+    }
+    let data=JSON.stringify(cards);
+    res.send(data);
+  });
+});        //get mobile cards,里面的writed等记录不同
 
-      for(let i=0;i<replies.length;i++){
-        if(replies[i]==reqdata.nonce){
-          res.send("illegal request!");
-          mClient.quit();
-          return;
-        }
+router.get('/api/verifyfolder',(req,res)=>{
+  let username=req.query.username;
+  let title=req.query.title;
+  pool.query('select * from folder where author=? and title=?',[username,title],(err,result)=>{
+    if(err){
+      res.send('unknown err');
+      throw err;
+    }else {
+      let data={
+        created:false
       }
-
-      mClient.sadd("deltoken nonce",reqdata.nonce);
-
-      if(replies.length>30*1000){
-        mClient.del("deltoken nonce");
+      if(result[0]!=undefined){
+        data.created=true;
       }
-
-      let login_Info=JSON.parse(reqdata.login_Info);
-      mClient.del(login_Info.token);
-      mClient.quit();
-      res.send("del token succeed");
-    });
-  }
+      res.send(JSON.stringify(data));
+    }
+  });
 });
 
-router.post('/api/pushwordset',function (req,res) {
+router.get('/api/getFolders',(req,res)=>{
+  let username=req.query.author;
+  pool.query('select * from folder where author=?',[username],(err,result)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+
+    let folders=[];
+    for(let i=0;i<result.length;i++){
+      folders.push(result[i].title);
+    }
+
+    res.send(JSON.stringify(folders));
+  });
+});
+
+router.get('/api/getCards',(req,res)=>{
+  let username=req.query.username;
+  let createTime=req.query.createTime;
+  let getCardsSql='select * from vocabulary where author=? and createtime=?';
+  pool.query(getCardsSql,[username,createTime],(err,result)=>{
+    if(err){
+      res.send('err');
+      throw err;
+    }
+    let cards=[];
+    for(let i=0;i<result.length;i++){
+      let term=result[i].term;
+      let definition=result[i].definition;
+      let matrixed=result[i].matrixed;
+      let writed=result[i].writed;
+      let card={
+        vid:result[i].vid,
+        term:term,
+        definition:definition,
+        matrixed:matrixed,
+        writed:writed,
+        flashed:result[i].flashed
+      }
+      cards.push(card);
+    }
+    let data=JSON.stringify(cards);
+    res.send(data);
+  });
+});
+
+router.post('/api/pushSV',function (req,res) {          //push set,vocabulary
   let cards = JSON.parse(req.body.params.jsoncards);
   let wordset = JSON.parse(req.body.params.jsonwordset);
   let valuesarr = [];
@@ -460,96 +594,27 @@ router.post('/api/pushwordset',function (req,res) {
   })
 });
 
-router.get('/api/getwordset',function (req,res) {
-  pool.query('select * from wordset where author=?',req.query.username,function (err, result) {
-    if (err) throw err;
-    let sets=[];
-    for(let i=0;i<result.length;i++){
-      let set=result[i];
-      sets.push(set);
-    };
-    let obj={
-      sets:sets
-    }
-    let data=JSON.stringify(obj);
-    res.send(data);
-  });
-});
-
-router.get('/api/getCards',(req,res)=>{
-  let username=req.query.username;
-  let createTime=req.query.createTime;
-  let getCardsSql='select * from vocabulary where author=? and createtime=?';
-  pool.query(getCardsSql,[username,createTime],(err,result)=>{
-    if(err){
-      res.send('err');
-      throw err;
-    }
-    let cards=[];
-    for(let i=0;i<result.length;i++){
-      let term=result[i].term;
-      let definition=result[i].definition;
-      let matrixed=result[i].matrixed;
-      let writed=result[i].writed;
-      let card={
-        vid:result[i].vid,
-        term:term,
-        definition:definition,
-        matrixed:matrixed,
-        writed:writed,
-        flashed:result[i].flashed
-      }
-      cards.push(card);
-    }
-    let data=JSON.stringify(cards);
-    res.send(data);
-  });
-});
-
-router.get('/api/getmCards',(req,res)=>{
-  let username=req.query.username;
-  let createTime=req.query.createTime;
-  let getCardsSql='select * from vocabulary where author=? and createtime=?';
-  pool.query(getCardsSql,[username,createTime],(err,result)=>{
-    if(err){
-      res.send('err');
-      throw err;
-    }
-    let cards=[];
-    for(let i=0;i<result.length;i++){
-      let term=result[i].term;
-      let definition=result[i].definition;
-      let mmatrixed=result[i].mmatrixed;
-      let mwrited=result[i].mwrited;
-      let mflashed=result[i].mflashed;
-      let card={
-        vid:result[i].vid,
-        term:term,
-        definition:definition,
-        mmatrixed:mmatrixed,
-        mwrited:mwrited,
-        mflashed:mflashed,
-      }
-      cards.push(card);
-    }
-    let data=JSON.stringify(cards);
-    res.send(data);
-  });
-});        //get mobile cards,里面的writed等记录不同
-
 router.post('/api/deleteSet',(req,res)=>{
-  let createTime=req.body.params.createTime;
   let username=req.body.params.username;
+  let createTime=req.body.params.createTime;
+
   let dSetSql='delete from wordset where createtime=? and author=?';
   let dContentSql='delete from vocabulary where createtime=? and author=?';
 
   pool.getConnection((err,connection)=>{
-    if(err) throw err;
+    if(err) {
+      res.send('err');
+      throw err;
+    }
     connection.beginTransaction((err)=>{
-      if(err) throw err;
+      if(err) {
+        res.send('err');
+        throw err;
+      }
 
       connection.query(dSetSql,[createTime,username],(err)=>{
         if (err) {
+          res.send('err');
           return connection.rollback((error)=> {
             throw error;
           });
@@ -557,6 +622,7 @@ router.post('/api/deleteSet',(req,res)=>{
 
         connection.query(dContentSql,[createTime,username],(err)=>{
           if (err) {
+            res.send('err');
             return connection.rollback((error)=> {
               throw error;
             });
@@ -564,6 +630,7 @@ router.post('/api/deleteSet',(req,res)=>{
 
           connection.commit((err)=> {
             if (err) {
+              res.send('err');
               return connection.rollback((err)=> {
                 throw err;
               });
@@ -578,7 +645,7 @@ router.post('/api/deleteSet',(req,res)=>{
   })
 });
 
-router.post('/api/updatewordset',(req,res)=>{           //先将vocabulary里面的所有内容删除，然后再重新加,set可以用update
+router.post('/api/updateSV',(req,res)=>{           //先将vocabulary里面的所有内容删除，然后再重新加,set可以用update
   let setInfo=JSON.parse(req.body.params.jsonwordset);
   let cards=JSON.parse(req.body.params.jsoncards);
   let updateSetSql='update wordset set title=?,subtitle=?,folder=?,termCount=? where createtime=? and author=?';
@@ -706,7 +773,5 @@ router.post('/api/updatemflashs',(req,res)=>{
     res.send('multi update success');
   });
 });
-
-
 
 module.exports = router;

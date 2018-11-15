@@ -16,7 +16,8 @@
       <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut ">
         <div class="maxdef" v-if="showMaxDef" @click="showMaxDef=false" v-html="maxdef"></div>
       </transition>
-      <icon name="idea" class="idea-icon" @click.native="autoFill"></icon>
+      <icon name="idea" class="idea-icon" @click.native="autoFill" :style="{color:bulbColor}"
+      @mouseleave.native="bulbColor=bulbStyle.normal" @mouseenter.native="bulbColor=bulbStyle.active"></icon>
     </div>
   </transition>
 </template>
@@ -33,6 +34,7 @@
           size:0,
           showMaxDef:false,
           canUpdate:false,
+          bulbColor:''
         }
       },
       props:{
@@ -55,10 +57,15 @@
         textColor:{
           type:String,
           required:true
+        },
+        bulbStyle:{
+          type:Object,
+          required:true
         }
       },
       created(){
           this.canUpdate=true;       //初始化为true，如果启动了提示，就为false
+          this.bulbColor=this.bulbStyle.normal;
           this.initCells();
       },
       methods:{
@@ -239,7 +246,6 @@
   .idea-icon{
     width: 2rem;
     height: 2rem;
-    color:white;
     position: absolute;
     right: 1.5rem;
     bottom: 1.5rem;

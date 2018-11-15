@@ -47,6 +47,20 @@
             theme:{},
           }
       },
+      watch:{
+        flushState(){
+          if(this.flushState){
+            this.fetchData();
+            this.setFlushState(false);
+            console.log(this.flushState);
+          }
+        }
+      },
+      computed:{
+        ...mapState({
+          flushState:state=>state.wordset.flushState,
+        }),
+      },
       created(){
           this.theme=theme[this.themeName].setListT;
           this.toolStyle.bg=this.getColor(this.theme.itemBGs);
@@ -62,8 +76,8 @@
           let login_Info=this.getCookie("login_Info");
           let username=JSON.parse(login_Info).username;
           let curSet=JSON.parse(this.getCookie('curSet'));
-          this.header.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
-          this.header.subtitle=this.limitLength(curSet.subtitle,40,true);
+          this.header.title=decodeURIComponent(this.limitLength(curSet.title,40,true));     //title字数过长，影响视觉
+          this.header.subtitle=decodeURIComponent(this.limitLength(curSet.subtitle,100,true));
           let createTime=curSet.timeStamp;
           this.axios.get('/api/getCards', {
             params: {
@@ -111,12 +125,13 @@
           }
         },
         editToCreateSet(){
-          this.setCreateState(true);
           this.setCookie('createSetMode','edit',1);
-          this.$router.push('createcontainer');
+          this.showCreateSet();
         },
         ...mapMutations({
-          setCreateState:'wordset/setCreateState'
+          setCreateState:'wordset/setCreateState',
+          showCreateSet:'wordset/showCreateSet',
+          setFlushState:'wordset/setFlushState'
         }),
       },
       components: {SetItem, ListItem,WaitDialog},

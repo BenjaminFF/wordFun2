@@ -28,37 +28,30 @@ export default {
     }
   },
   created(){
+    console.log("App created");
     let login_Info=this.getCookie("login_Info");
     let currentPath=this.$router.currentRoute.fullPath;
     if(login_Info!=""){
-      this.axios.get("/static/wpublickey.pem").then((response)=>{
-        let key=new nodersa(response.data);
         let curTime=new Date().getTime();
-        let nonce=this.getRandomStr(5)+curTime;
-        let reqdata={
-          login_Info:login_Info,
-          curTime:curTime,
-          nonce:nonce
-        }
-        let jsondata=JSON.stringify(reqdata);
-        let encryptdata=key.encrypt(jsondata,'base64');
-        this.axios.post("/api/validate_token",{
+        let nonce=this.getRandomStr(10)+curTime;
+        this.axios.post("/api/validate_auth",{
           params: {
-            encryptdata:encryptdata
+            curTime:curTime,
+            nonce:nonce
           },
           timeout:10000,
         }).then((response)=>{
+          console.log(response.data);
           if(response.data.result){
             let data=JSON.parse(login_Info);
             this.username=data.username;
-            this.Loading=false;
             this.curComponent=UserPage;
             this.isDefaultPage=false;
           }
+          this.Loading=false;
         }).catch((error)=>{
           console.log(error);
         })
-      });
     }else {
       this.Loading=false;
     }
