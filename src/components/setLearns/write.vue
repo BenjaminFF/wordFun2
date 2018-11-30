@@ -147,7 +147,9 @@
     height: 100%;
     word-break: break-word;
     background-color: transparent;
+    font-family: inherit;
     font-size: 1.5rem;
+    font-weight: lighter;
     z-index: 10;
   }
 

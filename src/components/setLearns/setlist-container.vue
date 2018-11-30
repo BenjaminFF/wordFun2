@@ -74,7 +74,13 @@
         fetchData(){
           this.loading=true;
           let login_Info=this.getCookie("login_Info");
-          let username=JSON.parse(login_Info).username;
+          let username="";
+          if(login_Info!=""){
+            username=JSON.parse(login_Info).username;
+          }else {
+            let default_Info=this.getCookie("default_Info");
+            username=JSON.parse(default_Info).username;
+          }
           let curSet=JSON.parse(this.getCookie('curSet'));
           this.header.title=decodeURIComponent(this.limitLength(curSet.title,40,true));     //title字数过长，影响视觉
           this.header.subtitle=decodeURIComponent(this.limitLength(curSet.subtitle,100,true));

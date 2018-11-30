@@ -7,6 +7,7 @@ const fs=require('fs');
 const redis=require("redis");
 const svgCaptcha = require('svg-captcha');
 const bcrypt = require('bcrypt');
+const mail_transporter=require('./mail_transporter');
 
 function queryData(value,res,column){
     var sql='select * from user where '+ column + '= ?';
@@ -36,7 +37,8 @@ function queryData(value,res,column){
 router.use((req,res,next)=> {                    //增删改set都需要有auth
 
   let require_auth_urls=['/api/validate_auth','/api/pushSV','/api/deleteSet','/api/logout',
-  '/api/updateSV','/api/updateflashs','/api/updatematrixs','/api/updatewrites'];
+  '/api/updateSV','/api/updateflashs','/api/updatematrixs','/api/updatewrites',
+    '/api/pushFolder','/api/updateMatrixLearned','/api/updateWriteLearned'];
   let isAuthRequired=false;
   for(let i=0;i<require_auth_urls.length;i++){
     if(req.url==require_auth_urls[i]){
@@ -49,16 +51,22 @@ router.use((req,res,next)=> {                    //增删改set都需要有auth
   if(isAuthRequired){
     let curTime=req.body.params.curTime;
     let nonce=req.body.params.nonce;
+    let username=req.body.params.username;
     let web_auth_key=req.cookies.web_auth_key;
     let web_auth_value=req.cookies.web_auth_value;
-    if(curTime==undefined||nonce==undefined||web_auth_key==undefined||web_auth_value==undefined){
+    if(curTime==undefined||nonce==undefined||web_auth_key==undefined||web_auth_value==undefined||username==undefined){
       let data={
         result:false,
         info:'invalid params!'
       }
       res.send(JSON.stringify(data));
     }else {
-      if(new Date().getTime()-curTime>=60*1000){
+      if(username!=req.cookies.username){         //对比username,以免客户端随意修改login_info造成的破坏
+        let data={
+          result:false,
+          info:'username is not current username!'
+        }
+      }else if(new Date().getTime()-curTime>=60*1000){
         let data={
           result:false,
           info:'judged as reply attack because timeout!'
@@ -134,7 +142,6 @@ router.get('/api/verifyname',function (req,res) {
 });
 
 router.get('/api/verifyemail',function (req,res) {
-  encodeURIComponent(req.query.email);
   queryData(req.query.email,res,'email');
 });
 
@@ -142,7 +149,9 @@ router.get('/api/verifyemail',function (req,res) {
 router.post('/api/sendEmail',(req,res)=>{
   let curTime=new Date().getTime();
   let sendEmail_nonce=req.body.params.nonce;
-  let email=req.body.params.email;
+  let email=decodeURIComponent(req.body.params.email);
+  let captchaKey=req.body.params.captchaKey;
+  let captchaResText=req.body.params.captchaResText;
   if(curTime-req.body.params.curTime<60*1000){
     let mClient=redis.createClient();
     mClient.smembers("sendEmail_nonce",(err,replies)=>{
@@ -150,7 +159,10 @@ router.post('/api/sendEmail',(req,res)=>{
       let is_illegal=true;
       for(let i=0;i<replies.length;i++){
         if(sendEmail_nonce==replies[i]){
-          res.send("illegal request");
+          let data={
+            result:"illegal request!"
+          }
+          res.send(JSON.stringify(data));
           mClient.quit();
           return;
         }
@@ -160,16 +172,58 @@ router.post('/api/sendEmail',(req,res)=>{
       if(replies.length>30*1000){
           mClient.del("sendEmail_nonce");
       }
-      let key=email;
-      let randomCode=getRandomStr(6);
-      mClient.set(key,randomCode,"EX",60*60);        //1小时后过期
-      console.log(randomCode);
-      mClient.quit();
-      let data={
-          result:true
-      }
-      res.send(JSON.stringify(data));
-      //sendEmail...
+
+      mClient.get(captchaKey,(err,reply)=>{
+        if(err){
+          let data={
+            result:"unknown error"
+          }
+          res.send(JSON.stringify(data));
+          throw err;
+        }
+        if(reply==null){
+          let data={
+            result:"captcha expired"
+          }
+          res.send(JSON.stringify(data));
+          mClient.quit();
+        }else {
+          if(reply.toUpperCase()!=captchaResText.toUpperCase()){
+            let data={
+              result:"incorrect captcha"
+            }
+            res.send(JSON.stringify(data));
+            mClient.quit();
+          }else {
+            let key=email;
+            let randomCode=getRandomStr(6);
+            mClient.set(key,randomCode,"EX",60*60);        //1小时后过期
+            console.log(randomCode);
+            mClient.quit();
+            console.log(email);
+            let mailOptions = {
+              from: '"ewordfun" <990460889@qq.com>', // 发件人
+              to: email, // 收件人
+              subject: '注册邮件', // 主题
+              text: '欢迎使用ewordfun，注册码是'+randomCode, // plain text body
+            };
+
+            mail_transporter.sendMail(mailOptions,(error,info)=>{
+              if (error) {
+                let data={
+                  result:"send error"
+                }
+                res.send(JSON.stringify(data));
+                throw error;
+              }
+              let data={
+                result:"send success"
+              }
+              res.send(JSON.stringify(data));
+            });
+          }
+        }
+      });
     });
   }else {
     res.send("illegal request");
@@ -202,7 +256,7 @@ router.post('/api/signup',function (req,res) {
         mClient.del("signup nonce");
       }
 
-      mClient.get(reqdata.email,(err,reply)=>{
+      mClient.get(decodeURIComponent(reqdata.email),(err,reply)=>{
         if(reply==null||reply.toUpperCase()!=reqdata.rCode.toUpperCase()){
           let data={
             result:false
@@ -284,16 +338,20 @@ function getRandomStr(strLength) {
     randomCharArr.push(String.fromCharCode(i+48));
   }
   for(let i=0;i<26;i++){
-    randomCharArr.push(String.fromCharCode(i+65));
+    if(i!=8&&i!=11){
+      randomCharArr.push(String.fromCharCode(i+65));
+    }
   }
   for(let i=0;i<26;i++){
-    randomCharArr.push(String.fromCharCode(i+97));
+    if(i!=8&&i!=11){
+      randomCharArr.push(String.fromCharCode(i+97));
+    }
   }
   for(let i=0;i<9;i++){
     randomCharArr.push(i);
   }
   for (let i = 0; i < strLength; i++) {
-    let index=parseInt(Math.random()*randomCharArr.length)
+    let index=parseInt(Math.random()*randomCharArr.length);
     str +=randomCharArr[index];
   }
   return str;
@@ -368,7 +426,7 @@ router.post('/api/login',function (req,res) {
             res.send(JSON.stringify(data));
             mClient.quit();
           }else {
-            queryeup(decodeURIComponent(data.eu),data.pw,res,mClient);
+            queryeup(data.eu,data.pw,res,mClient);
           }
         }
       });
@@ -409,6 +467,7 @@ function queryeup(eu,pw,res,mClient){
             let web_auth_value=getRandomStr(128);
             res.cookie("web_auth_key",web_auth_key,{maxAge:60*1000*60*24*15,httpOnly:true});
             res.cookie("web_auth_value",web_auth_value,{maxAge:60*1000*60*24*15,httpOnly:true});
+            res.cookie("username",result[0].username,{maxAge:60*1000*60*24*15,httpOnly:true});
             mClient.set(web_auth_key,web_auth_value,"EX",60*60*24*15);    //15天过期
             let json={
               result:true,
@@ -551,6 +610,24 @@ router.get('/api/getCards',(req,res)=>{
     let data=JSON.stringify(cards);
     res.send(data);
   });
+});
+
+router.post('/api/pushFolder',(req,res)=>{
+  let username=req.body.params.username;
+  let title=req.body.params.title;
+  let intro=req.body.params.intro;
+  let folder={
+    title:title,
+    author:username,
+    intro:intro
+  }
+  pool.query('insert into folder set ?',folder,(err)=>{
+    if(err){
+      res.send('unknown err');
+      throw err;
+    }
+    res.send('pushFolder succeed');
+  })
 });
 
 router.post('/api/pushSV',function (req,res) {          //push set,vocabulary
@@ -732,6 +809,34 @@ router.post('/api/updateflashs',(req,res)=>{
   let flashes=JSON.parse(req.body.params.jsondata);
   let author=req.body.params.username;
   multiUpdate(flashes,author,"flashed",res);
+});
+
+router.post('/api/updateMatrixLearned',(req,res)=>{
+  let author=req.body.params.username;
+  let createTime=req.body.params.createTime;
+  pool.query("update wordset set matrixLearnedCount=matrixLearnedCount+1 where author=? and createtime=?",
+    [author,createTime],(err,result)=>{
+    if(err){
+      res.send("err");
+      throw err;
+    }else {
+      res.send('updateMatrixLearned succeed!');
+    }
+  })
+});       //matrix完成学习次数
+
+router.post('/api/updateWriteLearned',(req,res)=>{
+  let author=req.body.params.username;
+  let createTime=req.body.params.createTime;
+  pool.query("update wordset set writeLearnedCount=writeLearnedCount+1 where author=? and createtime=?",
+    [author,createTime],(err,result)=>{
+      if(err){
+        res.send("err");
+        throw err;
+      }else {
+        res.send('updateWriteLearned succeed!');
+      }
+    })
 });
 
 router.post('/api/updatematrixs',(req,res)=>{

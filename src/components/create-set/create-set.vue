@@ -84,7 +84,10 @@
                 initTermText:"",
                 initDefText:"",
                 hasInitValue:false,
-                visibility:false                //注意，这里visibility用来开始结束动画
+                visibility:true,                //注意，这里visibility用来开始结束动画
+                matrixed:false,                        //用来记录单词矩阵中单个item的状态
+                writed:false,                      //用来记录拼写中单词的状态
+                flashed:false
               }
               timestamp++;
               items.push(item);
@@ -119,7 +122,10 @@
                     initTermText:term,
                     initDefText:definition,
                     hasInitValue:true,
-                    visibility:false
+                    visibility:true,
+                    matrixed:response.data[i].matrixed, //用来记录单词矩阵中单个item的状态
+                    writed:response.data[i].writed,     //用来记录拼写中单词的状态
+                    flashed:response.data[i].flashed,
                   }
                   cards.push(card);
                 }
@@ -128,10 +134,6 @@
               .catch(function (error) {
                 console.log(error);
               });
-          }
-
-          for(let i=0;i<this.items.length;i++){
-            this.items[i].visibility=true;
           }
           setTimeout(()=>{
             this.showAddButton=true;
@@ -149,7 +151,10 @@
               initTermText:"",
               initDefText:"",
               hasInitValue:false,
-              visibility:true
+              visibility:true,
+              matrixed:false,                        //用来记录单词矩阵中单个item的状态
+              writed:false,                      //用来记录拼写中单词的状态
+              flashed:false
             }
             this.items.push(item);
             let vm=this;
@@ -191,7 +196,10 @@
               initTermText:"",
               initDefText:"",
               hasInitValue:false,
-              visibility:true
+              visibility:true,
+              matrixed:false,                        //用来记录单词矩阵中单个item的状态
+              writed:false,                      //用来记录拼写中单词的状态
+              flashed:false
             }
             this.items.splice(index+1,0,item);
             this.$nextTick(()=>{
@@ -330,13 +338,19 @@
           let login_Info=this.getCookie("login_Info");
           let author=JSON.parse(login_Info).username;
           let postUrl='';
-          let createtime=null;       //时间轴作为标识
+          let writeLearnedCount=0;
+          let matrixLearnedCount=0;
+          let folder="all";
+          let createtime="";
           if(this.getCookie('createSetMode')=='edit'){
             postUrl='/api/updateSV';
             let curSet=JSON.parse(this.getCookie('curSet'));
             createtime=curSet.timeStamp;
-            curSet.title=title;
-            curSet.subtitle=subtitle;
+            writeLearnedCount=curSet.writeLearnedCount;
+            matrixLearnedCount=curSet.matrixLearnedCount;
+            folder=curSet.folder;
+            curSet.title=this.title;
+            curSet.subtitle=this.subtitle;
             this.setCookie('curSet',JSON.stringify(curSet),1);    //要更新，因为title,subtitle可能会变
           }else if(this.getCookie('createSetMode')=='create'){
             postUrl='/api/pushSV';
@@ -344,29 +358,36 @@
           }
           for(let i=0;i<this.items.length;i++){
             let vid=this.items[i].timestamp;
+            let matrixed=this.items[i].matrixed;
+            let flashed=this.items[i].flashed;
+            let writed=this.items[i].writed;
+            //card属性顺序不能改变
             let card={
               vid:vid,
               term:encodeURIComponent(this.items[i].termText),
               definition:encodeURIComponent(this.items[i].defText),
               author:author,
-              createtime:createtime,                  //这是它所属的单词集合的相同的createtime
-              matrixed:false,                        //用来记录单词矩阵中单个item的状态
-              writed:false,                      //用来记录拼写中单词的状态
+              createtime:createtime,    //这是它所属的单词集合的相同的createtime
+              matrixed:matrixed,       //用来记录单词矩阵中单个item的状态
+              writed:writed,           //用来记录拼写中单词的状态
               mmatrixed:false,
               mwrited:false,
               mflashed:false,
-              flashed:false,
+              flashed:flashed
             }
             cards.push(card);
           }
+          console.log(cards);
           let wordset={
             title:title,
             subtitle:subtitle,
             author:author,
             createtime:createtime,
-            folder:"all",
-            termCount:cards.length
-          }
+            folder:folder,
+            termCount:cards.length,
+            writeLearnedCount:writeLearnedCount,
+            matrixLearnedCount:matrixLearnedCount
+          };
           let jsoncards=JSON.stringify(cards);
           let jsonwordset=JSON.stringify(wordset);
           let curTime=new Date().getTime();
@@ -375,6 +396,7 @@
             params: {
               curTime:curTime,
               nonce:nonce,
+              username:author,
               jsoncards:jsoncards,
               jsonwordset:jsonwordset
             }

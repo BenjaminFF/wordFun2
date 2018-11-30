@@ -3,10 +3,9 @@ module.exports = {
     name: 'E'
   },
   defaultPage:{
-    welcome:'LogIn to explore more joy, join us!',
-    learnItemsText:["Set List","Matrix","Flashcards","Write"]
+    title:"Create set,Learn set!",
   },
-  sidebar: [/*'Latest Learning',*/ 'Your WordSet','CrossWord','Help Center','Folders','Create Folder'],
+  sidebar: [/*'Latest Learning',*/ 'Your WordSet','CrossWord','Help Center','Folder'],
   createFolder:['Create New Folder','title','intro',"CREATE","there's already have such a folder.","folder's title cannot be empty"],
   header:{
     create:'CREATE',
@@ -62,7 +61,7 @@ module.exports = {
       keyBoard:['Previous','Next',
         'Shuffle','Play','hide/showDef','Flip'],
     },
-    matrix:{endHeader:'Congratulations!<br>You learned all of them!',startOver:'RELEARN',shuffle:'shuffle'},
+    matrix:{endHeader:'Congratulations!<br>You learned all of them!',startOver:'RELEARN',shuffle:'SHUFFLE'},
     write:{typeAnswer:'TYPE YOUR ANSWER',round:'ROUND',progress:'PROGRESS'
       ,ya:'YOUR ANSWER: ',ra:'RIGHT ANSWER: ',noidea:'don\'t know',
       continue:'Press Any Key To Continue!',learnEnd:'Congratulation!You finished them All!',reLearn:'START OVER'}

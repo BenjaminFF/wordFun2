@@ -1,9 +1,8 @@
 <template>
     <div class="word-sets">
-      <input class="set-filter" placeholder="filter sets there..."
-             v-on:input="filterSets($event)"/>
+      <input class="set-filter" placeholder="filter sets there..." v-on:input="filterSets($event)"/>
       <div class="out-container">
-        <wait-dialog :text="'W'" :color="'var(--seablue)'" style="margin-left: -1rem" v-if="!setinited"></wait-dialog>
+        <wait-dialog :text="'W'" :color="'var(--seablue)'" style="margin-left: -5rem" v-if="!setinited"></wait-dialog>
         <div class="inner-container">
         <transition-group leave-active-class="animated fadeOutLeft" :duration="{ leave: 500 }"
           enter-active-class="animated fadeInRightBig">
@@ -73,32 +72,56 @@
         },
         filterSets(event){
           let text=event.target.value;
+          console.log(text);
           if(text==""||this.sets.length==0){
             this.items=this.sets;
             return;
           }
-          let regex=new RegExp(text,'i');
-          let newItems=[];
-          for(let i=0;i<this.sets.length;i++){
-            if(regex.test(decodeURIComponent(this.sets[i].title))){
-              newItems.push(this.sets[i]);
+
+          if(text.substring(0,1)=='$'){
+            this.items=this.sets;
+            if(/learnStateDes/i.test(text)||(new RegExp(encodeURIComponent("学习情况降序"))).test(encodeURIComponent(text))){
+              console.log("gg");
+              this.items.sort((item1,item2)=>{
+                return item2.writeLearnedCount+item2.matrixLearnedCount-item1.writeLearnedCount-item1.matrixLearnedCount;
+              });
+            }else if(/learnStateAsc/i.test(text)||(new RegExp(encodeURIComponent("学习情况升序"))).test(encodeURIComponent(text))){
+              this.items.sort((item2,item1)=>{
+                return item2.writeLearnedCount+item2.matrixLearnedCount-item1.writeLearnedCount-item1.matrixLearnedCount;
+              });
+            }else {
+              this.items.sort(function (item1, item2) {
+                return item2.timeStamp - item1.timeStamp;
+              });
             }
+          } else {
+            let regex = new RegExp(text, 'i');
+            let newItems = [];
+            for (let i = 0; i < this.sets.length; i++) {
+              if (regex.test(decodeURIComponent(this.sets[i].title))) {
+                newItems.push(this.sets[i]);
+              }
+            }
+            newItems.sort(function (item1, item2) {
+              return item2.timeStamp - item1.timeStamp;
+            });
+            this.items = newItems;
           }
-          newItems.sort(function (item1,item2) {
-            return item2.timeStamp-item1.timeStamp;
-          });
-          this.items=newItems;
         },
         getDealedSet(wordset){
           let title=decodeURIComponent(wordset.title);
           let subtitle=decodeURIComponent(wordset.subtitle);
           let termCount=wordset.termCount;
           let timeStamp=wordset.createtime;
+          let writeLearnedCount=wordset.writeLearnedCount;
+          let matrixLearnedCount=wordset.matrixLearnedCount;
           let item={
             title:title,
             subtitle:subtitle,
             termCount:termCount,
-            timeStamp:timeStamp
+            timeStamp:timeStamp,
+            writeLearnedCount:writeLearnedCount,
+            matrixLearnedCount:matrixLearnedCount
           }
           return item;
         },
@@ -109,11 +132,17 @@
             let subtitle=decodeURIComponent(wordsets[i].subtitle);
             let termCount=wordsets[i].termCount;
             let timeStamp=wordsets[i].createtime;
+            let writeLearnedCount=wordsets[i].writeLearnedCount;
+            let matrixLearnedCount=wordsets[i].matrixLearnedCount;
+            let folder=wordsets[i].folder;
             let item={
               title:title,
               subtitle:subtitle,
               termCount:termCount,
-              timeStamp:timeStamp
+              timeStamp:timeStamp,
+              folder:folder,
+              writeLearnedCount:writeLearnedCount,
+              matrixLearnedCount:matrixLearnedCount
             }
             items.push(item);
           }
@@ -160,19 +189,20 @@
   .set-filter{
     width: 30rem;
     line-height: 2rem;
-    font-family: "HandWritting1","PingFang XI","PingFang3";
     background-color: transparent;
     outline: none;
     border: 0px;
     border-bottom: 2px solid var(--tealdeer);
     margin-bottom: 2rem;
-    font-size: 1.5rem;
     color: var(--vermilion);
     margin-left: 0.5rem;
+    font-family: inherit;
+    font-weight: lighter;
+    font-size: 1.3rem;
   }
 
   .out-container{
-    width: 32rem;
+    width: 42rem;
     overflow: hidden;
     position: relative;
   }
@@ -181,14 +211,6 @@
     height: 22rem;
     overflow-x: hidden;
     overflow-y: scroll;
-  }
-
-  .set-tools{
-    margin: 0.5rem 0.5rem 1rem;
-    width: 30rem;
-    height: fit-content;
-    display: flex;
-    justify-content: space-between;
   }
 
   .set-item{

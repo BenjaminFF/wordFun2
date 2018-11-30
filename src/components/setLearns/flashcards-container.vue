@@ -122,7 +122,11 @@
       },
       destroyed(){
         console.log("flashcards-container destroyed");
-        this.updateflashedtoServer();      //在离开flashcards的时候更新数据
+        let login_Info=this.getCookie("login_Info");
+        if(login_Info!="") {
+          this.updateflashedtoServer();      //在离开flashcards的时候更新数据
+        }
+
       },
       methods:{
         banTab(e){
@@ -138,7 +142,13 @@
           this.loading=true;
           this.curIndex=0;
           let login_Info=this.getCookie("login_Info");
-          let username=JSON.parse(login_Info).username;
+          let username="";
+          if(login_Info!=""){
+            username=JSON.parse(login_Info).username;
+          }else {
+            let default_Info=this.getCookie("default_Info");
+            username=JSON.parse(default_Info).username;
+          }
           let curSet=JSON.parse(this.getCookie('curSet'));
           this.title=this.limitLength(curSet.title,40,true);     //title字数过长，影响视觉
           this.subtitle=this.limitLength(curSet.subtitle,40,true);

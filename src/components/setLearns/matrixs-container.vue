@@ -26,14 +26,14 @@
             <path d="M30 50 A50 50 0 1 1 130 50" class="round-pgb-path"
                   :style="{'stroke-dasharray':roundData.totalLen,'stroke-dashoffset':roundData.offset,stroke:theme.circleStroke}"></path>
             <text x="80" y="50" class="round-percentage" :style="{fill:theme.sideItemColor}">{{roundData.text}}</text>
-            <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.round')}}</text>
+            <text x="80" y="80" style="font-size: 0.6rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.round')}}</text>
           </svg>
           <svg class="progress-pgb" viewBox="0 0 160 80">
             <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-bg" :style="{stroke:theme.circleBG}"></path>
             <path d="M30 50 A50 50 0 1 1 130 50" class="progress-pgb-path"
                   :style="{'stroke-dasharray':pgData.totalLen,'stroke-dashoffset':pgData.offset,stroke:theme.circleStroke}"></path>
             <text x="80" y="50" class="round-percentage" :style="{fill:theme.sideItemColor}">{{pgData.text}}</text>
-            <text x="80" y="80" style="font-size: 0.8rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.progress')}}</text>
+            <text x="80" y="80" style="font-size: 0.6rem;text-anchor: middle;" :style="{fill:theme.sideItemColor}">{{$t('setLearn.write.progress')}}</text>
           </svg>
         </div>
         <div class="fc-side-item" :style="{backgroundColor:theme.sideItemBG,color:theme.sideItemColor}" @click="relearn">
@@ -82,8 +82,10 @@
           this.fetchData();
       },
       destroyed(){
-          console.log("matrixs-container destroyed");
+        let login_Info=this.getCookie("login_Info");
+        if(login_Info!="") {
           this.updatematrixedToServer();
+        }
       },
       methods: {
         banTab(e){
@@ -117,7 +119,7 @@
           this.roundEnd={
             visibility:false,
             bg:bg
-          }
+          };
           this.learnEnd={
             visibility:false,
             bg:bg
@@ -212,7 +214,13 @@
         fetchData() {
           this.initMatrixContainer();
           let login_Info=this.getCookie("login_Info");
-          let username=JSON.parse(login_Info).username;
+          let username="";
+          if(login_Info!=""){
+            username=JSON.parse(login_Info).username;
+          }else {
+            let default_Info=this.getCookie("default_Info");
+            username=JSON.parse(default_Info).username;
+          }
           let curSet = JSON.parse(this.getCookie('curSet'));
           let createTime = curSet.timeStamp;
           this.axios.get('/api/getCards', {
@@ -224,7 +232,6 @@
             .then((response) => {
               this.initCards(response.data);
               this.initPGB(response.data.length);
-              console.log(this.roundcards);
               setTimeout(()=>{
                 this.loading=false;
               },500);
@@ -254,7 +261,10 @@
         },
         showNext(nextIndex) {
           if(this.matrixedLen==this.pgData.cardsLen){   //表示全部单词过完
-            this.learnEnd.visibility=true;
+            setTimeout(()=>{
+              this.learnEnd.visibility=true;
+            },1000);
+            this.updateMatrixLearnedCountToServer();
             return;
           }
 
@@ -271,6 +281,26 @@
               this.roundcards[nextIndex].visibility=true;
             },500);
           }
+        },
+        updateMatrixLearnedCountToServer(){
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
+          let curSet = JSON.parse(this.getCookie('curSet'));
+          let createTime = curSet.timeStamp;
+          this.axios.post("/api/updateMatrixLearned",{
+            params:{
+              curTime:curTime,
+              nonce:nonce,
+              username:username,
+              createTime:createTime
+            }
+          }).then((response)=>{
+            console.log(response.data);
+          }).catch((error)=>{
+            throw error;
+          });
         },
         pressKeyToContinue(){
           if(this.canPressAnyKey){
@@ -354,7 +384,7 @@
           this.loading=true;
           this.matrixedLen=0;
           if(this.learnEnd.visibility){
-            this.learnEnd=false;
+            this.learnEnd.visibility=false;
           }else if(this.roundEnd.visibility){
             this.roundEnd.visibility=false;
           }else {

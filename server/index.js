@@ -22,4 +22,7 @@ app.use(express.static(path.resolve(__dirname,'../dist')));
 
 app.use(api);
 
-app.listen(8088);
+app.listen(8080);
+
+
+

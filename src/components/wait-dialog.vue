@@ -31,6 +31,7 @@
     justify-content: center;
     z-index: 20;
     align-items: center;
+    background-color: white;
   }
   .loading{
     position: absolute;

@@ -5,7 +5,8 @@ const state={
   },
   flushState:false,          //用来返回createSet后刷新wordset
   ddState:false,             //delete dialog state
-  showSFolders:false         //用来决定sidebar folders是否显示
+  showSFolders:false,         //用来决定sidebar folders是否显示
+  flushFolder:false
 }
 
 const mutations={

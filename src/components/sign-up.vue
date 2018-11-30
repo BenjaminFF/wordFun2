@@ -5,14 +5,16 @@
           <div class="dialog-container">
             <div class="dialog-front" :style="{transform:'rotateY('+signupInfo.frontDeg+'deg)'}" v-if="signupInfo.frontVisibility">
               <div class="dialog-front-container">
-                <ani-input :font-size="1.3" :title="$t('SignUp.basic[0]')" :hint="nameInfo.hint" v-on:keyup.enter="turnCard"
+                <ani-input :font-size="1.1" :title="$t('SignUp.basic[0]')" :hint="nameInfo.hint" v-on:keyup.enter="turnCard"
                            v-on:input="nameListener" :validate="nameInfo.Validated" @keydown.native="banInput($event,nameInfo,25)"></ani-input>
-                <ani-input :font-size="1.3" :title="$t('SignUp.basic[1]')" :hint="emailInfo.hint" v-on:keyup.enter="turnCard"
+                <ani-input :font-size="1.1" :title="$t('SignUp.basic[1]')" :hint="emailInfo.hint" v-on:keyup.enter="turnCard"
                            :validate="emailInfo.Validated"  v-on:input="emailListener" @keydown.native="banInput($event,emailInfo,30)"></ani-input>
-                <ani-input :font-size="1.3" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true" v-on:keyup.enter="turnCard"
+                <ani-input :font-size="1.1" :title="$t('SignUp.basic[2]')" :hint="pwInfo.hint" :security="true" v-on:keyup.enter="turnCard"
                            v-on:input="pwListener" :validate="pwInfo.Validated" @keydown.native="banInput($event,pwInfo,30)"
                 ></ani-input>
-                <my-button :font-size="1.2" class="button" @click.native="turnCard">{{$t('SignUp.basic[3]')}}</my-button>
+                <ani-input :title="$t('LogIn.basic[4]')" :fontSize="1.1" :hint="captchaStyleInfo.hint"
+                           v-on:input="captchaListener" v-on:keyup.enter="turnCard" :show-captcha="true"></ani-input>
+                <my-button :font-size="1.1" class="button" @click.native="turnCard">{{nextInfo.text}}</my-button>
                 <icon name="cross" class="rtimg" @click.native="dismiss($event)"></icon>
               </div>
             </div>
@@ -28,6 +30,7 @@
           </div>
         </div>
         <my-toast :text="$t('SignUp.basic[6]')" v-if="showToast"></my-toast>
+        <my-toast :text="$t('SignUp.emailHint[0]')" v-if="nextInfo.showToast"></my-toast>
       </div>
   </transition>
 </template>
@@ -37,6 +40,7 @@
     import MyButton from "./my-button";
     import nodersa from "node-rsa"
     import MyToast from "./my-toast";
+    import {mapMutations,mapState} from 'vuex';
     export default {
         name: "sign-up",
       data(){
@@ -47,11 +51,19 @@
             rCodeInfo:{},
             isShow:this.showSU,
             signupInfo:{},
-            showToast:false
+            showToast:false,
+            nextInfo:{},
+            captchaStyleInfo:{},
           }
       },
       created(){
           this.init();
+      },
+      computed:{
+        ...mapState({
+          captchaResText:state=>state.captcha.captchaResText,
+          captchaInfo:state=>state.captcha.captchaInfo
+        }),
       },
       watch:{
           showSU:function () {
@@ -60,6 +72,17 @@
       },
       methods:{
         init(){
+          this.captchaStyleInfo={
+            value:"",
+            hint:{
+              text:"",
+              color:'red',
+            }
+          }
+          this.nextInfo={
+            text:this.$t('SignUp.basic[3]'),
+            showToast:false
+          };
           this.nameInfo={
                     value:"",
                     Validated:false,
@@ -114,6 +137,11 @@
             }
           },
         /*假定用户1s完成输入，双手离开键盘，然后判断用户名,1s之内只判断一次*/
+        captchaListener(event){
+          this.captchaStyleInfo.value=event.target.innerHTML;
+          this.setCaptchaResText(event.target.innerHTML);
+          console.log(this.captchaResText);
+        },
         nameListener(event){
             if(event.target.textContent!=undefined){
               this.nameInfo.value=event.target.textContent;       //兼容火狐
@@ -288,7 +316,14 @@
               this.pwInfo.hint.text=this.$t('SignUp.pwHint[2]');
             }
             elementList[2].focus();
-          }else {
+          }else if(this.captchaStyleInfo.value==""){
+            this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[2]');
+            this.captchaStyleInfo.hint.color="red";
+            setTimeout(()=> {
+              this.captchaStyleInfo.hint.text="";
+            },2000);
+            elementList[2].focus();
+          }else{
             result=true;
           }
           return result;
@@ -297,18 +332,35 @@
           let curTime=new Date().getTime();
           let nonce=this.getRandomStr(30);
           if(this.basicValidate()){
+            this.nextInfo.text+='...';
             if(!this.signupInfo.isSendingEmail){        //同步，上一个请求完后才能进行下一个请求
               this.signupInfo.isSendingEmail=true;
               this.axios.post('/api/sendEmail',{       //保证发送email的唯一性
                 params:{
                   curTime:curTime,
                   email:encodeURIComponent(this.emailInfo.value),
-                  nonce:nonce
+                  nonce:nonce,
+                  captchaKey:this.captchaInfo.captchaKey,
+                  captchaResText:this.captchaResText
                 }
               }).then((response)=>{
-                this.signupInfo.isSendingEmail=false;
+                let resdata=response.data;
+                this.nextInfo.text=this.$t('SignUp.basic[3]');
                 console.log(response.data.result);
-                if(response.data.result){
+                this.signupInfo.isSendingEmail=false;
+                if(resdata.result=="captcha expired"){
+                  this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[0]');
+                  this.captchaStyleInfo.hint.color="red";
+                  setTimeout(()=> {
+                    this.captchaStyleInfo.hint.text="";
+                  },2000);
+                }else if(resdata.result=="incorrect captcha"){
+                  this.captchaStyleInfo.hint.text=this.$t('LogIn.captchaHint[1]');
+                  this.captchaStyleInfo.hint.color="red";
+                  setTimeout(()=> {
+                    this.captchaStyleInfo.hint.text="";
+                  },2000);
+                }else if(resdata.result=="send success"){
                   this.signupInfo.backVisibility=true;
                   setTimeout(()=>{
                     this.signupInfo.frontDeg=180;
@@ -317,15 +369,17 @@
                   setTimeout(()=>{
                     this.signupInfo.frontVisibility=false;
                   },800);
-                }else {
+                }else if(resdata.result=="send error"){
                   //不合格的邮箱
+                  this.nextInfo.showToast=true;
                   console.log("invalid email");
+                }else {
+                  console.log("unknow error");
                 }
               }).catch((err)=>{
                 if(err) throw  err;
               });
             }
-
           }
         },
         rCodeListener(event){
@@ -399,6 +453,10 @@
             this.init();
           }
         },
+        ...mapMutations({
+          setCaptchaInfo:'captcha/setCaptchaInfo',
+          setCaptchaResText:'captcha/setCaptchaResText',
+        }),
       },
       props:{
           showSU:{
@@ -457,7 +515,7 @@
   }
   .dialog-front-container{
     width: 80%;
-    margin-top: 5rem;
+    margin-top: 3rem;
   }
 
   .dialog-back{

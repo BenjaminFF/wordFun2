@@ -1,52 +1,82 @@
 <template>
     <div class="default-page">
       <div class="default-page-container">
-        <div class="learn-container">
-          <div class="learn-item" v-for="(item,index) in learnItems">
-            <div class="learn-item-content" :style="{backgroundColor:item.bg}">
-              <icon :name="item.iconName" class="learn-item-icon"></icon>
-              <div class="learn-item-text">{{$t("defaultPage.learnItemsText["+index+"]")}}</div>
-            </div>
-          </div>
+        <div class="title">{{$t('defaultPage.title')}}</div>
+        <div class="item-container">
+          <transition-group leave-active-class="animated bounceOutDown"
+                            enter-active-class="animated bounceInUp">
+            <set-item class="set-item" @click.native="setItemClick(item)" :isDefaultPage="true"
+                      v-for="(item,index) in items" :item="item" :key="index"></set-item>
+          </transition-group>
         </div>
       </div>
+      <set-learn v-if="showSetLearn" v-on:dismiss="showSetLearn=false" :isDefaultPage="true"></set-learn>
     </div>
 </template>
 
 <script>
     import {mapMutations} from 'vuex';
+    import SetItem from "./sidebaritems/set-item";
+    import SetLearn from "./setLearns/set-learn";
     export default {
         name: "default-page",
-      components: {},
+      components: {SetLearn, SetItem},
       data(){
           return{
-            learnItems:[]
+            items:[],
+            showSetLearn:false
           }
       },
       created(){
+        console.log("default page created");
         this.initDefaultPage();
         this.setCreateState(true);           //默认界面隐藏create按钮
       },
       methods:{
         initDefaultPage(){
-          let learnItems=[];
-          let iconNames=["list","matrix","flashcards","write"];
-          let itemBGs=['#247BA0','#70C1B3','#B2DBBF','#FF1654','#2EC4B6','#FF9F1C','#9BC53D','#5BC0EB','#E55934'];
-          let learnItemsText=this.$t('defaultPage.learnItemsText');
-          for(let i=0;i<4;i++){
-            let bg=this.getColor(itemBGs);
-            if(i!=0){
-              while (bg==learnItems[i-1].bg){
-                bg=this.getColor(itemBGs);
-              }
+          this.fetchData();
+        },
+        fetchData(){
+          let default_Info=JSON.parse(this.getCookie("default_Info"));
+          let username=default_Info.username;
+          this.axios.get('/api/getwordsets', {
+            params: {
+              username:username
             }
+          })
+            .then((response)=>{
+              this.items=this.getDealedSets(response.data.sets);
+            }).catch((error)=> {
+            console.log(error);
+          });
+        },
+        setItemClick(item){
+          this.setCookie('curSet',JSON.stringify(item),1);          //curSet存到cookie中，因为刷新后在set-learn中获取不到state.curSet
+          this.showSetLearn=true;
+        },
+        getDealedSets(wordsets){
+          let items=[];
+          for(let i=0;i<wordsets.length;i++){
+            let title=decodeURIComponent(wordsets[i].title);
+            let subtitle=decodeURIComponent(wordsets[i].subtitle);
+            let termCount=wordsets[i].termCount;
+            let timeStamp=wordsets[i].createtime;
+            let writeLearnedCount=wordsets[i].writeLearnedCount;
+            let matrixLearnedCount=wordsets[i].matrixLearnedCount;
             let item={
-              iconName:iconNames[i],
-              bg:bg,
+              title:title,
+              subtitle:subtitle,
+              termCount:termCount,
+              timeStamp:timeStamp,
+              writeLearnedCount:writeLearnedCount,
+              matrixLearnedCount:matrixLearnedCount
             }
-            learnItems.push(item);
+            items.push(item);
           }
-          this.learnItems=learnItems;
+          items.sort(function (item1,item2) {
+            return item2.timeStamp-item1.timeStamp;
+          });
+          return items;
         },
         ...mapMutations({
           setCreateState:'wordset/setCreateState'
@@ -63,51 +93,33 @@
 
   .default-page-container{
     width: 100%;
-    height: 100%;
+    height: fit-content;
     display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .learn-container{
-    display: grid;
-    grid-template-columns: repeat(2,18rem);
-    grid-template-rows: repeat(2,12rem);
-    position: absolute;
-  }
-
-  .learn-item{
-    width: auto;
-    height: auto;
-    margin: 10px;
-  }
-
-  .learn-item-content{
-    width: 100%;
-    height: 100%;
-    background-color: green;
-    border-radius: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
     flex-direction: column;
-    cursor: pointer;
+    align-items: center;
+    justify-content: space-between;
   }
 
-  .learn-item-content:hover{
-    box-shadow: 1px 1px 15px #b9b9b9;
-  }
-
-  .learn-item-icon{
-    width: 4rem;
-    height: 4rem;
-  }
-
-  .learn-item-text{
-    margin-top: 1rem;
+  .title{
+    font-size: 1.8rem;
+    color: #3c9cd7;
+    margin-top: 2rem;
+    letter-spacing: 5px;
     width: fit-content;
     height: fit-content;
-    font-size: 2rem;
   }
+
+  .subtitle{
+    font-size: 1.2rem;
+    height: fit-content;
+  }
+
+  .item-container{
+    margin-top: 3rem;
+  }
+
+  .set-item{
+    margin: 0.5rem 0.5rem 2rem;
+  }
+
 </style>

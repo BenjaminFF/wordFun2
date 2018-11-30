@@ -49,7 +49,7 @@
     left: 0;
     top: 0;
     z-index: 10000;
-    background-color: white;
+    background-color: #fff9f2;
   }
 
   .return{

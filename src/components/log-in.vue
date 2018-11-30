@@ -136,7 +136,7 @@
                           this.captchaStyleInfo.hint.text="";
                         },2000);
                       }else if(resdata.result=='empty'){      //用户不存在
-                        this.euInfo.hint.text=that.$t('LogIn.ueHint[1]');
+                        this.euInfo.hint.text=this.$t('LogIn.ueHint[1]');
                         this.euInfo.hint.color="red";
                         setTimeout(()=> {
                           this.euInfo.hint.text="";

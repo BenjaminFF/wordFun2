@@ -6,10 +6,14 @@
     <transition enter-active-class="animated fadeIn" leave-active-class="animated fadeOut">
       <div class="folder" v-if="showSFolders">
         <div class="folder-header">{{$t('sidebar[3]')}}</div>
-        <div class="folder-item" v-for="folder in dealFolders" :class="{active:folder.selected}" @click="selectFolder(folder)">
-          {{folder.title}}
+        <div class="folder-container">
+          <div class="folder-inner-container">
+            <div class="folder-item" v-for="folder in dealFolders" :class="{active:folder.selected}" @click="selectFolder(folder)">
+              {{folder.title}}
+            </div>
+          </div>
+          <icon name="down" v-if="showScrollIcon" class="fc-down-icon" @mousedown.native="scrollFolder()"></icon>
         </div>
-        <div class="folder-item" @click="createFolder.showModel=true">{{$t('sidebar[4]')}}</div>
       </div>
     </transition>
     <transition enter-active-class="fadeIn" v-on:after-enter="createFolder.showDialog=true">
@@ -21,7 +25,7 @@
             <ani-input :title="$t('createFolder[1]')" :fontSize="1.5" v-on:input="cfTitleListener"
                        :validate="createFolder.title.Validated" :hint="createFolder.title.hint"></ani-input>
             <ani-input :title="$t('createFolder[2]')" :fontSize="1.5" v-on:input="createFolder.intro.value=$event.target.innerHTML"></ani-input>
-            <my-button :fontSize="1.2" class="cf-dialog-button" @click.native="createFolderToServer">{{$t('createFolder[3]')}}</my-button>
+            <my-button :fontSize="1.2" class="cf-dialog-button" @click.native="createFolderToServer">{{createFolder.createBText}}</my-button>
           </div>
         </div>
       </div>
@@ -33,6 +37,7 @@
   import { mapState,mapMutations,mapGetters} from 'vuex';
   import AniInput from "./ani-input";
   import MyButton from "./my-button";
+  import $ from 'jquery'
     export default {
         name: "my-sidebar",
       components: {MyButton, AniInput},
@@ -43,9 +48,10 @@
               showModel:false,
               showDialog:false,
               title:{},
-              intro:{}
-            }
-
+              intro:{},
+              createBText:'',
+            },
+            showScrollIcon:false
           }
       },
       created(){
@@ -54,12 +60,17 @@
       methods:{
         init(){
           this.initLinkitems();
+          this.initFolder();
+          let currentPath=this.$router.currentRoute.fullPath;
+          this.selectCurLinkItem(currentPath);
+        },
+        initFolder(){
           let login_Info=this.getCookie("login_Info");
           let username=JSON.parse(login_Info).username;
           this.getFoldersFromServer(username);
-          let currentPath=this.$router.currentRoute.fullPath;
-          this.selectCurLinkItem(currentPath);
-
+          if(this.dealFolders.length>3){
+            this.showScrollIcon=true;
+          }
           this.createFolder.title={
             value:"",
             Validated:false,
@@ -72,6 +83,7 @@
           this.createFolder.intro={
             value:"",
           }
+          this.createFolder.createBText=this.$t('createFolder[3]');
         },
         cfTitleListener(event){
           if(event.target.textContent!=undefined){
@@ -116,7 +128,38 @@
           })
         },
         createFolderToServer(){
-          console.log(this.createFolder.intro.value);
+          var inputList=document.querySelectorAll(".input");
+          if(!this.createFolder.title.Validated){
+            inputList[0].focus();
+            return;
+          }
+          this.createFolder.createBText+="...";
+          let title=this.createFolder.title.value;
+          let intro=this.createFolder.intro.value;
+          if(title.length>100){
+            title=title.substring(0,100);
+          }
+          if(intro.length>512){
+            intro=intro.substring(0,512);
+          }
+          let login_Info=this.getCookie("login_Info");
+          let username=JSON.parse(login_Info).username;
+          let curTime=new Date().getTime();
+          let nonce=this.getRandomStr(10)+curTime;
+          this.axios.post('/api/pushFolder',{
+            params:{
+              curTime:curTime,
+              nonce:nonce,
+              username:username,
+              title:encodeURIComponent(title),
+              intro:encodeURIComponent(intro)
+            }
+          }).then((response)=>{
+            this.initFolder();
+            this.createFolder.showModel=false;
+          }).catch((error)=>{
+
+          });
         },
         getFoldersFromServer(author){
           this.axios.get('/api/getFolders',{
@@ -131,7 +174,6 @@
         },
         getDealFolders(folders){
           let dealFolders=[];
-          let count=0;
           for(let i=0;i<folders.length;i++){
             if(folders[i]!="all"){
               let title=folders[i];
@@ -139,16 +181,19 @@
                 title=title.substring(0,15)+"...";
               }
               let folder={
-                title:folders[i],
+                title:decodeURIComponent(title),
                 selected:false,
               }
               dealFolders.push(folder);
-              if(count++==3){      //最多显示三个
-                break;
-              }
             }
           }
           return dealFolders;
+        },
+        scrollFolder(){
+          console.log('gg');
+          let container=document.querySelector(".folder-inner-container");
+          let scrollTop= container.scrollTop;
+          $('.folder-inner-container').animate({scrollTop:scrollTop+=40});
         },
         selectFolder(folder){
           for(let i=0;i<this.dealFolders.length;i++){
@@ -198,7 +243,7 @@
   }
   .itemtitle{
     text-decoration: none;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     color: var(--lightblue);
   }
   .itemtitle:hover{
@@ -220,6 +265,23 @@
     color: var(--seablue);
   }
 
+  .folder-container{
+    width: 8rem;
+    overflow: hidden;
+  }
+
+  .fc-add-icon{
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .folder-inner-container{
+    width: 110%;
+    height: 6rem;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+
   .folder-item{
     font-size: 1rem;
     display: flex;
@@ -229,6 +291,17 @@
   }
 
   .folder-item:hover{
+    color: var(--seablue);
+  }
+
+  .fc-down-icon{
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: 2rem;
+    color: var(--lightblue);
+  }
+
+  .fc-down-icon:hover{
     color: var(--seablue);
   }
 

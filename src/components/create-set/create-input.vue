@@ -85,7 +85,6 @@
             {
               input:function (event) {
                 if(event.target.className=='term'){
-                  console.log(event.target.innerText);
                   vm.$emit('update:termText',event.target.innerText);
                 }else if(event.target.className=='definition'){
                   vm.$emit('update:defText',event.target.innerText);

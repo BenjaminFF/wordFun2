@@ -114,7 +114,12 @@
           }
         },
         backClick(){
-          this.$router.push('/wordsets');
+          if(this.getCookie("login_Info")==""){
+            this.$emit("dismiss");
+          }else {
+            console.log(this.getCookie("login_info"));
+            this.$router.push('/wordsets');
+          }
         },
         itemClick(item){
           if(item.selected){

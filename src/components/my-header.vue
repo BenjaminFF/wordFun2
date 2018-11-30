@@ -1,13 +1,13 @@
 <template>
     <div class="header">
-      <p class="title"><a href="/">WordFun</a></p>
+      <p class="title"><a href="/">eWordFun</a></p>
       <div class="addws" v-if="!defaultPage"
                    @click="createSet">
         <icon name="addws" class="addwsicon"></icon>
         {{$t('header.create')}}
       </div>
       <div class="default" v-if="defaultPage">
-        <p @click="showSU=true">{{$t('header.user[0]')}}</p>
+        <p @click="signup">{{$t('header.user[0]')}}</p>
         <p @click="showLogin">{{$t('header.user[1]')}}</p>
       </div>
       <div class="user" v-if="!defaultPage" @click="showUserFunc">{{username}}
@@ -63,6 +63,14 @@
         createSet(){
           this.setCookie("createSetMode","create");
           this.showCreateSet();
+        },
+        signup(){
+          this.axios.get("/api/captcha").then((response)=>{
+            this.setCaptchaInfo(response.data);
+            this.showSU=true;
+          }).catch((err)=>{
+            throw err;
+          });
         },
         showLogin(){                  //打开login dialog时刷新验证码
           this.axios.get("/api/captcha").then((response)=>{

@@ -34,17 +34,19 @@ export default {
     if(login_Info!=""){
         let curTime=new Date().getTime();
         let nonce=this.getRandomStr(10)+curTime;
+        let username=JSON.parse(login_Info).username;
         this.axios.post("/api/validate_auth",{
           params: {
             curTime:curTime,
-            nonce:nonce
+            nonce:nonce,
+            username:username
           },
           timeout:10000,
         }).then((response)=>{
           console.log(response.data);
           if(response.data.result){
             let data=JSON.parse(login_Info);
-            this.username=data.username;
+            this.username=decodeURIComponent(data.username);
             this.curComponent=UserPage;
             this.isDefaultPage=false;
           }
@@ -53,6 +55,10 @@ export default {
           console.log(error);
         })
     }else {
+        let default_Info={
+          username:"default"
+        }
+        this.setCookie("default_Info",JSON.stringify(default_Info));
       this.Loading=false;
     }
   },
@@ -72,8 +78,8 @@ export default {
 <style>
   @import  '../node_modules/animate.css/animate.css';
   :root{
-    --seablue: #0b8691;
-    --lightblue: rgba(11, 141, 152, 0.51);
+    --seablue: #0ca3af;
+    --lightblue: rgba(12, 177, 189, 0.4);
     --tealdeer:#86E7B8;
     --celestialblue:#3C9CD7;
     --wintergreen:#4A9180;
@@ -89,10 +95,11 @@ export default {
   body,html{
     width: 100%;
     height: 100%;
-    background-color: #f3f3f3;
+    background-color: #ffffff;
     overflow: hidden;
-    font-family: "HandWritting1","PingFang SC";
+    font-family: "Microsoft YaHei","Microsoft JhengHei UI";
     font-size: 1.3rem;
+    font-weight: 300;
   }
   body,div,p{
     margin: 0;
@@ -147,10 +154,6 @@ export default {
     font-size: 2rem;
   }
 
-  @font-face {
-    font-family: HandWritting1;
-    src: url("./assets/font/handwritting1.ttf") format("opentype");
-  }
   @keyframes rotate
   {
     from {transform: rotate(0deg)}
