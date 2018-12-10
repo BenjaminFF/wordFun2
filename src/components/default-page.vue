@@ -37,18 +37,20 @@
           this.fetchData();
         },
         fetchData(){
-          let default_Info=JSON.parse(this.getCookie("default_Info"));
-          let username=default_Info.username;
-          this.axios.get('/api/getwordsets', {
-            params: {
-              username:username
-            }
-          })
-            .then((response)=>{
-              this.items=this.getDealedSets(response.data.sets);
-            }).catch((error)=> {
-            console.log(error);
-          });
+          if(this.getCookie("default_Info")!=""){
+            let default_Info=JSON.parse(this.getCookie("default_Info"));
+            let username=default_Info.username;
+            this.axios.get('/api/getwordsets', {
+              params: {
+                username:username
+              }
+            })
+              .then((response)=>{
+                this.items=this.getDealedSets(response.data.sets);
+              }).catch((error)=> {
+              console.log(error);
+            });
+          }
         },
         setItemClick(item){
           this.setCookie('curSet',JSON.stringify(item),1);          //curSet存到cookie中，因为刷新后在set-learn中获取不到state.curSet

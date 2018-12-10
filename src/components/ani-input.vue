@@ -9,7 +9,6 @@
       <div class="captcha" :style="imgStyle" v-if="showCaptcha" @click="clickCaptcha" v-html="captchaInfo.captchaData">
       </div>
       <div class="ani-bb" :style="bbStyle"></div>
-
     <div class="hint" v-bind:style="hintStyle">{{hint.text}}</div>
   </div>
 </template>
@@ -272,5 +271,6 @@
   }
   .security{
     -webkit-text-security:disc;
+
   }
 </style>

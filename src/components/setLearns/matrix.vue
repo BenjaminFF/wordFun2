@@ -18,6 +18,8 @@
       </transition>
       <icon name="idea" class="idea-icon" @click.native="autoFill" :style="{color:bulbColor}"
       @mouseleave.native="bulbColor=bulbStyle.normal" @mouseenter.native="bulbColor=bulbStyle.active"></icon>
+      <icon class="voice" name="voice" @click.native="sayDef()" :style="{color:voiceColor}"
+            @mouseleave.native="voiceColor=bulbStyle.normal" @mouseenter.native="voiceColor=bulbStyle.active"></icon>
     </div>
   </transition>
 </template>
@@ -34,7 +36,8 @@
           size:0,
           showMaxDef:false,
           canUpdate:false,
-          bulbColor:''
+          bulbColor:'',
+          voiceColor:''
         }
       },
       props:{
@@ -66,6 +69,7 @@
       created(){
           this.canUpdate=true;       //初始化为true，如果启动了提示，就为false
           this.bulbColor=this.bulbStyle.normal;
+          this.voiceColor=this.bulbStyle.normal;
           this.initCells();
       },
       methods:{
@@ -150,7 +154,18 @@
               this.$emit('dismiss',this.canUpdate);
             },500);
           }
-        }
+        },
+        sayDef(){
+          //window.speechSynthesis.cancel();
+          if(responsiveVoice.isPlaying()){
+            responsiveVoice.cancel();
+          }
+          responsiveVoice.speak(this.filterVoiceText(this.maxdef));
+          /*setTimeout(()=>{
+            let utterThis = new window.SpeechSynthesisUtterance(this.defText);
+            window.speechSynthesis.speak(utterThis);
+          },500);*/
+        },
       }
     }
 </script>
@@ -261,5 +276,14 @@
     right: 0.2rem;
     bottom: 0.2rem;
     font-size: 0.6rem;
+  }
+  .voice{
+    width: 1.5rem;
+    height: 1.5rem;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    cursor: pointer;
+    color: white;
   }
 </style>

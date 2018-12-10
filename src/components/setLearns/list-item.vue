@@ -24,7 +24,7 @@
           if(responsiveVoice.isPlaying()){
             responsiveVoice.cancel();
           }
-          responsiveVoice.speak(this.termText);
+          responsiveVoice.speak(this.filterVoiceText(this.termText));
           setTimeout(()=>{
             /*let utterThis = new window.SpeechSynthesisUtterance(this.termText);
             window.speechSynthesis.speak(utterThis);*/
@@ -36,11 +36,11 @@
           if(responsiveVoice.isPlaying()){
             responsiveVoice.cancel();
           }
-          responsiveVoice.speak(this.defText);
-          setTimeout(()=>{
-            /*let utterThis = new window.SpeechSynthesisUtterance(this.defText);
-            window.speechSynthesis.speak(utterThis);*/
-          },500);
+          responsiveVoice.speak(this.filterVoiceText(this.defText));
+          /*setTimeout(()=>{
+            let utterThis = new window.SpeechSynthesisUtterance(this.defText);
+            window.speechSynthesis.speak(utterThis);
+          },500);*/
         },
         sayAll(){
           /*window.speechSynthesis.cancel();

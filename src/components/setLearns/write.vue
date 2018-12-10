@@ -26,6 +26,7 @@
         <icon name="noidea" class="noidea-icon"></icon>
         {{$t('setLearn.write.noidea')}}
       </div>
+      <icon class="voice" name="voice" @click.native="sayDef()" :style="{color:textColor}"></icon>
     </div>
 </template>
 
@@ -74,7 +75,18 @@
           },
           showAnswer() {
               this.showWrongHint = true;
+          },
+        sayDef(){
+          //window.speechSynthesis.cancel();
+          if(responsiveVoice.isPlaying()){
+            responsiveVoice.cancel();
           }
+          responsiveVoice.speak(this.filterVoiceText(this.maxdef));
+          /*setTimeout(()=>{
+            let utterThis = new window.SpeechSynthesisUtterance(this.defText);
+            window.speechSynthesis.speak(utterThis);
+          },500);*/
+        },
       },
       props:{
         term:{
@@ -105,7 +117,7 @@
   .container{
     width: 100%;
     height: 100%;
-    padding: 3rem 2rem;
+    padding: 3rem 3rem;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -216,5 +228,14 @@
     width: 1rem;
     height: 1.2rem;
     cursor: pointer;
+  }
+  .voice{
+    width: 1.5rem;
+    height: 1.5rem;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    cursor: pointer;
+    color: white;
   }
 </style>

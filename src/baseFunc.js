@@ -92,5 +92,12 @@
           str +=randomCharArr[index];
         }
         return str;
-      }
+      },
+        Vue.prototype.filterVoiceText=function (text) {
+          let newText=text.replace("e.g.","for example ");
+          newText=newText.replace("v."," verb ");
+          newText=newText.replace(new RegExp("[.~]","gm")," ");
+          newText=newText.replace(new RegExp("<br>","gm"),"");
+          return newText;
+        }
   }
