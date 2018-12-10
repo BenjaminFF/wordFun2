@@ -3,7 +3,7 @@ var pool=mysql.createPool({
   connectionLimit : 10,
   host            : 'localhost',
   user            : 'root',
-  password        : 'Iamaman886.',
+  password        : 'Iamaman',
   database        : 'wordfun',
   port: '3306',
   multipleStatements: true

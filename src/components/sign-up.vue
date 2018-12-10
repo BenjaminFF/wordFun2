@@ -489,7 +489,7 @@
   }
   .dialog{
     width: 30rem;
-    height: 90%;
+    height: 35rem;
     position: relative;
   }
   .dialog-container{

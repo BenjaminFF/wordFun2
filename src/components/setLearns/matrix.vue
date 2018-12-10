@@ -184,15 +184,13 @@
 
   .def-container{
     width: 100%;
-    height: 30%;
+    height: 40%;
     font-size: 1.5rem;
     color: white;
     word-break: break-word;
+    margin-top: 1rem;
     overflow: hidden;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
     cursor: pointer;
     margin-bottom: 1.5rem;
     user-select: none;

@@ -224,7 +224,7 @@
   }
   .dialog{
     width: 30rem;
-    height: 95%;
+    height: 35rem;
     background-color: white;
     box-shadow: 1px 1px 10px #c3c3c3;
     display: flex;
